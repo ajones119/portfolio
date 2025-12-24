@@ -1,0 +1,56 @@
+---
+import SnakeCanvas from './SnakeCanvas.astro';
+---
+<div id="header-card" class="group p-6 flex flex-col justify-between size-full relative">
+    <!-- Snake Canvas - hidden by default -->
+    <div id="snake-canvas-wrapper" class="hidden absolute inset-0 z-0">
+        <SnakeCanvas />
+    </div>
+    
+    <!-- Content -->
+    <div class="relative z-10">
+        <h2 class="split text-5xl md:text-6xl font-bold font-abril-fatface mb-4 tracking-wider">Aramis Jones</h2>
+        <p class="text-lg font-playfair-display text-muted">
+            Building elegant solutions through code. Creating meaningful digital experiences.
+        </p>
+    </div>
+    
+    <div class="relative z-10 flex items-end justify-between">
+        <p class="text-sm text-muted border-t border-primary pt-4">
+            Design Philosophy
+        </p>
+        
+        <!-- Toggle button - hidden on mobile, fades in on scroll -->
+        <button 
+            id="snake-toggle-btn" 
+            class="hidden lg:block opacity-0 p-2 rounded-full border-2 border-tertiary bg-background/80 hover:bg-tertiary hover:text-background text-tertiary transition-colors duration-300 cursor-pointer"
+            aria-label="Toggle Snake Game"
+            title="Toggle Snake Game"
+        >
+            <!-- Icon when canvas is hidden -->
+            <svg id="snake-toggle-icon-show" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="3" width="18" height="18" rx="2"/>
+                <path d="M9 9h6v6H9z"/>
+            </svg>
+            <!-- Icon when canvas is visible -->
+            <svg id="snake-toggle-icon-hide" class="hidden" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M18 6L6 18M6 6l12 12"/>
+            </svg>
+        </button>
+    </div>
+</div>
+
+<style>
+    /* Canvas always visible for debugging */
+    /* TODO: Re-enable hover behavior later */
+</style>
+
+<script>
+    import { initHeaderCard, initCanvas } from './HeaderCard';
+    
+    // Wait for window load to ensure fonts are loaded
+    window.addEventListener('load', () => {
+        initHeaderCard();
+        initCanvas();
+    });
+</script>

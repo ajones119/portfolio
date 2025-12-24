@@ -1,0 +1,111 @@
+---
+const {
+  id = "",
+  name = "",
+  label = "",
+  placeholder = "",
+  value,
+  type = "text",
+  required = false,
+  disabled = false,
+  className = "",
+  autocomplete = "off",
+  onInput = undefined,
+  onChange = undefined,
+  onBlur = undefined,
+  onFocus = undefined,
+  inputMode = undefined,
+  spellcheck = undefined,
+} = Astro.props;
+---
+
+<div class={`text-input-container ${className}`}>
+  {label && <label for={id} class="text-input-label">{label}</label>}
+  <input
+    type={type}
+    id={id}
+    name={name || id}
+    placeholder={placeholder}
+    value={value}
+    required={required}
+    disabled={disabled}
+    autocomplete={autocomplete}
+    inputmode={inputMode}
+    spellcheck={spellcheck}
+    oninput={onInput}
+    onchange={onChange}
+    onblur={onBlur}
+    onfocus={onFocus}
+    class="text-input"
+  />
+</div>
+
+<style>
+  .text-input-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .text-input-container.w-full {
+    width: 100%;
+    max-width: none;
+  }
+
+  .text-input-container:not(.w-full) {
+    width: 100%;
+    max-width: 28rem;
+  }
+
+  .text-input-label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--color-muted);
+    transition: color 0.2s ease;
+    font-family: var(--font-lato);
+  }
+
+  .text-input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+    font-family: var(--font-lato);
+    color: var(--color-primary);
+    background: var(--color-background);
+    border: 2px solid var(--color-quaternary);
+    border-radius: 8px;
+    outline: none;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  .text-input::placeholder {
+    color: var(--color-muted);
+    opacity: 0.6;
+  }
+
+  .text-input:hover:not(:disabled) {
+    border-color: var(--color-tertiary);
+  }
+
+  .text-input:focus {
+    border-color: var(--color-secondary);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  }
+
+  .text-input:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: var(--color-quaternary);
+  }
+
+  /* Autofill styling */
+  .text-input:-webkit-autofill,
+  .text-input:-webkit-autofill:hover,
+  .text-input:-webkit-autofill:focus {
+    -webkit-box-shadow: 0 0 0 1000px var(--color-background) inset;
+    -webkit-text-fill-color: var(--color-primary);
+    transition: background-color 5000s ease-in-out 0s;
+  }
+</style>
+

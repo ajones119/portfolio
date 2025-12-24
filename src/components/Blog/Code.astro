@@ -1,0 +1,35 @@
+---
+interface Props {
+	language?: string;
+	filename?: string;
+}
+
+const { language = 'javascript', filename } = Astro.props;
+---
+
+<div class="my-6">
+	{filename && (
+		<div class="text-xs text-muted mb-2 font-mono px-4 py-2 bg-quinary/20 border-b border-quinary/30">
+			{filename}
+		</div>
+	)}
+	<pre class="bg-quinary/10 border-2 border-quinary rounded-lg p-4 overflow-x-auto"><code class={`language-${language}`}><slot /></code></pre>
+</div>
+
+<style>
+	pre {
+		font-family: 'Courier New', monospace;
+		font-size: 0.875rem;
+		line-height: 1.6;
+	}
+	
+	code {
+		color: var(--color-primary);
+	}
+	
+	pre code {
+		display: block;
+		white-space: pre;
+	}
+</style>
+

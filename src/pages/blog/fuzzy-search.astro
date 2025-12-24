@@ -1,0 +1,1206 @@
+---
+import BlogPost from '../../components/Blog/BlogPost.astro';
+import Code from '../../components/Blog/Code.astro';
+import TextInput from '../../components/Blog/TextInput.astro';
+import BasicButton from '../../components/Blog/BasicButton.astro';
+
+const booksModule = await import("../../data/ComputerBooks.json");
+const fuzzyModule = await import("../../scripts/FuzzySearch.ts");
+const fruitNamesModule = await import("../../data/Fruits.json");
+
+type DatasetEntry = {
+	title: string;
+	subtitle?: string;
+	author?: string;
+	year?: number;
+};
+
+const computerBooks = (booksModule.default ?? booksModule) as DatasetEntry[];
+const booksJson = JSON.stringify(computerBooks).replace(/<\/script>/g, "<\\/script>");
+const fruitNames = (fruitNamesModule.default ?? fruitNamesModule) as string[];
+const fruitRecords = fruitNames.map((name) => ({ title: name }));
+
+const fruitQuery = "berry";
+const fruitExamples = {
+	contains: fuzzyModule.searchContains(fruitRecords, fruitQuery).slice(0, 3),
+	hamming: fuzzyModule.searchHamming(fruitRecords, fruitQuery).slice(0, 3),
+	levenshtein: fuzzyModule.searchLevenshtein(fruitRecords, fruitQuery).slice(0, 3),
+	jaroWinkler: fuzzyModule.searchJaroWinkler(fruitRecords, fruitQuery).slice(0, 3),
+	damerau: fuzzyModule.searchDamerauLevenshtein(fruitRecords, fruitQuery).slice(0, 3)
+};
+
+const codeSnippets = {
+	contains: `function searchContains(text, query) {
+	const normalized = text.toLowerCase();
+	const normalizedQuery = query.toLowerCase();
+	return normalized.includes(normalizedQuery);
+}
+
+// Example: searchContains("Elderberry", "berry") → true`,
+	hamming: `function hammingDistance(needle, haystack) {
+	if (needle.length !== haystack.length) {
+		return Infinity;
+	}
+	
+	let distance = 0;
+	for (let i = 0; i < needle.length; i++) {
+		if (needle[i] !== haystack[i]) {
+			distance++;
+		}
+	}
+	return distance;
+}
+
+// Sliding window to find best match
+function slidingHamming(needle, haystack) {
+	let bestDistance = Infinity;
+	for (let offset = 0; offset <= haystack.length - needle.length; offset++) {
+		const segment = haystack.slice(offset, offset + needle.length);
+		const distance = hammingDistance(needle, segment);
+		if (distance < bestDistance) {
+			bestDistance = distance;
+			if (bestDistance === 0) break;
+		}
+	}
+	return bestDistance;
+}`,
+	levenshtein: `// Memory-optimized version: O(min(n,m)) space instead of O(n*m)
+function levenshteinDistance(source, target, maxDistance = Infinity) {
+	// Early exit if length difference exceeds threshold
+	if (Math.abs(source.length - target.length) > maxDistance) {
+		return Infinity;
+	}
+	
+	// KEY OPTIMIZATION: Use shorter string for rows to minimize memory
+	// This reduces space from O(n*m) to O(min(n,m))
+	if (source.length > target.length) {
+		[source, target] = [target, source];
+	}
+	
+	// KEY OPTIMIZATION: Only store 2 rows instead of full matrix
+	// Naive approach: const matrix = Array(n+1).fill(Array(m+1)) // O(n*m) space
+	// Optimized: only need previous and current row // O(min(n,m)) space
+	const previousRow = new Array(source.length + 1).fill(0);
+	const currentRow = new Array(source.length + 1).fill(0);
+	
+	// Initialize first row: distance from empty string
+	for (let i = 0; i <= source.length; i++) {
+		previousRow[i] = i;
+	}
+	
+	// Fill matrix row by row, reusing the two-row buffer
+	for (let row = 1; row <= target.length; row++) {
+		currentRow[0] = row;
+		let rowMin = currentRow[0];
+		
+		for (let col = 1; col <= source.length; col++) {
+			const cost = source[col - 1] === target[row - 1] ? 0 : 1;
+			
+			// Standard DP recurrence: min of 3 operations
+			currentRow[col] = Math.min(
+				previousRow[col] + 1,      // deletion
+				currentRow[col - 1] + 1,    // insertion
+				previousRow[col - 1] + cost // substitution
+			);
+			
+			rowMin = Math.min(rowMin, currentRow[col]);
+		}
+		
+		// Early termination if row minimum exceeds threshold
+		if (rowMin > maxDistance) {
+			return Infinity;
+		}
+		
+		// Swap rows: current becomes previous for next iteration
+		// This reuses memory instead of allocating new rows
+		for (let i = 0; i <= source.length; i++) {
+			previousRow[i] = currentRow[i];
+		}
+	}
+	
+	return previousRow[source.length];
+}
+
+// Example: levenshteinDistance("kitten", "sitting") → 3
+// Memory: O(6) instead of O(42) for full matrix`,
+	jaroWinkler: `function jaroWinklerSimilarity(source, target, prefixScale = 0.1) {
+	if (!source.length || !target.length) return 0;
+	if (source === target) return 1;
+	
+	// Match window: characters within this distance can match
+	const matchDistance = Math.floor(Math.max(source.length, target.length) / 2) - 1;
+	const sourceMatches = new Array(source.length).fill(false);
+	const targetMatches = new Array(target.length).fill(false);
+	
+	// Find matching characters
+	let matches = 0;
+	for (let i = 0; i < source.length; i++) {
+		const start = Math.max(0, i - matchDistance);
+		const end = Math.min(i + matchDistance + 1, target.length);
+		
+		for (let j = start; j < end; j++) {
+			if (targetMatches[j] || source[i] !== target[j]) continue;
+			sourceMatches[i] = true;
+			targetMatches[j] = true;
+			matches++;
+			break;
+		}
+	}
+	
+	if (!matches) return 0;
+	
+	// Count transpositions (characters that match but are out of order)
+	let transpositions = 0;
+	for (let i = 0, j = 0; i < source.length; i++) {
+		if (!sourceMatches[i]) continue;
+		while (!targetMatches[j]) j++;
+		if (source[i] !== target[j]) transpositions++;
+		j++;
+	}
+	transpositions /= 2;
+	
+	// Calculate Jaro similarity
+	const jaro = (
+		matches / source.length +
+		matches / target.length +
+		(matches - transpositions) / matches
+	) / 3;
+	
+	// Winkler modification: boost score for common prefix
+	let prefixLength = 0;
+	const maxPrefix = Math.min(4, Math.min(source.length, target.length));
+	for (let i = 0; i < maxPrefix && source[i] === target[i]; i++) {
+		prefixLength++;
+	}
+	
+	return jaro + prefixLength * prefixScale * (1 - jaro);
+}`,
+	damerau: `function damerauLevenshteinDistance(source, target, maxDistance = Infinity) {
+	if (Math.abs(source.length - target.length) > maxDistance) {
+		return Infinity;
+	}
+	
+	const rows = source.length + 1;
+	const cols = target.length + 1;
+	const matrix = Array.from({ length: rows }, () => 
+		new Array(cols).fill(0)
+	);
+	
+	// Initialize first row and column
+	for (let i = 0; i < rows; i++) matrix[i][0] = i;
+	for (let j = 0; j < cols; j++) matrix[0][j] = j;
+	
+	// Fill matrix
+	for (let i = 1; i < rows; i++) {
+		let rowMin = Infinity;
+		for (let j = 1; j < cols; j++) {
+			const cost = source[i - 1] === target[j - 1] ? 0 : 1;
+			
+			// Standard Levenshtein operations
+			matrix[i][j] = Math.min(
+				matrix[i - 1][j] + 1,      // deletion
+				matrix[i][j - 1] + 1,      // insertion
+				matrix[i - 1][j - 1] + cost // substitution
+			);
+			
+			// Damerau addition: transposition (swap adjacent chars)
+			if (i > 1 && j > 1 &&
+				source[i - 1] === target[j - 2] &&
+				source[i - 2] === target[j - 1]) {
+				matrix[i][j] = Math.min(
+					matrix[i][j],
+					matrix[i - 2][j - 2] + cost
+				);
+			}
+			
+			rowMin = Math.min(rowMin, matrix[i][j]);
+		}
+		
+		// Early termination
+		if (rowMin > maxDistance) return Infinity;
+	}
+	
+	return matrix[rows - 1][cols - 1];
+}`
+};
+
+const autocorrectSamples = ["strawbery", "rasberry", "kiwwi"];
+const autocorrectResults = autocorrectSamples.map((word) => {
+	const ordered = fuzzyModule
+		.searchLevenshtein(fruitRecords, word)
+		.sort((a, b) => (a.score ?? Number.MAX_SAFE_INTEGER) - (b.score ?? Number.MAX_SAFE_INTEGER));
+	const bestMatch = ordered[0];
+	return {
+		query: word,
+		suggestion: bestMatch?.title ?? "No close match",
+		score: typeof bestMatch?.score === "number" ? bestMatch.score : null
+	};
+});
+
+const autocorrectCodeSnippet = `import { searchLevenshtein } from "@/scripts/FuzzySearch";
+
+const fruits = ["Apple", "Banana", "Cherry", "Dragonfruit", "Elderberry"];
+const misspellings = ["strawbery", "rasberry", "kiwwi"];
+
+const suggestions = misspellings.map((word) => {
+	const [best] = searchLevenshtein(fruits.map((title) => ({ title })), word);
+	return { word, suggestion: best?.title, edits: best?.score };
+});`;
+
+const post = {
+	title: 'Fuzzy Searches',
+	description: 'Exploring fuzzy search algorithms: Contains, Hamming, Levenshtein, Jaro-Winkler, and Damerau-Levenshtein distance algorithms',
+	sections: [
+		{
+			id: 'section-intro',
+			title: 'Primer',
+		},
+		{
+			id: 'section-contains',
+			title: 'Contains Search',
+		},
+		{
+			id: 'section-hamming',
+			title: 'Hamming Distance',
+		},
+		{
+			id: 'section-levenshtein',
+			title: 'Optimized Levenshtein',
+		},
+		{
+			id: 'section-jaro-winkler',
+			title: 'Jaro-Winkler Similarity',
+		},
+		{
+			id: 'section-damerau',
+			title: 'Damerau-Levenshtein',
+		},
+		{
+			id: 'section-book-search',
+			title: 'Search Benchmark',
+		},
+	],
+};
+---
+
+<BlogPost title={post.title} description={post.description} sections={post.sections}>
+	<section id="section-intro">
+		<h2>Primer</h2>
+		<p>
+			Fuzzy search helps us spot "close enough" matches when perfect spelling or phrasing would miss the mark.
+			Below you will find five friendly algorithms applied to a basket of fruits. Each one balances speed,
+			memory use, and accuracy a little differently. You can skim the summaries, peek at the code, and then try
+			them yourself with the live dataset further down the page.
+		</p>
+		<p>
+			All of the algorithms share one extra trick: <strong>tokenization</strong>.
+			We break every string into bite-sized words (tokens) and compare your query against those pieces. That
+			keeps "berry" from being crushed by "a middle English vocabulary" and lets shorter words compete fairly
+			inside longer phrases.
+		</p>
+	</section>
+
+	<section id="section-contains">
+		<h2>Contains Search</h2>
+		<p>
+			The simplest approach is the "contains" search. We lowercase everything and see if the letters you
+			typed appear anywhere inside the text. It's lightning fast because it only scans for exact
+			substrings—no math, no heavy lifting.
+		</p>
+		<div class="pros-cons-box">
+			<strong class="pros-cons-title">Pros</strong>
+			<ul class="pros-cons-list">
+				<li>Speedy O(n) scan with very small memory use.</li>
+				<li>Perfect for quick filters or auto-complete boxes.</li>
+			</ul>
+			<strong class="pros-cons-title">Cons</strong>
+			<ul class="pros-cons-list">
+				<li>Misses typos and word swaps like "stawberry."</li>
+				<li>Finds matches even when the letters sit inside a different word (false positives).</li>
+			</ul>
+		</div>
+		<div class="example-box">
+			<p class="example-label">Fruit Query: "berry"</p>
+			<ul class="example-list">
+				{fruitExamples.contains.map((fruit) => (
+					<li class="example-item">
+						<strong>{fruit.title}</strong>
+					</li>
+				))}
+			</ul>
+		</div>
+		<div class="complexity-box">
+			<p class="example-label">Time &amp; Space</p>
+			<table class="complexity-table">
+				<tbody>
+					<tr>
+						<th>Time</th>
+						<td>O(n)</td>
+					</tr>
+					<tr>
+						<th>Memory</th>
+						<td>O(1)</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+		<p>
+			<strong>How it works:</strong> Think of it like using Ctrl+F in a document. The algorithm simply checks if your search term appears anywhere in the text. It converts everything to lowercase first so "Berry" matches "berry", then scans through character by character looking for an exact match. No fancy math—just a straightforward search.
+		</p>
+		<Code language="javascript" filename="contains.js">
+{codeSnippets.contains}
+		</Code>
+	</section>
+
+	<section id="section-hamming">
+		<h2>Hamming Distance</h2>
+		<p>
+			Hamming distance counts how many characters do not match when two strings sit side by side. We slide
+			your query across the text and grab the best score. It likes fixed-length comparisons, so we only test
+			segments that roughly match your input size.
+		</p>
+		<div class="pros-cons-box">
+			<strong class="pros-cons-title">Pros</strong>
+			<ul class="pros-cons-list">
+				<li>Simple math: just counting differences.</li>
+				<li>Great at spotting small typos when words are the same length.</li>
+			</ul>
+			<strong class="pros-cons-title">Cons</strong>
+			<ul class="pros-cons-list">
+				<li>Struggles when the text shrinks or grows ("berry" vs. "berries").</li>
+				<li>Still skips around longer sentences because it hates length changes.</li>
+			</ul>
+		</div>
+		<div class="example-box">
+			<p class="example-label">Fruit Query: "berry"</p>
+			<ul class="example-list">
+				{fruitExamples.hamming.map((fruit) => (
+					<li class="example-item">
+						<strong>{fruit.title}</strong>
+						<span class="score-text">
+							Hamming score: {typeof fruit.score === "number" ? fruit.score.toFixed(2) : "—"}
+						</span>
+					</li>
+				))}
+			</ul>
+		</div>
+		<div class="complexity-box">
+			<p class="example-label">Time &amp; Space</p>
+			<table class="complexity-table">
+				<tbody>
+					<tr>
+						<th>Time</th>
+						<td>O(n · m)</td>
+					</tr>
+					<tr>
+						<th>Memory</th>
+						<td>O(1)</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+		<p>
+			<strong>How it works:</strong> Imagine comparing two words letter by letter, side by side. The algorithm slides your search term across the text and counts how many characters don't match at each position. It's like playing "spot the difference" but only when both words are the same length. The position with the fewest mismatches wins. This works great for catching typos like "berry" vs "beryy" but struggles when words have different lengths.
+		</p>
+		<Code language="javascript" filename="hamming.js">
+{codeSnippets.hamming}
+		</Code>
+	</section>
+
+	<section id="section-levenshtein">
+		<h2>Levenshtein Distance</h2>
+		<p>
+			Levenshtein distance measures the minimum number of edits—insertions, deletions, or substitutions—to
+			turn one string into another. Here we run a cache-friendly two-row version of the Wagner–Fischer
+			algorithm, which keeps the same O(n · m) work while dropping memory to O(min(n, m)) and bailing out
+			early whenever the score would exceed our threshold.
+		</p>
+		<div class="pros-cons-box">
+			<strong class="pros-cons-title">Pros</strong>
+			<ul class="pros-cons-list">
+				<li>Handles typos, missing letters, and swapped order all at once.</li>
+				<li>Gives a meaningful score: smaller numbers mean closer matches.</li>
+			</ul>
+			<strong class="pros-cons-title">Cons</strong>
+			<ul class="pros-cons-list">
+				<li>Still needs O(n · m) work despite the lighter memory footprint.</li>
+				<li>Slower on long paragraphs; you may need caching or pruning.</li>
+			</ul>
+		</div>
+		<div class="example-box">
+			<p class="example-label">Fruit Query: "berry"</p>
+			<ul class="example-list">
+				{fruitExamples.levenshtein.map((fruit) => (
+					<li class="example-item">
+						<strong>{fruit.title}</strong>
+						<span class="score-text">
+							Levenshtein score: {typeof fruit.score === "number" ? fruit.score.toFixed(2) : "—"}
+						</span>
+					</li>
+				))}
+			</ul>
+		</div>
+		<div class="complexity-box">
+			<p class="example-label">Time &amp; Space</p>
+			<table class="complexity-table">
+				<tbody>
+					<tr>
+						<th>Time</th>
+						<td>O(n · m)</td>
+					</tr>
+					<tr>
+						<th>Memory</th>
+						<td>O(min(n, m))</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+		<div class="example-box">
+			<p class="example-label">Spell Autocorrect (Levenshtein)</p>
+			<table class="autocorrect-table">
+				<thead>
+					<tr>
+						<th>Misspelled</th>
+						<th>Suggestion</th>
+						<th>Edit Distance</th>
+					</tr>
+				</thead>
+				<tbody>
+					{autocorrectResults.map((item) => (
+						<tr>
+							<td>{item.query}</td>
+							<td>{item.suggestion}</td>
+							<td>
+								{typeof item.score === "number" ? item.score.toFixed(2) : "—"}
+							</td>
+						</tr>
+					))}
+				</tbody>
+			</table>
+		</div>
+		<p>
+			<strong>How it works:</strong> This algorithm figures out the minimum number of single-character edits (add a letter, remove a letter, or change a letter) needed to transform one word into another. It builds up a table row by row, calculating the cost of each possible transformation. The clever part is that it only keeps two rows in memory at a time—the previous row and the current row—instead of storing the entire table. This dramatically reduces memory usage while still finding the optimal edit distance. Think of it like solving a puzzle by working through it step by step, but only keeping track of the last two steps instead of every step you've taken.
+		</p>
+		<Code language="javascript" filename="levenshtein.js">
+{codeSnippets.levenshtein}
+		</Code>
+		<Code language="javascript" filename="autocorrect-example.js">
+{autocorrectCodeSnippet}
+		</Code>
+	</section>
+
+	<section id="section-jaro-winkler">
+		<h2>Jaro-Winkler Similarity</h2>
+		<p>
+			Jaro-Winkler measures how many characters line up in the same order and rewards matching prefixes. It
+			shines on short strings such as author names because swapped characters hurt less than in strict edit
+			distance, yet intentional prefixes (like surnames) boost the score.
+		</p>
+		<div class="pros-cons-box">
+			<strong class="pros-cons-title">Pros</strong>
+			<ul class="pros-cons-list">
+				<li>Emphasizes leading characters, which people notice first.</li>
+				<li>Great for matching people or product names with swapped letters.</li>
+			</ul>
+			<strong class="pros-cons-title">Cons</strong>
+			<ul class="pros-cons-list">
+				<li>Similarity scores require post-processing if you want "distance".</li>
+				<li>Not ideal for long paragraphs where edit distance is clearer.</li>
+			</ul>
+		</div>
+		<div class="example-box">
+			<p class="example-label">Fruit Query: "berry"</p>
+			<ul class="example-list">
+				{fruitExamples.jaroWinkler.map((fruit) => (
+					<li class="example-item">
+						<strong>{fruit.title}</strong>
+						<span class="score-text">
+							Similarity: {fruit.scoreLabel ?? "—"}
+						</span>
+					</li>
+				))}
+			</ul>
+		</div>
+		<div class="complexity-box">
+			<p class="example-label">Time &amp; Space</p>
+			<table class="complexity-table">
+				<tbody>
+					<tr>
+						<th>Time</th>
+						<td>O(n + m)</td>
+					</tr>
+					<tr>
+						<th>Memory</th>
+						<td>O(n + m)</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+		<p>
+			<strong>How it works:</strong> This algorithm is like a more forgiving version of edit distance. First, it finds matching characters between the two strings, even if they're slightly out of order. It then calculates a similarity score based on how many characters match and how many are transposed (swapped). The "Winkler" part adds a bonus if the words start with the same letters—because we humans pay more attention to the beginning of words. So "berry" and "beryy" would get a high score, but "berry" and "yberr" would get an even higher score because they share the same prefix. It returns a number between 0 and 1, where 1 means identical.
+		</p>
+		<Code language="javascript" filename="jaro-winkler.js">
+{codeSnippets.jaroWinkler}
+		</Code>
+	</section>
+
+	<section id="section-damerau">
+		<h2>Damerau-Levenshtein</h2>
+		<p>
+			Damerau-Levenshtein extends edit distance by counting swaps of neighboring characters as a single
+			edit. That single upgrade captures common typos such as "bery" or "stbrawberry" without over-penalizing
+			the result, which makes it a popular alternative to the classic algorithm.
+		</p>
+		<div class="pros-cons-box">
+			<strong class="pros-cons-title">Pros</strong>
+			<ul class="pros-cons-list">
+				<li>Understands adjacent swaps, the most common human typo.</li>
+				<li>Drop-in replacement wherever you already use Levenshtein.</li>
+			</ul>
+			<strong class="pros-cons-title">Cons</strong>
+			<ul class="pros-cons-list">
+				<li>Slightly higher constant factors than basic Levenshtein.</li>
+				<li>Still quadratic for long strings unless you add heuristics.</li>
+			</ul>
+		</div>
+		<div class="example-box">
+			<p class="example-label">Fruit Query: "berry"</p>
+			<ul class="example-list">
+				{fruitExamples.damerau.map((fruit) => (
+					<li class="example-item">
+						<strong>{fruit.title}</strong>
+						<span class="score-text">
+							Damerau score: {typeof fruit.score === "number" ? fruit.score.toFixed(2) : "—"}
+						</span>
+					</li>
+				))}
+			</ul>
+		</div>
+		<div class="complexity-box">
+			<p class="example-label">Time &amp; Space</p>
+			<table class="complexity-table">
+				<tbody>
+					<tr>
+						<th>Time</th>
+						<td>O(n · m)</td>
+					</tr>
+					<tr>
+						<th>Memory</th>
+						<td>O(n · m)</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+		<p>
+			<strong>How it works:</strong> This is Levenshtein distance with one important upgrade: it recognizes when two adjacent letters are swapped as a single mistake. So if you type "teh" instead of "the", regular Levenshtein counts that as two edits (swap the 'e' and 'h'), but Damerau-Levenshtein counts it as just one edit (a transposition). The algorithm builds a full table like Levenshtein, but adds an extra check: if it sees that two characters are swapped, it can fix both at once. This makes it much better at catching the most common type of typo—accidentally swapping two keys on your keyboard.
+		</p>
+		<Code language="javascript" filename="damerau.js">
+{codeSnippets.damerau}
+		</Code>
+	</section>
+
+	<section id="section-book-search">
+		<h2>Search Benchmark</h2>
+		<p>
+			This quick benchmark uses a styled input to query the Open Library dataset generated at build time.
+			Type to match against titles, subtitles, authors, or publication years and watch how long each search takes.
+		</p>
+		<div class="search-benchmark-container">
+			<TextInput
+				id="book-search-input"
+				label="Search Computer Books"
+				placeholder="Search by title, subtitle, author, or year"
+				autocomplete="off"
+				className="w-full"
+			/>
+			<div class="search-mode-selector" role="radiogroup">
+				<span class="search-mode-label">Search Mode</span>
+				<label class="radio-label">
+					<input type="radio" name="search-mode" value="basic" />
+					<span>Contains</span>
+				</label>
+				<label class="radio-label">
+					<input type="radio" name="search-mode" value="hamming" />
+					<span>Hamming</span>
+				</label>
+				<label class="radio-label">
+					<input type="radio" name="search-mode" value="levenshtein" checked />
+					<span>Optimized Levenshtein</span>
+				</label>
+				<label class="radio-label">
+					<input type="radio" name="search-mode" value="jaro-winkler" />
+					<span>Jaro-Winkler</span>
+				</label>
+				<label class="radio-label">
+					<input type="radio" name="search-mode" value="damerau-levenshtein" />
+					<span>Damerau-Levenshtein</span>
+				</label>
+			</div>
+			<div class="stats-grid">
+				<div class="stat-box">
+					<span class="stat-label">Results</span>
+					<span id="book-search-count" class="stat-value">0</span>
+				</div>
+				<div class="stat-box">
+					<span class="stat-label">Last Search (ms)</span>
+					<span id="book-search-last-time" class="stat-value">0.00</span>
+				</div>
+			</div>
+			<div class="timings-box">
+				<div class="timings-header">
+					<h3>Search Timings</h3>
+					<BasicButton id="search-timings-clear" variant="secondary">
+						Clear Timings
+					</BasicButton>
+				</div>
+				<ul id="search-timings-list" class="timings-list">
+					<li class="timings-empty">No searches yet.</li>
+				</ul>
+			</div>
+			<div id="book-search-results" class="results-grid">
+				<p class="results-empty">Start typing to explore the dataset.</p>
+			</div>
+		</div>
+	</section>
+</BlogPost>
+
+<script>
+	const booksModule = await import("../../data/ComputerBooks.json");
+	const fuzzyClient = await import("../../scripts/FuzzySearch.ts");
+
+	type ClientRecord = {
+		title: string;
+		subtitle?: string;
+		author?: string;
+		year?: number;
+	};
+
+	const books = (booksModule.default ?? booksModule) as ClientRecord[];
+	const {
+		searchContains,
+		searchHamming,
+		searchLevenshtein,
+		searchJaroWinkler,
+		searchDamerauLevenshtein,
+		formatRecord
+	} = fuzzyClient;
+
+	// Wait for DOM to be ready
+	const initSearch = () => {
+		const searchInput = document.getElementById("book-search-input") as HTMLInputElement | null;
+		const resultsContainer = document.getElementById("book-search-results");
+		const resultCountEl = document.getElementById("book-search-count");
+		const lastTimeEl = document.getElementById("book-search-last-time");
+		const timingsList = document.getElementById("search-timings-list") as HTMLUListElement | null;
+		const clearButton = document.getElementById("search-timings-clear") as HTMLButtonElement | null;
+		const timings: { duration: number; count: number }[] = [];
+		const escapeHtml = (value: string | number | null | undefined) =>
+			String(value ?? "")
+				.replace(/&/g, "&amp;")
+				.replace(/</g, "&lt;")
+				.replace(/>/g, "&gt;")
+				.replace(/"/g, "&quot;")
+				.replace(/'/g, "&#39;");
+
+		const updateClearButtonState = () => {
+			if (!clearButton) return;
+			if (timings.length === 0) {
+				clearButton.setAttribute("disabled", "true");
+			} else {
+				clearButton.removeAttribute("disabled");
+			}
+		};
+
+		const renderTimings = () => {
+			if (!timingsList) return;
+			timingsList.innerHTML = "";
+
+			if (timings.length === 0) {
+				timingsList.innerHTML = '<li class="timings-empty">No searches yet.</li>';
+				return;
+			}
+
+			for (let index = 0; index < timings.length; index += 1) {
+				const { duration, count } = timings[index];
+				const listItem = document.createElement("li");
+				listItem.className = "timings-item";
+				listItem.textContent = `${index + 1}. ${count} results, ${duration.toFixed(2)} ms`;
+				timingsList.appendChild(listItem);
+			}
+		};
+
+		const renderResults = (
+			results: { title: string; subtitle?: string; author?: string; year?: number; score?: number; scoreLabel?: string }[]
+		) => {
+			if (!resultsContainer) return;
+
+			if (results.length === 0) {
+				resultsContainer.innerHTML =
+					'<p class="results-empty">No matches yet. Try another search term.</p>';
+				return;
+			}
+
+			const fragment = document.createDocumentFragment();
+
+			for (const book of results) {
+				const result = document.createElement("article");
+				result.className = "result-card";
+				const subtitleMarkup =
+					book.subtitle && book.subtitle.trim().length
+						? `<p class="result-subtitle">${escapeHtml(book.subtitle)}</p>`
+						: "";
+				const authorLabel = book.author && book.author.trim().length ? book.author : "Unknown author";
+				const yearLabel = typeof book.year === "number" ? String(book.year) : "Year unknown";
+				const hasScoreLabel = typeof book.scoreLabel === "string" && book.scoreLabel.trim().length > 0;
+				const scoreValue =
+					typeof book.score === "number"
+						? book.score.toFixed(2)
+						: hasScoreLabel
+							? book.scoreLabel ?? "N/A"
+							: null;
+				const scoreMarkup =
+					scoreValue !== null
+						? `<span class="result-score">Score: ${escapeHtml(scoreValue)}</span>`
+						: "";
+				result.innerHTML = `
+					<h4 class="result-title">${escapeHtml(book.title)}</h4>
+					${subtitleMarkup}
+					<div class="result-meta">
+						<span>${escapeHtml(authorLabel)}</span>
+						<span>${escapeHtml(yearLabel)}</span>
+					</div>
+					${scoreMarkup}
+				`;
+				fragment.appendChild(result);
+			}
+
+			resultsContainer.innerHTML = "";
+			resultsContainer.appendChild(fragment);
+		};
+
+		const SEARCH_METHODS: Record<
+			string,
+			(query: string) => {
+				title: string;
+				subtitle?: string;
+				author?: string;
+				year?: number;
+				score?: number;
+				scoreLabel?: string;
+			}[]
+		> = {
+			basic: (query: string) => searchContains(books, query),
+			hamming: (query: string) => searchHamming(books, query),
+			levenshtein: (query: string) => searchLevenshtein(books, query),
+			"jaro-winkler": (query: string) => searchJaroWinkler(books, query),
+			"damerau-levenshtein": (query: string) => searchDamerauLevenshtein(books, query)
+		};
+
+		let currentSearchMode: keyof typeof SEARCH_METHODS = "levenshtein";
+
+		const executeSearch = (query: string, { recordTiming = true }: { recordTiming?: boolean } = {}) => {
+			const normalized = query.trim();
+
+			if (!normalized) {
+				const baselineResults = books.map((book) => formatRecord(book, { scoreLabel: "N/A" }));
+				renderResults(baselineResults);
+				if (resultCountEl) {
+					resultCountEl.textContent = String(baselineResults.length);
+				}
+				if (lastTimeEl) {
+					lastTimeEl.textContent = "0.00";
+				}
+				return;
+			}
+
+			const searchFn = SEARCH_METHODS[currentSearchMode] ?? SEARCH_METHODS.levenshtein;
+
+			const startTime = performance.now();
+			const results = searchFn(normalized).sort((a, b) => {
+				const scoreA = typeof a.score === "number" ? a.score : Number.MAX_SAFE_INTEGER;
+				const scoreB = typeof b.score === "number" ? b.score : Number.MAX_SAFE_INTEGER;
+
+				if (scoreA !== scoreB) {
+					return scoreA - scoreB;
+				}
+
+				return a.title.localeCompare(b.title);
+			});
+			const duration = performance.now() - startTime;
+
+			if (recordTiming) {
+				timings.push({ duration, count: results.length });
+				if (timings.length > 100) {
+					timings.shift();
+				}
+				renderTimings();
+				updateClearButtonState();
+			}
+
+			if (resultCountEl) {
+				resultCountEl.textContent = String(results.length);
+			}
+
+			if (lastTimeEl) {
+				lastTimeEl.textContent = duration.toFixed(2);
+			}
+
+			renderResults(results);
+		};
+
+		const debounce = (func: (...args: any[]) => void, delay: number) => {
+			let timeout: NodeJS.Timeout;
+			return (...args: any[]) => {
+				clearTimeout(timeout);
+				timeout = setTimeout(() => func(...args), delay);
+			};
+		};
+
+		const handleSearch = debounce((event: Event) => {
+			const target = event.target;
+			if (!target || !(target instanceof HTMLInputElement)) {
+				return;
+			}
+
+			executeSearch(target.value);
+		}, 250);
+
+		if (searchInput) {
+			searchInput.addEventListener("input", handleSearch);
+		}
+
+		const searchModeInputs = Array.from(
+			document.querySelectorAll('input[name="search-mode"]')
+		) as HTMLInputElement[];
+		searchModeInputs.forEach((input) => {
+			if (input.checked) {
+				currentSearchMode = input.value as keyof typeof SEARCH_METHODS;
+			}
+
+			input.addEventListener("change", () => {
+				if (!input.checked) {
+					return;
+				}
+
+				currentSearchMode = input.value as keyof typeof SEARCH_METHODS;
+				executeSearch(searchInput?.value ?? "", { recordTiming: true });
+			});
+		});
+
+		if (clearButton) {
+			clearButton.addEventListener("click", () => {
+				timings.length = 0;
+				renderTimings();
+				updateClearButtonState();
+			});
+		}
+
+		renderTimings();
+		updateClearButtonState();
+		executeSearch(searchInput?.value ?? "", { recordTiming: false });
+	};
+
+	// Initialize when DOM is ready
+	if (document.readyState === 'loading') {
+		document.addEventListener('DOMContentLoaded', initSearch);
+	} else {
+		initSearch();
+	}
+</script>
+
+<style>
+	.pros-cons-box {
+		border-radius: 8px;
+		border: 2px solid var(--color-quaternary);
+		background: var(--color-quaternary);
+		padding: 1rem;
+		margin: 1.5rem 0;
+	}
+
+	.pros-cons-title {
+		display: block;
+		font-size: 0.75rem;
+		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: 0.08em;
+		color: var(--color-primary);
+		margin-top: 1rem;
+	}
+
+	.pros-cons-title:first-child {
+		margin-top: 0;
+	}
+
+	.pros-cons-list {
+		margin-top: 0.5rem;
+		margin-left: 1.5rem;
+		list-style-type: disc;
+		space-y: 0.25rem;
+	}
+
+	.pros-cons-list li {
+		margin-bottom: 0.25rem;
+	}
+
+	.example-box {
+		border-radius: 8px;
+		border: 2px solid var(--color-quaternary);
+		background: var(--color-background);
+		padding: 1rem;
+		margin: 1.5rem 0;
+		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+	}
+
+	.example-label {
+		font-size: 0.75rem;
+		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: 0.08em;
+		color: var(--color-muted);
+		margin-bottom: 0.75rem;
+	}
+
+	.example-list {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+		margin-top: 0.75rem;
+	}
+
+	.example-item {
+		border-radius: 6px;
+		background: var(--color-quaternary);
+		padding: 0.75rem;
+		color: var(--color-primary);
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+	}
+
+	.score-text {
+		margin-left: 0.5rem;
+		font-size: 0.75rem;
+		color: var(--color-muted);
+	}
+
+	.complexity-box {
+		overflow-x: auto;
+		border-radius: 8px;
+		border: 2px solid var(--color-quaternary);
+		background: var(--color-background);
+		padding: 1rem;
+		margin: 1.5rem 0;
+	}
+
+	.complexity-table {
+		width: 100%;
+		border-collapse: collapse;
+		font-size: 0.875rem;
+		margin-top: 0.75rem;
+	}
+
+	.complexity-table th {
+		width: 33%;
+		border: 1px solid var(--color-quaternary);
+		padding: 0.5rem 0.75rem;
+		text-align: left;
+		color: var(--color-muted);
+		font-weight: 600;
+	}
+
+	.complexity-table td {
+		border: 1px solid var(--color-quaternary);
+		padding: 0.5rem 0.75rem;
+	}
+
+	.autocorrect-table {
+		width: 100%;
+		border-collapse: collapse;
+		font-size: 0.875rem;
+		margin-top: 0.75rem;
+	}
+
+	.autocorrect-table th {
+		border: 1px solid var(--color-quaternary);
+		padding: 0.5rem 0.75rem;
+		text-align: left;
+		color: var(--color-muted);
+		font-weight: 600;
+	}
+
+	.autocorrect-table td {
+		border: 1px solid var(--color-quaternary);
+		padding: 0.5rem 0.75rem;
+		font-weight: 500;
+	}
+
+	.search-benchmark-container {
+		display: flex;
+		flex-direction: column;
+		gap: 1.5rem;
+		margin-top: 1.5rem;
+	}
+
+	.search-mode-selector {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.75rem;
+		border-radius: 12px;
+		border: 2px solid var(--color-quaternary);
+		background: var(--color-quaternary);
+		padding: 0.75rem 1rem;
+		font-size: 0.875rem;
+		color: var(--color-muted);
+	}
+
+	.search-mode-label {
+		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: 0.08em;
+		color: var(--color-primary);
+		margin-right: 0.5rem;
+	}
+
+	.radio-label {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		cursor: pointer;
+	}
+
+	.radio-label input[type="radio"] {
+		accent-color: var(--color-primary);
+		cursor: pointer;
+	}
+
+	.stats-grid {
+		display: grid;
+		gap: 1rem;
+		grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+	}
+
+	.stat-box {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+		border-radius: 12px;
+		border: 2px solid var(--color-quaternary);
+		background: var(--color-quaternary);
+		padding: 1rem;
+		box-shadow: 0 10px 30px -15px rgba(0, 0, 0, 0.7);
+	}
+
+	.stat-label {
+		font-size: 0.75rem;
+		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: 0.08em;
+		color: var(--color-muted);
+	}
+
+	.stat-value {
+		font-size: 1.5rem;
+		font-weight: 600;
+		color: var(--color-primary);
+	}
+
+	.timings-box {
+		border-radius: 12px;
+		border: 2px solid var(--color-quaternary);
+		background: var(--color-background);
+		padding: 1rem;
+		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+	}
+
+	.timings-header {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		justify-content: space-between;
+		gap: 1rem;
+		margin-bottom: 0.75rem;
+	}
+
+	.timings-header h3 {
+		font-size: 1.125rem;
+		font-weight: 600;
+		color: var(--color-primary);
+	}
+
+	.timings-list {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+		max-height: 208px;
+		overflow-y: auto;
+	}
+
+	.timings-empty {
+		font-style: italic;
+		color: var(--color-muted);
+	}
+
+	.timings-item {
+		border-radius: 8px;
+		background: var(--color-quaternary);
+		padding: 0.5rem 0.75rem;
+		font-size: 0.875rem;
+		color: var(--color-primary);
+	}
+
+	.results-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+		gap: 1rem;
+		max-height: 1200px;
+		overflow-y: auto;
+	}
+
+	.results-empty {
+		font-style: italic;
+		color: var(--color-muted);
+		grid-column: 1 / -1;
+	}
+
+	.result-card {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+		border-radius: 12px;
+		border: 2px solid var(--color-quaternary);
+		background: var(--color-background);
+		padding: 1rem;
+		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+	}
+
+	.result-title {
+		font-size: 1.125rem;
+		font-weight: 600;
+		color: var(--color-primary);
+	}
+
+	.result-subtitle {
+		font-size: 0.875rem;
+		color: var(--color-muted);
+	}
+
+	.result-meta {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: space-between;
+		gap: 0.5rem;
+		font-size: 0.875rem;
+		color: var(--color-muted);
+	}
+
+	.result-score {
+		border-radius: 9999px;
+		background: var(--color-quaternary);
+		padding: 0.25rem 0.75rem;
+		font-size: 0.75rem;
+		font-weight: 600;
+		color: var(--color-primary);
+	}
+</style>
+

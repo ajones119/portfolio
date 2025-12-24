@@ -1,0 +1,321 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="404 - Page Not Found" description="The page you're looking for doesn't exist">
+	<div class="error-container min-h-screen flex items-center justify-center relative overflow-hidden">
+		<!-- Animated background shapes -->
+		<div class="background-shapes absolute inset-0 pointer-events-none">
+			<div class="shape shape-1"></div>
+			<div class="shape shape-2"></div>
+			<div class="shape shape-3"></div>
+			<div class="shape shape-4"></div>
+			<div class="shape shape-5"></div>
+		</div>
+
+		<!-- Main content -->
+		<div class="error-content relative z-10 text-center px-4">
+			<!-- 404 Text -->
+			<div class="error-number mb-8">
+				<h1 class="error-404 text-9xl md:text-[12rem] font-bold font-abril-fatface leading-none">
+					<span class="digit digit-1">4</span>
+					<span class="digit digit-2">0</span>
+					<span class="digit digit-3">4</span>
+				</h1>
+			</div>
+
+			<!-- Message -->
+			<div class="error-message mb-8">
+				<h2 class="text-3xl md:text-4xl font-bold font-abril-fatface mb-4 text-secondary">
+					Oops! Page Not Found
+				</h2>
+				<p class="text-lg md:text-xl text-muted font-playfair-display italic max-w-md mx-auto">
+					The page you're looking for seems to have wandered off into the digital void.
+				</p>
+			</div>
+
+			<!-- Floating particles -->
+			<div class="particles absolute inset-0 pointer-events-none">
+				<div class="particle"></div>
+				<div class="particle"></div>
+				<div class="particle"></div>
+				<div class="particle"></div>
+				<div class="particle"></div>
+				<div class="particle"></div>
+				<div class="particle"></div>
+				<div class="particle"></div>
+			</div>
+
+			<!-- CTA Button -->
+			<div class="error-actions mt-12">
+				<a href="/" class="home-button inline-block px-8 py-4 rounded-full font-bold text-lg transition-all duration-300 border-2 border-tertiary text-tertiary hover:bg-tertiary hover:text-background relative overflow-hidden">
+					<span class="button-text relative z-10">Go Home</span>
+				</a>
+			</div>
+		</div>
+	</div>
+</Layout>
+
+<script>
+	import { gsap } from 'gsap';
+
+	// Wait for DOM to be ready
+	if (typeof window !== 'undefined') {
+		document.addEventListener('DOMContentLoaded', () => {
+			// Animate 404 digits
+			const digits = document.querySelectorAll('.digit');
+			gsap.from(digits, {
+				duration: 0.8,
+				y: -100,
+				opacity: 0,
+				stagger: 0.1,
+				ease: 'back.out(1.7)',
+				delay: 0.2,
+			});
+
+			// Animate error message
+			const errorMessage = document.querySelector('.error-message');
+			gsap.from(errorMessage.children, {
+				duration: 0.6,
+				y: 30,
+				opacity: 0,
+				stagger: 0.2,
+				ease: 'power3.out',
+				delay: 0.8,
+			});
+
+			// Animate button
+			const homeButton = document.querySelector('.home-button');
+			gsap.from(homeButton, {
+				duration: 0.6,
+				scale: 0,
+				opacity: 0,
+				ease: 'elastic.out(1, 0.5)',
+				delay: 1.2,
+			});
+
+			// Animate background shapes
+			const shapes = document.querySelectorAll('.shape');
+			shapes.forEach((shape, index) => {
+				const randomX = (Math.random() - 0.5) * 200;
+				const randomY = (Math.random() - 0.5) * 200;
+				const randomRotation = Math.random() * 360;
+				const randomScale = 0.5 + Math.random() * 0.5;
+
+				gsap.set(shape, {
+					x: randomX,
+					y: randomY,
+					rotation: randomRotation,
+					scale: randomScale,
+					opacity: 0,
+				});
+
+				gsap.to(shape, {
+					duration: 2 + Math.random() * 2,
+					x: randomX + (Math.random() - 0.5) * 100,
+					y: randomY + (Math.random() - 0.5) * 100,
+					rotation: randomRotation + (Math.random() - 0.5) * 180,
+					opacity: 0.1 + Math.random() * 0.2,
+					ease: 'sine.inOut',
+					delay: index * 0.2,
+					repeat: -1,
+					yoyo: true,
+				});
+			});
+
+			// Animate floating particles
+			const particles = document.querySelectorAll('.particle');
+			particles.forEach((particle, index) => {
+				const randomX = Math.random() * window.innerWidth;
+				const randomY = Math.random() * window.innerHeight;
+				const randomSize = 4 + Math.random() * 8;
+				const randomDuration = 3 + Math.random() * 4;
+
+				gsap.set(particle, {
+					x: randomX,
+					y: randomY,
+					width: randomSize,
+					height: randomSize,
+					opacity: 0,
+				});
+
+				gsap.to(particle, {
+					duration: randomDuration,
+					y: randomY - 200,
+					x: randomX + (Math.random() - 0.5) * 100,
+					opacity: 0.3 + Math.random() * 0.4,
+					ease: 'none',
+					delay: index * 0.3,
+					repeat: -1,
+					onComplete: function() {
+						gsap.set(particle, {
+							y: randomY + 200,
+							opacity: 0,
+						});
+					},
+				});
+			});
+
+			// Button hover animation
+			homeButton?.addEventListener('mouseenter', () => {
+				gsap.to(homeButton, {
+					duration: 0.3,
+					scale: 1.05,
+					ease: 'power2.out',
+				});
+			});
+
+			homeButton?.addEventListener('mouseleave', () => {
+				gsap.to(homeButton, {
+					duration: 0.3,
+					scale: 1,
+					ease: 'power2.out',
+				});
+			});
+
+			// Continuous rotation for digits (subtle)
+			digits.forEach((digit, index) => {
+				gsap.to(digit, {
+					duration: 2 + index * 0.5,
+					rotation: 360,
+					ease: 'none',
+					repeat: -1,
+					delay: 2 + index * 0.3,
+				});
+			});
+		});
+	}
+</script>
+
+<style>
+	.error-container {
+		background: var(--color-background);
+	}
+
+	.error-404 {
+		background: linear-gradient(
+			135deg,
+			var(--color-tertiary) 0%,
+			var(--color-secondary) 50%,
+			var(--color-quaternary) 100%
+		);
+		background-size: 200% 200%;
+		-webkit-background-clip: text;
+		background-clip: text;
+		-webkit-text-fill-color: transparent;
+		animation: gradient-shift 5s ease infinite;
+		position: relative;
+	}
+
+	@keyframes gradient-shift {
+		0%, 100% {
+			background-position: 0% 50%;
+		}
+		50% {
+			background-position: 100% 50%;
+		}
+	}
+
+	.digit {
+		display: inline-block;
+		transform-origin: center;
+	}
+
+	.background-shapes {
+		opacity: 0.1;
+	}
+
+	.shape {
+		position: absolute;
+		border-radius: 50%;
+		filter: blur(40px);
+	}
+
+	.shape-1 {
+		width: 300px;
+		height: 300px;
+		background: var(--color-tertiary);
+		top: 10%;
+		left: 10%;
+	}
+
+	.shape-2 {
+		width: 200px;
+		height: 200px;
+		background: var(--color-secondary);
+		top: 60%;
+		right: 15%;
+	}
+
+	.shape-3 {
+		width: 250px;
+		height: 250px;
+		background: var(--color-quaternary);
+		bottom: 20%;
+		left: 20%;
+	}
+
+	.shape-4 {
+		width: 180px;
+		height: 180px;
+		background: var(--color-quinary);
+		top: 30%;
+		right: 30%;
+	}
+
+	.shape-5 {
+		width: 220px;
+		height: 220px;
+		background: var(--color-senary);
+		bottom: 40%;
+		right: 10%;
+	}
+
+	.particles {
+		opacity: 0.6;
+	}
+
+	.particle {
+		position: absolute;
+		border-radius: 50%;
+		background: var(--color-tertiary);
+		box-shadow: 0 0 10px var(--color-tertiary);
+	}
+
+	.home-button {
+		position: relative;
+		overflow: hidden;
+	}
+
+	.home-button::before {
+		content: '';
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		width: 0;
+		height: 0;
+		border-radius: 50%;
+		background: var(--color-tertiary);
+		transform: translate(-50%, -50%);
+		transition: width 0.6s, height 0.6s;
+		opacity: 0.2;
+	}
+
+	.home-button:hover::before {
+		width: 300px;
+		height: 300px;
+	}
+
+	/* Responsive adjustments */
+	@media (max-width: 768px) {
+		.error-404 {
+			font-size: 6rem;
+		}
+
+		.shape {
+			width: 150px !important;
+			height: 150px !important;
+		}
+	}
+</style>
+

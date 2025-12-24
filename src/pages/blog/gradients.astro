@@ -1,0 +1,544 @@
+---
+import BlogPost from '../../components/Blog/BlogPost.astro';
+import Code from '../../components/Blog/Code.astro';
+
+const post = {
+	title: 'Gradients',
+	description: 'Exploring CSS gradients: linear, radial, and conic gradients with practical examples and a gradient playground',
+	sections: [
+		{
+			id: 'section-introduction',
+			title: 'Introduction',
+		},
+		{
+			id: 'section-linear',
+			title: 'Linear Gradient',
+		},
+		{
+			id: 'section-radial',
+			title: 'Radial Gradient',
+		},
+		{
+			id: 'section-conic',
+			title: 'Conic Gradient',
+		},
+		{
+			id: 'section-examples',
+			title: 'Gradient Playground',
+		},
+	],
+};
+---
+
+<BlogPost title={post.title} description={post.description} sections={post.sections}>
+	<section id="section-introduction">
+		<h2>Why gradients are fun to work with</h2>
+		<p>
+			Gradients look fancy, but under the hood they are just math-painted backgrounds. You give the browser a
+			direction and a list of colors, and it smoothly blends from one color stop to the next.
+		</p>
+		<p>
+			There are three main gradient functions you will see in CSS:
+			<span class="text-accent">linear-gradient()</span> for straight lines,
+			<span class="text-accent">radial-gradient()</span> for circles and blobs, and
+			<span class="text-accent">conic-gradient()</span> for pie-chart style sweeps.
+		</p>
+		<p>
+			Each one takes a direction or position and a list of colors, often with extra values like percentages or
+			degrees. Those extra values are just telling the browser <em>where</em> each color should start or end,
+			which lets you go from "vibe" to "very precise design tool" pretty quickly.
+		</p>
+	</section>
+
+	<section id="section-linear">
+		<h2>Linear Gradient</h2>
+		<p>
+			The <span class="text-accent">linear-gradient()</span> function draws a straight line of color. The basic
+			syntax is <code>linear-gradient(direction, color-stop, color-stop, ...)</code>. If you skip the
+			direction, the browser uses a default of top-to-bottom.
+		</p>
+		<p>
+			Color stops are just the colors you pass in. If you only list colors, the stops are spread out evenly.
+			You can add percentages after a color (like <code>blue 30%</code>) to say "start this color here".
+		</p>
+		<div class="gradient-demo-container">
+			<Code language="css" filename="linear-gradient.css">
+{`.class {
+  background: linear-gradient(blue, DeepPink, green);
+}`}
+			</Code>
+			<div class="gradient-demo-box linear-one"></div>
+		</div>
+
+		<p>
+			You can also use direction keywords such as <code>to left</code>, <code>to right</code>,
+			<code>to top</code>, and <code>to bottom</code>. These come right after the word
+			<code>to</code> and control which way the gradient line points.
+		</p>
+		<div class="gradient-demo-grid">
+			<Code language="css" filename="linear-directions.css">
+{`.linear-top {
+    background: linear-gradient(to top, blue, DeepPink)
+}
+.linear-right {
+    background: linear-gradient(to right, blue, DeepPink)
+}
+.linear-left {
+    background: linear-gradient(to left, blue, DeepPink)
+}
+.linear-top-right {
+   background: linear-gradient(to top right, blue, DeepPink)
+}`}
+			</Code>
+			<div class="gradient-examples-grid">
+				<div class="gradient-example linear-top"></div>
+				<div class="gradient-example linear-right"></div>
+				<div class="gradient-example linear-left"></div>
+				<div class="gradient-example linear-top-right"></div>
+			</div>
+		</div>
+
+		<p>
+			You can also pass a real angle like <span class="text-accent">45deg</span> or <span class="text-accent">135deg</span>.
+			Here, <code>0deg</code> points up, and the angle grows clockwise. So <code>90deg</code> is to the right, <code>180deg</code> is down, and so on.
+		</p>
+		<p>
+			Adding color stop values (like <code>blue 5%</code> or <code>DeepPink 60%</code>) tells the browser
+			where to blend between your colors, which is perfect for sharp edges or off-center fades.
+		</p>
+		<div class="gradient-demo-container">
+			<Code language="css" filename="linear-angles.css">
+{`.linear-specific-angle {
+    background: linear-gradient(60deg, blue 5%, DeepPink)
+}
+.linear-specific-angle-more {
+    background: linear-gradient(60deg, blue 50%, DeepPink)
+}`}
+			</Code>
+			<div class="gradient-examples-grid">
+				<div class="gradient-example linear-specific-angle"></div>
+				<div class="gradient-example linear-specific-angle-more"></div>
+			</div>
+		</div>
+
+		<p>
+			You can ultimately pass as many colors and positions as you want. This is where you get to dial
+			in "sunset gradients", neon stripes, or whatever strange galaxy background your project is asking for.
+		</p>
+		<div class="gradient-demo-container">
+			<Code language="css" filename="linear-complex.css">
+{`.linear-complex {
+    background: linear-gradient(75deg, darkred 20%, 
+        crimson, darkorange 60%, gold, bisque)
+}`}
+			</Code>
+			<div class="gradient-demo-box linear-complex"></div>
+		</div>
+	</section>
+
+	<section id="section-radial">
+		<h2>Radial Gradient</h2>
+		<p>
+			If you want a gradient that feels more like a spotlight or a soft bubble, reach for
+			<span class="text-accent">radial-gradient()</span>. Instead of drawing along a straight line, it spreads
+			out from a center point.
+		</p>
+		<p>
+			The general pattern looks like <code>radial-gradient(size shape at position, colors...)</code>.
+			If you skip the extra bits, the browser gives you a circle in the middle. You can then tweak things like
+			<code>closest-corner</code> or <code>closest-side</code> to control how far the gradient is allowed to grow.
+		</p>
+		<div class="gradient-demo-grid">
+			<Code language="css" filename="radial-gradient.css">
+{`.radial-base {
+    background: radial-gradient(blue, DeepPink)
+}
+.radial-percent {
+    background: radial-gradient(blue 30%, DeepPink 60%)
+}
+.radial-corner {
+    background: radial-gradient(closest-corner, blue, DeepPink)
+}
+.radial-side {
+    background: radial-gradient(closest-side, blue, DeepPink)
+}`}
+			</Code>
+			<div class="gradient-examples-grid">
+				<div class="gradient-example radial-base"></div>
+				<div class="gradient-example radial-percent"></div>
+				<div class="gradient-example radial-corner"></div>
+				<div class="gradient-example radial-side"></div>
+			</div>
+		</div>
+	</section>
+
+	<section id="section-conic">
+		<h2>Conic Gradient</h2>
+		<p>
+			<span class="text-accent">conic-gradient()</span> is the weird one, in the best way. Colors spin
+			around a center point, so the gradient changes as you move around in a circle instead of across a line.
+		</p>
+		<p>
+			The structure is <code>conic-gradient(from angle at position, colors...)</code>. The
+			<code>from</code> value says where to start (defaults to <code>0deg</code>), and
+			<code>at x y</code> lets you slide the center around the box. Paired with angle ranges for each color,
+			this is perfect for dashboard charts, loading spinners, or wild color wheels.
+		</p>
+		<div class="gradient-demo-grid">
+			<Code language="css" filename="conic-gradient.css">
+{`.conic-base {
+    background: conic-gradient(blue, DeepPink)
+}
+.conic-percent {
+    background: conic-gradient(blue 30%, DeepPink 60%)
+}
+.conic-corner {
+    background: conic-gradient(from 10deg at 20% 30%, blue, DeepPink)
+}
+.conic-side {
+    background: conic-gradient(from 60deg at 70% 70%, blue, DeepPink)
+}`}
+			</Code>
+			<div class="gradient-examples-grid">
+				<div class="gradient-example conic-base"></div>
+				<div class="gradient-example conic-percent"></div>
+				<div class="gradient-example conic-corner"></div>
+				<div class="gradient-example conic-side"></div>
+			</div>
+		</div>
+		<p>
+			You can also supply exact angle ranges for each color and get a very clean pie-chart effect, all in pure CSS.
+		</p>
+		<div class="gradient-demo-container">
+			<Code language="css" filename="conic-complex.css">
+{`.conic-complex {
+    background: conic-gradient(
+    gold 20deg, lightcoral 20deg 190deg, mediumturquoise 190deg 220deg,
+    plum 220deg 320deg, steelblue 320deg);
+}`}
+			</Code>
+			<div class="gradient-demo-box conic-complex rounded-full"></div>
+		</div>
+	</section>
+
+	<section id="section-examples">
+		<h2>Gradient Playground & Real Uses</h2>
+		<p>
+			Once you understand the knobs—direction, shape, position, and color stops—you can start sneaking gradients
+			into real UI without everything turning into a rave poster.
+		</p>
+		<p>
+			Below are a few patterns you can lift straight into an app: gradient-filled text, animated rainbow headers,
+			button borders that feel a little extra, and a soft glowing card.
+		</p>
+
+		<div class="gradient-playground-grid">
+			<div class="gradient-playground-item">
+				<h3>1. Gradient-filled text</h3>
+				<p class="text-sm">
+					This uses a gradient as the background, then clips it to the letters so the text becomes a window
+					into the colors behind it.
+				</p>
+				<div class="gradient-text-demo-container">
+					<p class="gradient-text-demo">
+						CSS can absolutely be the main character.
+					</p>
+				</div>
+			</div>
+
+			<div class="gradient-playground-item">
+				<h3>2. Rainbow text that actually moves</h3>
+				<p class="text-sm">
+					Same trick, but we animate the <code>background-position</code>. A larger
+					<code>background-size</code> plus a slow keyframe loop makes the colors drift across the text.
+				</p>
+				<div class="gradient-text-demo-container">
+					<p class="gradient-text-animated">
+						Gradients in motion feel way more expensive than they are.
+					</p>
+				</div>
+			</div>
+
+			<div class="gradient-playground-item">
+				<h3>3. Gradient button border</h3>
+				<p class="text-sm">
+					Here the gradient lives on a wrapper. We give it padding and a radius, then drop a solid button
+					inside so only the edge stays colorful.
+				</p>
+				<div class="gradient-button-border w-fit">
+					<button class="gradient-button-inner">
+						Launch the gradient rocket
+					</button>
+				</div>
+			</div>
+
+			<div class="gradient-playground-item">
+				<h3>4. Soft spotlight card</h3>
+				<p class="text-sm">
+					This card stacks a dark base color with a couple of <span class="text-accent">radial-gradient()</span>
+					layers that fade out to transparent, which reads like a glow coming from off-screen.
+				</p>
+				<div class="gradient-card-fun">
+					<div class="gradient-card-fun-inner">
+						<p class="gradient-card-fun-text text-xs uppercase tracking-wider">
+							Gradient experiment
+						</p>
+						<p class="gradient-card-fun-text mt-2 text-sm">
+							Stack a dark base, then drop radial gradients with transparent centers and soft edges for
+							that "mysterious light source just out of frame" feel.
+						</p>
+					</div>
+				</div>
+			</div>
+		</div>
+	</section>
+</BlogPost>
+
+<style>
+	.text-accent {
+		color: var(--color-tertiary);
+		font-weight: 600;
+	}
+
+	.gradient-demo-container {
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
+		margin: 2rem 0;
+	}
+
+	@media (min-width: 768px) {
+		.gradient-demo-container {
+			flex-direction: row;
+			align-items: center;
+		}
+	}
+
+	.gradient-demo-grid {
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
+		margin: 2rem 0;
+	}
+
+	@media (min-width: 768px) {
+		.gradient-demo-grid {
+			flex-direction: row-reverse;
+			align-items: flex-start;
+		}
+	}
+
+	.gradient-demo-box {
+		width: 100%;
+		aspect-ratio: 1;
+		border-radius: 8px;
+		min-width: 200px;
+	}
+
+	.gradient-examples-grid {
+		display: grid;
+		grid-template-columns: repeat(2, 1fr);
+		gap: 0.5rem;
+		width: 100%;
+		min-width: 200px;
+	}
+
+	.gradient-example {
+		width: 100%;
+		aspect-ratio: 1;
+		border-radius: 8px;
+	}
+
+	/* Linear gradients */
+	.linear-one {
+		background: linear-gradient(blue, DeepPink, purple);
+	}
+
+	.linear-top {
+		background: linear-gradient(to top, blue, DeepPink);
+	}
+
+	.linear-right {
+		background: linear-gradient(to right, blue, DeepPink);
+	}
+
+	.linear-left {
+		background: linear-gradient(to left, blue, DeepPink);
+	}
+
+	.linear-top-right {
+		background: linear-gradient(to top right, blue, DeepPink);
+	}
+
+	.linear-specific-angle {
+		background: linear-gradient(60deg, blue 5%, DeepPink);
+	}
+
+	.linear-specific-angle-more {
+		background: linear-gradient(60deg, blue 50%, DeepPink);
+	}
+
+	.linear-complex {
+		background: linear-gradient(75deg, darkred 20%, crimson, darkorange 60%, gold, bisque);
+	}
+
+	/* Radial gradients */
+	.radial-base {
+		background: radial-gradient(blue, DeepPink);
+	}
+
+	.radial-percent {
+		background: radial-gradient(blue 30%, DeepPink 60%);
+	}
+
+	.radial-corner {
+		background: radial-gradient(closest-corner, blue, DeepPink);
+	}
+
+	.radial-side {
+		background: radial-gradient(closest-side, blue, DeepPink);
+	}
+
+	/* Conic gradients */
+	.conic-base {
+		background: conic-gradient(blue, DeepPink);
+	}
+
+	.conic-percent {
+		background: conic-gradient(blue 30%, DeepPink 60%);
+	}
+
+	.conic-corner {
+		background: conic-gradient(from 10deg at 20% 30%, blue, DeepPink);
+	}
+
+	.conic-side {
+		background: conic-gradient(from 60deg at 70% 70%, blue, DeepPink);
+	}
+
+	.conic-complex {
+		background: conic-gradient(
+			gold 20deg, lightcoral 20deg 190deg, mediumturquoise 190deg 220deg,
+			plum 220deg 320deg, steelblue 320deg
+		);
+	}
+
+	/* Playground examples */
+	.gradient-playground-grid {
+		display: grid;
+		gap: 2rem;
+		grid-template-columns: 1fr;
+		margin: 2rem 0;
+	}
+
+	@media (min-width: 768px) {
+		.gradient-playground-grid {
+			grid-template-columns: repeat(2, 1fr);
+		}
+	}
+
+	.gradient-playground-item {
+		display: flex;
+		flex-direction: column;
+		gap: 0.75rem;
+	}
+
+	.gradient-text-demo-container {
+		border-radius: 8px;
+		background: rgba(0, 0, 0, 0.6);
+		padding: 1rem;
+	}
+
+	.gradient-text-demo {
+		background: linear-gradient(120deg, #22d3ee, #a855f7, #f97316);
+		background-clip: text;
+		-webkit-background-clip: text;
+		color: transparent;
+		font-size: 1.875rem;
+		font-weight: 800;
+		letter-spacing: -0.025em;
+	}
+
+	.gradient-text-animated {
+		background: linear-gradient(90deg, #22d3ee, #a855f7, #f97316, #22d3ee);
+		background-size: 200% 200%;
+		background-clip: text;
+		-webkit-background-clip: text;
+		color: transparent;
+		font-size: 1.875rem;
+		font-weight: 800;
+		letter-spacing: -0.025em;
+		animation: gradient-shift 10s linear infinite;
+	}
+
+	@keyframes gradient-shift {
+		0% {
+			background-position: 0% 50%;
+		}
+		50% {
+			background-position: 100% 50%;
+		}
+		100% {
+			background-position: 0% 50%;
+		}
+	}
+
+	.gradient-button-border {
+		display: inline-flex;
+		border-radius: 9999px;
+		padding: 2px;
+		background: linear-gradient(135deg, #22d3ee, #a855f7, #f97316);
+	}
+
+	.gradient-button-inner {
+		border-radius: 9999px;
+		padding: 0.5rem 1.25rem;
+		font-size: 0.875rem;
+		font-weight: 600;
+		letter-spacing: 0.025em;
+		background: radial-gradient(circle at top left, #0f172a, #020617);
+		color: #f9fafb;
+		border: none;
+		cursor: pointer;
+	}
+
+	.gradient-card-fun {
+		border-radius: 0.75rem;
+		padding: 1px;
+		background:
+		radial-gradient(circle at 10% -20%, rgba(56, 189, 248, 0.7), transparent 60%),
+		radial-gradient(circle at 110% 120%, rgba(244, 114, 182, 0.7), transparent 60%);
+		background-size: 160% 160%, 160% 160%;
+		background-position: 0% 0%, 100% 100%;
+		transition: transform 0.2s ease, filter 0.2s ease;
+	}
+
+	.gradient-card-fun-inner {
+		border-radius: 0.75rem;
+		background: rgba(2, 6, 23, 0.9);
+		padding: 1rem;
+		transition: color 0.2s ease;
+	}
+
+	.gradient-card-fun:hover {
+		animation: gradient-card-spin 6s linear infinite;
+		filter: brightness(1.15);
+	}
+
+	.gradient-card-fun:hover .gradient-card-fun-text {
+		color: var(--color-tertiary);
+	}
+
+	@keyframes gradient-card-spin {
+		0% {
+			background-position: 0% 0%, 100% 100%;
+		}
+		50% {
+			background-position: 100% 0%, 0% 100%;
+		}
+		100% {
+			background-position: 0% 0%, 100% 100%;
+		}
+	}
+</style>
+

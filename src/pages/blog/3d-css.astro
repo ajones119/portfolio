@@ -1,0 +1,745 @@
+---
+import BlogPost from '../../components/Blog/BlogPost.astro';
+import Demo from '../../components/Blog/Demo.astro';
+import Code from '../../components/Blog/Code.astro';
+import Slider from '../../components/Blog/Slider.astro';
+import PerspectiveParentCircle from '../../components/Blog/PerspectiveParentCircle.astro';
+import PerspectiveChild from '../../components/Blog/PerspectiveChild.astro';
+import BasicButton from '../../components/Blog/BasicButton.astro';
+
+const post = {
+	title: '3D Effect with CSS',
+	description: 'Exploring CSS perspective, transforms, and 3D positioning to create immersive visual effects',
+	sections: [
+		{
+			id: 'section-introduction',
+			title: 'Introduction',
+		},
+		{
+			id: 'section-perspective',
+			title: 'Perspective',
+		},
+		{
+			id: 'section-vanishing-point',
+			title: 'Vanishing Point',
+		},
+		{
+			id: 'section-child-transformations',
+			title: 'Child Transformations',
+		},
+		{
+			id: 'section-preserve-3d',
+			title: 'Preserve 3D',
+		},
+	],
+};
+---
+
+<BlogPost title={post.title} description={post.description} sections={post.sections}>
+	<section id="section-introduction">
+		<h2>Introduction</h2>
+		<p>
+			The CSS perspective property enables 3D positioning on elements, creating depth and immersive visual effects. 
+			It determines the distance between the user and the z = 0 plane, where lower perspective values give larger 
+			transforms and higher values give smaller ones.
+		</p>
+		<p>
+			In this guide, we'll explore how to use CSS perspective, transforms, and 3D positioning to create engaging 
+			interactive experiences. We'll cover perspective properties, vanishing points, child transformations, and 
+			preserving 3D space through nested elements.
+		</p>
+	</section>
+
+	<section id="section-perspective">
+		<h2>Perspective</h2>
+		<p>
+			There are 2 ways to handle perspective in CSS: the first is with the <span class="text-accent">perspective</span> property, 
+			and the second is with the <span class="text-accent">transform</span> property with <span class="text-accent">perspective()</span> as a function.
+		</p>
+		
+		<div class="perspective-demo-container">
+			<div class="perspective-demo-controls">
+				<Code language="css" filename="perspective.css">
+{`.perspective-parent {
+    transform-style: preserve-3d;
+    perspective-origin: 50% 50%;
+    perspective: `}<span id="perspective-code-1" class="text-accent">300px</span>{`;
+}
+
+.perspective-child {
+    transform: translate3d(0px, 0px, -100px);
+}`}
+				</Code>
+				<Slider min="0" max="1000" step="20" label="Perspective" unit="px" id="perspective-slider-1" value="300" />
+			</div>
+			<div class="perspective-demo-visual">
+				<PerspectiveParentCircle id="perspective-parent-1" perspective="300">
+					<PerspectiveChild id="perspective-child-1-1" translate3dZ="-100px" />
+					<PerspectiveChild id="perspective-child-1-2" translate3dZ="-200px" />
+					<PerspectiveChild id="perspective-child-1-3" translate3dZ="-300px" />
+					<PerspectiveChild id="perspective-child-1-4" translate3dZ="-400px" />
+				</PerspectiveParentCircle>
+			</div>
+		</div>
+		
+		<script>
+			const perspectiveSlider1 = document.getElementById("perspective-slider-1");
+			const perspectiveParent1 = document.getElementById("perspective-parent-1");
+			const perspectiveCode1 = document.getElementById("perspective-code-1");
+
+			if (perspectiveParent1 && perspectiveSlider1 && perspectiveCode1) {
+				perspectiveSlider1.addEventListener('input', (e) => {
+					if (e.target instanceof HTMLInputElement) {
+						const value = e.target.value;
+						perspectiveParent1.style.perspective = `${value}px`
+						perspectiveCode1.textContent = `${value}px`
+					}
+				})
+			}
+		</script>
+
+		<h3>Perspective Transform Function</h3>
+		<p>
+			The perspective transform function is an easy and quick way to transform a single element. However, it will 
+			maintain its own vanishing point. This means that the 3d effect is independent from other elements, even if 
+			they have the same perspective.
+		</p>
+		<div class="perspective-inline-demo">
+			<div class="perspective-inline-controls">
+				<Slider label="Y Rotation" unit="deg" id="perspective-inline-slider" min={0} max="360" step="2" value="60" />
+			</div>
+			<div class="gap-1 my-4 justify-between grid grid-cols-3 p-4 mx-auto w-6/12" id="inline-perspective-example">
+				<div class="pointer-events-none w-6/12 aspect-square relative mt-2">
+					<PerspectiveChild square id="perspective-transform-child-1" rotateY="20" />
+				</div>
+				<div class="pointer-events-none w-6/12 aspect-square relative mt-2">
+					<PerspectiveChild square id="perspective-transform-child-2" rotateY="20" />
+				</div>
+				<div class="pointer-events-none w-6/12 aspect-square relative mt-2">
+					<PerspectiveChild square id="perspective-transform-child-3" rotateY="20" />
+				</div>
+				<div class="pointer-events-none w-6/12 aspect-square relative mt-2">
+					<PerspectiveChild square id="perspective-transform-child-4" rotateY="20" />
+				</div>
+				<div class="pointer-events-none w-6/12 aspect-square relative mt-2">
+					<PerspectiveChild square id="perspective-transform-child-5" rotateY="20" />
+				</div>
+				<div class="pointer-events-none w-6/12 aspect-square relative mt-2">
+					<PerspectiveChild square id="perspective-transform-child-6" rotateY="20" />
+				</div>
+				<div class="pointer-events-none w-6/12 aspect-square relative mt-2">
+					<PerspectiveChild square id="perspective-transform-child-7" rotateY="20" />
+				</div>
+				<div class="pointer-events-none w-6/12 aspect-square relative mt-2">
+					<PerspectiveChild square id="perspective-transform-child-8" rotateY="20" />
+				</div>
+				<div class="pointer-events-none w-6/12 aspect-square relative mt-2">
+					<PerspectiveChild square id="perspective-transform-child-9" rotateY="20" />
+				</div>
+			</div>
+		</div>
+		<script>
+			const inlinePerspectiveExample = document.getElementById('inline-perspective-example');
+			if (inlinePerspectiveExample) {
+				const children = Array.from(
+					inlinePerspectiveExample.querySelectorAll(".perspective-child")
+				).filter((el): el is HTMLElement => el instanceof HTMLElement);
+
+				children.forEach(child => {
+					child.style.transform = 'perspective(300px) rotateY(60deg)';
+				});
+			}
+
+			const inlinePerspectiveSlider = document.getElementById('perspective-inline-slider');
+			const inlinePerspectiveContainer = document.getElementById('inline-perspective-example');
+
+			if (inlinePerspectiveContainer && inlinePerspectiveSlider) {
+				const children = Array.from(
+					inlinePerspectiveContainer.querySelectorAll(".perspective-child")
+				).filter((el): el is HTMLElement => el instanceof HTMLElement);
+				inlinePerspectiveSlider.addEventListener('input', (e) => {
+					if (e.target instanceof HTMLInputElement) {
+						const value = e.target.value;
+						children.forEach(child => {
+							child.style.transform = `perspective(300px) rotateY(${value}deg)`
+						})
+					}
+				})
+			}
+		</script>
+
+		<h3>Perspective Property</h3>
+		<p>
+			The perspective property will affect all children inside, allowing them to maintain the same vanishing point.
+		</p>
+		<div class="perspective-parent-demo">
+			<div class="perspective-parent-controls">
+				<Slider label="Y Rotation" unit="deg" id="perspective-parent-slider" min={0} max="360" step="2" value="60" />
+			</div>
+			<div class="gap-1 my-4 justify-between grid grid-cols-3 p-4 mx-auto w-6/12" id="parent-perspective-example" style="perspective: 300px;">
+				<div class="pointer-events-none w-6/12 aspect-square relative mt-2">
+					<PerspectiveChild square rotateY={60} />
+				</div>
+				<div class="pointer-events-none w-6/12 aspect-square relative mt-2">
+					<PerspectiveChild square rotateY={60} />
+				</div>
+				<div class="pointer-events-none w-6/12 aspect-square relative mt-2">
+					<PerspectiveChild square rotateY={60} />
+				</div>
+				<div class="pointer-events-none w-6/12 aspect-square relative mt-2">
+					<PerspectiveChild square rotateY={60} />
+				</div>
+				<div class="pointer-events-none w-6/12 aspect-square relative mt-2">
+					<PerspectiveChild square rotateY={60} />
+				</div>
+				<div class="pointer-events-none w-6/12 aspect-square relative mt-2">
+					<PerspectiveChild square rotateY={60} />
+				</div>
+				<div class="pointer-events-none w-6/12 aspect-square relative mt-2">
+					<PerspectiveChild square rotateY={60} />
+				</div>
+				<div class="pointer-events-none w-6/12 aspect-square relative mt-2">
+					<PerspectiveChild square rotateY={60} />
+				</div>
+				<div class="pointer-events-none w-6/12 aspect-square relative mt-2">
+					<PerspectiveChild square rotateY={60} />
+				</div>
+			</div>
+		</div>
+		<script>
+			const parentPerspectiveSlider = document.getElementById('perspective-parent-slider');
+			const parentPerspectiveContainer = document.getElementById('parent-perspective-example');
+
+			if (parentPerspectiveContainer && parentPerspectiveSlider) {
+				const children = Array.from(
+					parentPerspectiveContainer.querySelectorAll(".perspective-child")
+				).filter((el): el is HTMLElement => el instanceof HTMLElement);
+				parentPerspectiveSlider.addEventListener('input', (e) => {
+					if (e.target instanceof HTMLInputElement) {
+						const value = e.target.value;
+						children.forEach(child => {
+							child.style.transform = `rotateY(${value}deg)`
+						})
+					}
+				})
+			}
+		</script>
+	</section>
+
+	<section id="section-vanishing-point">
+		<h2>Vanishing Point (Origin)</h2>
+		<p>
+			The <span id="origin-code-2" class="text-accent">perspective-origin</span> property can define a vanishing point on our container. 
+			Its default value is centered horizontally and vertically at 50% 50%.
+		</p>
+		<div class="vanishing-point-demo" id="vanishing-point-container">
+			<div class="vanishing-point-controls">
+				<Slider label="Perspective" unit="px" id="perspective-slider-2" min={0} max="1000" step="10" value="300" />
+				<Slider label="X Origin" unit="%" id="origin-x-slider" min={0} max="100" step="1" value="50" />
+				<Slider label="Y Origin" unit="%" id="origin-y-slider" min={0} max="100" step="1" value="50" />
+				<Code language="css" filename="vanishing-point.css">
+{`.perspective-parent {
+    transform-style: preserve-3d;
+    perspective-origin: `}<span id="origin-code-display" class="text-accent">50% 50%</span>{`;
+    perspective: `}<span id="perspective-code-2" class="text-accent">300px</span>{`;
+}
+
+.perspective-child {
+    transform: translate3d(0px, 0px, -100px);
+}`}
+				</Code>
+			</div>
+
+			<div class="vanishing-point-visual">
+				<PerspectiveParentCircle id="perspective-parent-2" perspective="300">
+					<PerspectiveChild id="perspective-child-2-1" translate3dZ="-100px" />
+					<PerspectiveChild id="perspective-child-2-2" translate3dZ="-200px" />
+					<PerspectiveChild id="perspective-child-2-3" translate3dZ="-300px" />
+					<PerspectiveChild id="perspective-child-2-4" translate3dZ="-400px" />
+				</PerspectiveParentCircle>
+			</div>
+		</div>
+		<script>
+			const vanishingPointContainer = document.getElementById('vanishing-point-container')
+			
+			if (vanishingPointContainer) {
+				const sliders = vanishingPointContainer.getElementsByTagName('input');
+				const perspectiveSlider = sliders?.[0];
+				const xSlider = sliders?.[1];
+				const ySlider = sliders?.[2];
+				let xOrigin = 50;
+				let yOrigin = 50;
+
+				const perspectiveContainer = vanishingPointContainer.querySelector('#perspective-parent-2') as HTMLElement;
+				const perspectiveCode = vanishingPointContainer.querySelector('#perspective-code-2') as HTMLElement;
+				const originCode = vanishingPointContainer.querySelector('#origin-code-display') as HTMLElement;
+
+				if (perspectiveContainer && perspectiveSlider && xSlider && ySlider) {
+					perspectiveSlider.addEventListener('input', (e) => {
+						if (e.target instanceof HTMLInputElement) {
+							const value = e.target.value;
+							perspectiveContainer.style.perspective = `${value}px`
+							if (perspectiveCode) perspectiveCode.textContent = `${value}px`
+						}
+					});
+
+					xSlider.addEventListener('input', (e) => {
+						if (e.target instanceof HTMLInputElement) {
+							const value = e.target.value;
+							xOrigin = parseInt(value) || 0;
+							perspectiveContainer.style.perspectiveOrigin = `${xOrigin}% ${yOrigin}%`
+							if (originCode) originCode.textContent = `${xOrigin}% ${yOrigin}%`
+						}
+					});
+
+					ySlider.addEventListener('input', (e) => {
+						if (e.target instanceof HTMLInputElement) {
+							const value = e.target.value;
+							yOrigin = parseInt(value) || 0;
+							perspectiveContainer.style.perspectiveOrigin = `${xOrigin}% ${yOrigin}%`
+							if (originCode) originCode.textContent = `${xOrigin}% ${yOrigin}%`
+						}
+					});
+
+				}
+			}
+		</script>
+	</section>
+
+	<section id="section-child-transformations">
+		<h2>Child Transformations</h2>
+		<p>
+			We can perform several transformations on child components within a parent container with a <span class="text-accent">perspective</span>. 
+			The main transformations you might do on a child would be increasing/decreasing scale, rotating on an axis, or translating 
+			its position within the perspective container.
+		</p>
+		<div class="child-transformations-demo" id="child-transformations-container">
+			<div class="child-transformations-controls">
+				<div class="grid grid-cols-1 md:grid-cols-2 mb-4 gap-2 w-full justify-between">
+					<div class="w-11/12">
+						<h6>Container</h6>
+						<Slider label="Perspective" unit="px" id="perspective-slider-3" min={0} max="1000" step="10" value="300" />
+						<Slider label="X Origin" unit="%" id="origin-x-2" min={0} max="100" step="1" value="50" />
+						<Slider label="Y Origin" unit="%" id="origin-y-2" min={0} max="100" step="1" value="50" />
+					</div>
+					<div class="w-11/12">
+						<h6>Child - Translate</h6>
+						<Slider label="Translate X" unit="px" id="translate-x" min={-200} max={200} step={1} value={0} />
+						<Slider label="Translate Y" unit="px" id="translate-y" min={-200} max={200} step={1} value={0} />
+						<Slider label="Translate Z" unit="px" id="translate-z" min={-1000} max={1000} step={1} value={-500} />
+					</div>
+					<div class="w-11/12">
+						<h6>Child - Scale</h6>
+						<Slider label="Scale X" id="scale-x" min={0} max={2} step={0.1} value={1} />
+						<Slider label="Scale Y" id="scale-y" min={0} max={2} step={0.1} value={1} />
+						<Slider label="Scale Z" id="scale-z" min={0} max={2} step={0.1} value={1} />
+					</div>
+					<div class="w-11/12">
+						<h6>Child - Rotate</h6>
+						<Slider label="Rotate X" unit="deg" id="rotate-x" min={0} max={360} step={1} value={0} />
+						<Slider label="Rotate Y" unit="deg" id="rotate-y" min={0} max={360} step={1} value={0} />
+						<Slider label="Rotate Z" unit="deg" id="rotate-z" min={0} max={360} step={1} value={0} />
+					</div>
+				</div>
+				<Code language="css" filename="child-transforms.css">
+{`.perspective-parent {
+    transform-style: preserve-3d;
+    perspective-origin: `}<span id="origin-code-3" class="text-accent">50% 50%</span>{`;
+    perspective: `}<span id="perspective-code-3" class="text-accent">300px</span>{`;
+}
+
+.perspective-child {
+    transform: `}<code id="child-code" class="text-accent whitespace-pre-wrap"></code>{`;
+}`}
+				</Code>
+			</div>
+
+			<div class="child-transformations-visual">
+				<PerspectiveParentCircle id="perspective-parent-3" perspective="300">
+					<PerspectiveChild id="perspective-child-3-1" translate3dZ="-100px" />
+					<PerspectiveChild id="perspective-child-3-2" translate3dZ="-200px" />
+					<PerspectiveChild id="perspective-child-3-3" translate3dZ="-300px" />
+					<PerspectiveChild id="perspective-child-3-4" translate3dZ="-400px" />
+					<PerspectiveChild id="perspective-child-edit" translate3dZ="-500px" showAxis className="bg-tertiary opacity-30" />
+				</PerspectiveParentCircle>
+			</div>
+		</div>
+		<script>
+			const childTransformationsContainer = document.getElementById('child-transformations-container')
+
+			type triple = {
+				x: number,
+				y: number,
+				z: number
+			}
+
+			type ChildTransforms = {
+				translate: triple,
+				rotate: triple,
+				scale: triple
+			}
+
+			function deepMerge<T extends object>(target: T, source: Partial<T>): T {
+				for (const key in source) {
+					if (
+						typeof source[key] === "object" &&
+						source[key] !== null &&
+						!Array.isArray(source[key])
+					) {
+						if (target[key]) {
+							target[key] = deepMerge({ ...target[key] }, source[key] as any);
+						}
+					} else if (source[key] !== undefined) {
+						target[key] = source[key] as T[Extract<keyof T, string>];
+					}
+				}
+				return target;
+			}
+
+			let childTransforms: ChildTransforms = {
+				translate: {
+					x: 0,
+					y: 0,
+					z: -500
+				},
+				rotate: {
+					x: 0,
+					y: 0,
+					z: 0
+				},
+				scale: {
+					x: 1,
+					y: 1,
+					z: 1
+				}
+			}
+			const controlMap = [
+				{
+					id: "translate-x",
+					prop: "translate",
+					axis: "x",
+				},
+				{
+					id: "translate-y",
+					prop: "translate",
+					axis: "y",
+				},
+				{
+					id: "translate-z",
+					prop: "translate",
+					axis: "z",
+				},
+				{
+					id: "rotate-x",
+					prop: "rotate",
+					axis: "x",
+				},
+				{
+					id: "rotate-y",
+					prop: "rotate",
+					axis: "y",
+				},
+				{
+					id: "rotate-z",
+					prop: "rotate",
+					axis: "z",
+				},
+				{
+					id: "scale-x",
+					prop: "scale",
+					axis: "x",
+				},
+				{
+					id: "scale-y",
+					prop: "scale",
+					axis: "y",
+				},
+				{
+					id: "scale-z",
+					prop: "scale",
+					axis: "z",
+				},
+			];
+
+			if (childTransformationsContainer) {
+
+				const handleChildChange = (change: Partial<ChildTransforms>) => {
+					childTransforms = deepMerge(childTransforms, change);
+
+					const { translate, rotate, scale } = childTransforms;
+					if (child) {
+						child.style.transform = `
+translate3d(${translate.x}px, ${translate.y}px, ${translate.z}px)
+rotateX(${rotate.x}deg)
+rotateY(${rotate.y}deg)
+rotateZ(${rotate.z}deg)
+scale3d(${scale.x}, ${scale.y}, ${scale.z})
+						`;
+						if (childCode) childCode.textContent = child.style.transform;
+					}
+				};
+
+				const childCode = document.getElementById("child-code") as HTMLElement;
+
+
+				const sliders = childTransformationsContainer.getElementsByTagName('input');
+				const perspectiveSlider = sliders?.[0];
+				const xSlider = sliders?.[1];
+				const ySlider = sliders?.[2];
+
+				let xOrigin = 50;
+				let yOrigin = 50;
+
+				const perspectiveContainer = childTransformationsContainer.querySelector('#perspective-parent-3') as HTMLElement;
+				const perspectiveCode = childTransformationsContainer.querySelector('#perspective-code-3') as HTMLElement;
+				const originCode = childTransformationsContainer.querySelector('#origin-code-3') as HTMLElement;
+				const child = childTransformationsContainer.querySelector('#perspective-child-edit') as HTMLElement;
+				
+
+				if (perspectiveContainer && perspectiveSlider && xSlider && ySlider && child) {
+					perspectiveSlider.addEventListener('input', (e) => {
+						if (e.target instanceof HTMLInputElement) {
+							const value = e.target.value;
+							perspectiveContainer.style.perspective = `${value}px`
+							if (perspectiveCode) perspectiveCode.textContent = `${value}px`
+						}
+					});
+
+					xSlider.addEventListener('input', (e) => {
+						if (e.target instanceof HTMLInputElement) {
+							const value = e.target.value;
+							xOrigin = parseInt(value) || 0;
+							perspectiveContainer.style.perspectiveOrigin = `${xOrigin}% ${yOrigin}%`
+							if (originCode) originCode.textContent = `${xOrigin}% ${yOrigin}%`
+						}
+					});
+
+					ySlider.addEventListener('input', (e) => {
+						if (e.target instanceof HTMLInputElement) {
+							const value = e.target.value;
+							yOrigin = parseInt(value) || 0;
+							perspectiveContainer.style.perspectiveOrigin = `${xOrigin}% ${yOrigin}%`
+							if (originCode) originCode.textContent = `${xOrigin}% ${yOrigin}%`
+						}
+					});
+
+					for (const { id, prop, axis } of controlMap) {
+						const input = childTransformationsContainer.querySelector(`#${id}`) as HTMLInputElement;
+						if (input) {
+							input.addEventListener("input", (e) => {
+								const target = e.target as HTMLInputElement;
+								const value = parseFloat(target.value);
+								handleChildChange({ [prop]: { [axis]: value } } as Partial<ChildTransforms>);
+							});
+						}
+					}
+					handleChildChange({})
+
+				}
+			}
+		</script>
+	</section>
+
+	<section id="section-preserve-3d">
+		<h2>Preserve 3D</h2>
+		<p>
+			We can preserve 3d perspective into grandchildren elements on a container by using the <span class='text-accent'>transform-style: preserve-3d;</span>. 
+			Here we can see the lower left container does not preserve the 3d space into its children, while the upper right container does.
+		</p>
+		<div class="preserve-3d-demo">
+			<div class="preserve-3d-code">
+				<Code language="css" filename="preserve-3d.css">
+{`.parent {
+    transition: transform 0.4s ease;
+    transform-style: preserve-3d;
+    perspective: 600px;
+    transform: rotateX(0) rotateY(0) rotateZ(0);
+}
+.parent[data-toggle="true"] {
+    transform-style: preserve-3d;
+    transform: rotateX(70deg) rotateY(-10deg) rotateZ(50deg);
+    .child {
+        transform: translateZ(40px);
+    }
+
+    .child[data-3d="true"] {
+        transform-style: preserve-3d;
+    }
+
+    .grandchild {
+        transform-style: preserve-3d;
+        transform: translateZ(30px);
+    }
+}
+
+.child {
+    /* NOTE NO PRESERVE 3D TRANSFORM,
+    SO THE GRANDCHILDREN WILL NOT
+    RENDER WITH 3D EFFECTS */
+    transition: transform 0.4s ease;
+    transform: translateZ(0);
+}
+.grandchild {
+    transition: transform 0.4s ease;
+    transform: translateZ(0);
+}`}
+				</Code>
+			</div>
+			<div class="preserve-3d-visual" id="preserve-3d-example">
+				<div class="parent w-full aspect-video border-tertiary border-solid border-2 bg-quaternary/20 relative" id="preserve-3d-parent">
+					<div data-3d="true" class="child bg-quaternary/40 absolute right-2 top-2 border-tertiary border-solid border-2 aspect-video w-5/12">
+						<div class="grandchild bg-quaternary/60 absolute w-6/12 border-tertiary border-solid border-2 aspect-video right-4 top-4 flex items-center justify-center">
+							3d
+						</div>
+					</div>
+					<div class="child bg-quaternary/40 absolute left-2 bottom-2 border-tertiary border-solid border-2 aspect-video w-5/12">
+						<div class="grandchild bg-quaternary/60 absolute w-6/12 border-tertiary border-solid border-2 aspect-video right-4 top-4 flex items-center justify-center">
+							Not 3d
+						</div>
+					</div>
+					<div class="absolute right-2 bottom-2">
+						<BasicButton id="toggle-3d">Toggle 3d</BasicButton>
+					</div>
+				</div>
+			</div>
+		</div>
+		
+		<style>
+			#preserve-3d-parent {
+				transition: transform 0.4s ease;
+				transform-style: preserve-3d;
+				perspective: 600px;
+				transform: rotateX(0) rotateY(0) rotateZ(0);
+			}
+			#preserve-3d-parent[data-toggle="true"] {
+				transform-style: preserve-3d;
+				transform: rotateX(70deg) rotateY(-10deg) rotateZ(50deg);
+			}
+			#preserve-3d-parent[data-toggle="true"] .child {
+				transform: translateZ(40px);
+			}
+
+			#preserve-3d-parent[data-toggle="true"] .child[data-3d="true"] {
+				transform-style: preserve-3d;
+			}
+
+			#preserve-3d-parent[data-toggle="true"] .grandchild {
+				transform-style: preserve-3d;
+				transform: translateZ(30px);
+			}
+
+			#preserve-3d-parent .child {
+				/* NOTE NO PRESERVE 3D TRANSFORM, SO THE GRANDCHILDREN WILL NOT RENDER WITH 3D EFFECTS */
+				transition: transform 0.4s ease;
+				transform: translateZ(0);
+			}
+			#preserve-3d-parent .grandchild {
+				transition: transform 0.4s ease;
+				transform: translateZ(0);
+			}
+		</style>
+		
+		<script>
+			const parentContainer = document.getElementById('preserve-3d-example');
+			const toggle = parentContainer?.querySelector('#toggle-3d') as HTMLButtonElement;
+			let isToggled = false;
+			const parent = parentContainer?.querySelector('#preserve-3d-parent');
+
+			if (toggle && parent) {
+				toggle.addEventListener('click', () => {
+					if (isToggled) {
+						parent.setAttribute('data-toggle', 'false')
+						isToggled = false;
+					} else {
+						parent.setAttribute('data-toggle', 'true')
+						isToggled = true;
+					}
+				})
+			}
+		</script>
+	</section>
+</BlogPost>
+
+<style>
+	.text-accent {
+		color: var(--color-tertiary);
+		font-weight: 600;
+	}
+
+	.perspective-demo-container,
+	.vanishing-point-demo,
+	.child-transformations-demo,
+	.preserve-3d-demo {
+		display: flex;
+		flex-direction: column;
+		gap: 2rem;
+		margin: 2rem 0;
+	}
+
+	@media (min-width: 768px) {
+		.perspective-demo-container,
+		.vanishing-point-demo,
+		.child-transformations-demo {
+			flex-direction: row;
+			align-items: flex-start;
+		}
+	}
+
+	.perspective-demo-controls,
+	.vanishing-point-controls,
+	.child-transformations-controls {
+		flex: 1;
+		min-width: 0;
+	}
+
+	.perspective-demo-visual,
+	.vanishing-point-visual,
+	.child-transformations-visual {
+		flex: 1;
+		min-width: 0;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		pointer-events: none;
+	}
+
+	.perspective-inline-demo,
+	.perspective-parent-demo {
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
+		margin: 2rem 0;
+	}
+
+	.perspective-inline-controls,
+	.perspective-parent-controls {
+		display: flex;
+		justify-content: center;
+	}
+
+	.preserve-3d-demo {
+		flex-direction: column;
+	}
+
+	@media (min-width: 1024px) {
+		.preserve-3d-demo {
+			flex-direction: row;
+		}
+	}
+
+	.preserve-3d-code {
+		flex: 1;
+	}
+
+	.preserve-3d-visual {
+		flex: 1;
+		margin-top: 1rem;
+	}
+
+	@media (min-width: 1024px) {
+		.preserve-3d-visual {
+			margin-top: 0;
+		}
+	}
+</style>
+

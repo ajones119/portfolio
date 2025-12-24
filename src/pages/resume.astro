@@ -1,0 +1,302 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { Image } from 'astro:assets';
+import linkedInAvatar from '../assets/images/aramis/LinkdInAvatar.jpg';
+---
+
+<Layout title="Resume • Aramis Jones" description="Professional resume and experience" consoleMessage="Woah! who's this cool guy?">
+	<div class="min-h-screen py-12">
+		<div class="container mx-auto px-4 max-w-4xl">
+			<header class="mb-12 text-center">
+				<h1 class="text-4xl lg:text-5xl font-bold font-abril-fatface mb-4">Aramis Jones</h1>
+				<p class="text-lg text-muted font-playfair-display italic">
+					Frontend Software Engineer
+				</p>
+			</header>
+
+			<!-- Profile Photo -->
+			<div class="mb-12 flex justify-center">
+				<div class="resume-image-container">
+					<Image
+						src={linkedInAvatar}
+						alt="Aramis Jones"
+						width={500}
+						height={500}
+						class="resume-profile-image"
+					/>
+				</div>
+			</div>
+
+			<div class="resume-content prose prose-lg max-w-none space-y-12">
+				<!-- Professional Work Experience -->
+				<section>
+					<h2 class="text-3xl font-bold font-abril-fatface mb-6 text-secondary border-b-2 border-primary pb-2">
+						Professional Work Experience
+					</h2>
+					
+					<div class="space-y-6">
+						<!-- PerformYard -->
+						<article class="p-6">
+							<div class="flex flex-col md:flex-row md:items-start md:justify-between mb-4 pb-4 border-b-2 border-primary">
+								<div>
+									<h3 class="text-3xl font-bold font-abril-fatface text-primary">PerformYard</h3>
+									<p class="text-lg font-playfair-display text-secondary mt-1">Frontend Software Engineer • React Guild Lead</p>
+								</div>
+								<p class="text-muted font-playfair-display italic mt-2 md:mt-0">February 2023 - Present</p>
+							</div>
+							<ul class="space-y-2 mb-6">
+								<li class="flex items-start">
+									<span class="text-tertiary mr-2 font-bold">▸</span>
+									<span>Built and maintained a React component library, extending ShadCN and an atomic design system to create a series of reusable components</span>
+								</li>
+								<li class="flex items-start">
+									<span class="text-tertiary mr-2 font-bold">▸</span>
+									<span>Developed a comprehensive form system with Zod validation to drastically reduce boilerplate code, enhance consistency across pages, and address accessibility and semantic HTML requirements</span>
+								</li>
+								<li class="flex items-start">
+									<span class="text-tertiary mr-2 font-bold">▸</span>
+									<span>Implemented versioning system for performance review template forms</span>
+								</li>
+								<li class="flex items-start">
+									<span class="text-tertiary mr-2 font-bold">▸</span>
+									<span>Brought client-side test coverage from 10% to 60%, and wrote tooling to help new developers achieve total coverage on new pages</span>
+								</li>
+								<li class="flex items-start">
+									<span class="text-tertiary mr-2 font-bold">▸</span>
+									<span>Serve as Guild Lead for the frontend code, guiding technical decisions and best practices</span>
+								</li>
+								<li class="flex items-start">
+									<span class="text-tertiary mr-2 font-bold">▸</span>
+									<span>Implemented several full-stack refactors, completely rewriting client-side code, majorly refactoring server-side code for better performance, while maintaining backward compatibility with legacy data</span>
+								</li>
+								<li class="flex items-start">
+									<span class="text-tertiary mr-2 font-bold">▸</span>
+									<span>Expanded RBAC (Role-Based Access Control) functionality across the platform</span>
+								</li>
+								<li class="flex items-start">
+									<span class="text-tertiary mr-2 font-bold">▸</span>
+									<span>Converted several endpoints from Tornado Python to Fastify TypeScript, improving type safety and performance</span>
+								</li>
+								<li class="flex items-start">
+									<span class="text-tertiary mr-2 font-bold">▸</span>
+									<span>Supported legacy Python template coding and injected newer features using React portaling and optional rendering</span>
+								</li>
+								<li class="flex items-start">
+									<span class="text-tertiary mr-2 font-bold">▸</span>
+									<span>Established consistent type validation between forms, requests, and responses in a centralized package</span>
+								</li>
+							</ul>
+							<div class="flex flex-wrap gap-2 pt-4 border-t-2 border-primary">
+								<span class="px-3 py-1 rounded-full border-2 border-primary bg-background text-primary font-semibold text-sm">TypeScript</span>
+								<span class="px-3 py-1 rounded-full border-2 border-primary bg-background text-primary font-semibold text-sm">React</span>
+								<span class="px-3 py-1 rounded-full border-2 border-primary bg-background text-primary font-semibold text-sm">Fastify</span>
+								<span class="px-3 py-1 rounded-full border-2 border-primary bg-background text-primary font-semibold text-sm">Python</span>
+								<span class="px-3 py-1 rounded-full border-2 border-primary bg-background text-primary font-semibold text-sm">Zod</span>
+								<span class="px-3 py-1 rounded-full border-2 border-primary bg-background text-primary font-semibold text-sm">TanStack</span>
+								<span class="px-3 py-1 rounded-full border-2 border-primary bg-background text-primary font-semibold text-sm">MongoDB</span>
+								<span class="px-3 py-1 rounded-full border-2 border-primary bg-background text-primary font-semibold text-sm">AWS Lambdas</span>
+								<span class="px-3 py-1 rounded-full border-2 border-primary bg-background text-primary font-semibold text-sm">TurboRepo</span>
+							</div>
+						</article>
+
+						<!-- Paycom -->
+						<article class="p-6">
+							<div class="flex flex-col md:flex-row md:items-start md:justify-between mb-4 pb-4 border-b-2 border-primary">
+								<div>
+									<h3 class="text-3xl font-bold font-abril-fatface text-primary">Paycom</h3>
+									<p class="text-lg font-playfair-display text-secondary mt-1">Software Engineer</p>
+								</div>
+								<p class="text-muted font-playfair-display italic mt-2 md:mt-0">May 2021 - February 2023</p>
+							</div>
+							<ul class="space-y-2 mb-6">
+								<li class="flex items-start">
+									<span class="text-quaternary mr-2 font-bold">▸</span>
+									<span>Worked in React JS and Redux to maintain a large Single Page Application</span>
+								</li>
+								<li class="flex items-start">
+									<span class="text-quaternary mr-2 font-bold">▸</span>
+									<span>Developed and maintained a module API using PHP</span>
+								</li>
+								<li class="flex items-start">
+									<span class="text-quaternary mr-2 font-bold">▸</span>
+									<span>Researched and implemented Unit Testing in both React (JEST) and PHP for our module</span>
+								</li>
+								<li class="flex items-start">
+									<span class="text-quaternary mr-2 font-bold">▸</span>
+									<span>Created interfaces for third-party JS libraries (such as date-fns and sprintf-js)</span>
+								</li>
+								<li class="flex items-start">
+									<span class="text-quaternary mr-2 font-bold">▸</span>
+									<span>Maintained a clean codebase through in-depth code reviews</span>
+								</li>
+								<li class="flex items-start">
+									<span class="text-quaternary mr-2 font-bold">▸</span>
+									<span>Increased performance in legacy PHP areas by up to 80%</span>
+								</li>
+								<li class="flex items-start">
+									<span class="text-quaternary mr-2 font-bold">▸</span>
+									<span>Served as a required code owner (reviewer) for a React codebase</span>
+								</li>
+							</ul>
+							<div class="flex flex-wrap gap-2 pt-4 border-t-2 border-primary">
+								<span class="px-3 py-1 rounded-full border-2 border-primary bg-background text-primary font-semibold text-sm">React</span>
+								<span class="px-3 py-1 rounded-full border-2 border-primary bg-background text-primary font-semibold text-sm">Redux</span>
+								<span class="px-3 py-1 rounded-full border-2 border-primary bg-background text-primary font-semibold text-sm">PHP</span>
+								<span class="px-3 py-1 rounded-full border-2 border-primary bg-background text-primary font-semibold text-sm">JEST</span>
+								<span class="px-3 py-1 rounded-full border-2 border-primary bg-background text-primary font-semibold text-sm">PHPUnit</span>
+							</div>
+						</article>
+					</div>
+				</section>
+
+				<!-- Skills & Experience -->
+				<section>
+					<h2 class="text-3xl font-bold font-abril-fatface mb-6 text-secondary border-b-2 border-primary pb-2">
+						Skills & Experience
+					</h2>
+					<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+						<div>
+							<h3 class="text-xl font-bold text-tertiary mb-3">Frontend Technologies</h3>
+							<ul class="space-y-1 text-foreground">
+								<li>React, Redux, TanStack</li>
+								<li>TypeScript, JavaScript</li>
+								<li>HTML, CSS, Tailwind CSS</li>
+								<li>Material UI, React-Bootstrap</li>
+								<li>ShadCN, Atomic Design Systems</li>
+							</ul>
+						</div>
+						<div>
+							<h3 class="text-xl font-bold text-tertiary mb-3">Backend & Infrastructure</h3>
+							<ul class="space-y-1 text-foreground">
+								<li>Python (Tornado, FastAPI)</li>
+								<li>Fastify, TypeScript</li>
+								<li>MongoDB, SQL, MySQL</li>
+								<li>AWS Lambdas</li>
+								<li>Google Firebase</li>
+							</ul>
+						</div>
+						<div>
+							<h3 class="text-xl font-bold text-tertiary mb-3">Development Tools</h3>
+							<ul class="space-y-1 text-foreground">
+								<li>Git, GitLab, GitHub Pages</li>
+								<li>TurboRepo (Monorepo)</li>
+								<li>Zod (Schema Validation)</li>
+								<li>Zustand (State Management)</li>
+							</ul>
+						</div>
+						<div>
+							<h3 class="text-xl font-bold text-tertiary mb-3">Testing & Quality</h3>
+							<ul class="space-y-1 text-foreground">
+								<li>JEST (React Testing)</li>
+								<li>PHPUnit (PHP Testing)</li>
+								<li>Code Reviews & Best Practices</li>
+								<li>Accessibility (a11y) Standards</li>
+							</ul>
+						</div>
+					</div>
+				</section>
+
+				<!-- Education -->
+				<section>
+					<h2 class="text-3xl font-bold font-abril-fatface mb-6 text-secondary border-b-2 border-primary pb-2">
+						Education
+					</h2>
+					<div class="space-y-4">
+						<article>
+							<div class="flex flex-col md:flex-row md:items-start md:justify-between mb-2">
+								<h3 class="text-xl font-bold text-tertiary">University of Central Oklahoma</h3>
+								<p class="text-muted font-playfair-display italic">2017 - 2021</p>
+							</div>
+							<p class="text-foreground">Bachelor's Degree in Software Engineering</p>
+						</article>
+						<article>
+							<div class="flex flex-col md:flex-row md:items-start md:justify-between mb-2">
+								<h3 class="text-xl font-bold text-tertiary">Oklahoma State University OKC</h3>
+								<p class="text-muted font-playfair-display italic">2016 - 2017</p>
+							</div>
+							<p class="text-foreground">Engineering Major</p>
+						</article>
+						<article>
+							<div class="flex flex-col md:flex-row md:items-start md:justify-between mb-2">
+								<h3 class="text-xl font-bold text-tertiary">Northern Oklahoma College</h3>
+								<p class="text-muted font-playfair-display italic">2015 - 2016</p>
+							</div>
+							<p class="text-foreground">Engineering Major</p>
+						</article>
+					</div>
+				</section>
+			</div>
+		</div>
+	</div>
+</Layout>
+
+<style>
+	/* Prose styling for resume content */
+	:global(.resume-content .prose) {
+		color: var(--color-foreground);
+		font-family: var(--font-lato);
+	}
+
+	:global(.resume-content .prose h2) {
+		font-family: var(--font-abril-fatface);
+		color: var(--color-secondary);
+		margin-top: 3rem;
+		margin-bottom: 1.5rem;
+		border-bottom: 2px solid var(--color-primary);
+		padding-bottom: 0.5rem;
+	}
+
+	:global(.resume-content .prose h3) {
+		font-family: var(--font-playfair-display);
+		color: var(--color-tertiary);
+		font-weight: 700;
+		margin-top: 2rem;
+		margin-bottom: 1rem;
+	}
+
+	:global(.resume-content .prose p) {
+		margin-bottom: 1rem;
+		line-height: 1.7;
+	}
+
+	:global(.resume-content .prose ul) {
+		margin-left: 1.5rem;
+		margin-bottom: 1rem;
+	}
+
+	:global(.resume-content .prose li) {
+		margin-bottom: 0.75rem;
+		line-height: 1.7;
+	}
+
+
+	.resume-image-container {
+		width: 100%;
+		max-width: 500px;
+		display: flex;
+		justify-content: center;
+	}
+
+	.resume-profile-image {
+		width: 100%;
+		max-width: 500px;
+		height: auto;
+		border-radius: 0.5rem;
+		object-fit: cover;
+	}
+
+	section {
+		margin-bottom: 3rem;
+	}
+
+	@media print {
+		.resume-item {
+			page-break-inside: avoid;
+		}
+		
+		.resume-profile-image {
+			max-width: 300px;
+		}
+	}
+</style>
+

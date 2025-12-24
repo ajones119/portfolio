@@ -1,0 +1,58 @@
+---
+---
+
+<div class="snake-canvas-container">
+    <canvas id="snake-canvas" class="snake-canvas size-full"></canvas>
+    <button id="snake-start-btn" class="snake-start-btn">Start Snake</button>
+</div>
+
+<style>
+    .snake-canvas-container {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 20;
+        padding: 20px;
+        box-sizing: border-box;
+    }
+
+    .snake-canvas {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        pointer-events: auto;
+        opacity: 1;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+    }
+
+    .snake-start-btn {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        padding: 12px 24px;
+        background-color: #FFFFFF;
+        color: #000000;
+        border: 2px solid #000000;
+        border-radius: 8px;
+        font-size: 18px;
+        font-weight: bold;
+        cursor: pointer;
+        z-index: 1;
+        pointer-events: auto;
+        transition: all 0.3s ease;
+    }
+
+    .snake-start-btn:hover {
+        background-color: #000000;
+        color: #FFFFFF;
+    }
+
+    .snake-start-btn:active {
+        transform: translate(-50%, -50%) scale(0.95);
+    }
+</style>

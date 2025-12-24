@@ -1,0 +1,234 @@
+---
+import BlogPost from '../../components/Blog/BlogPost.astro';
+import Demo from '../../components/Blog/Demo.astro';
+import Code from '../../components/Blog/Code.astro';
+
+const post = {
+	title: 'Floating Image Effect',
+	description: 'Creating a whimsical floating image effect with CSS animations and JavaScript',
+	sections: [
+		{
+			id: 'section-introduction',
+			title: 'Introduction',
+		},
+		{
+			id: 'section-implementation',
+			title: 'Implementation',
+			subsections: [
+				{
+					id: 'subsection-css',
+					title: 'CSS Setup',
+				},
+				{
+					id: 'subsection-javascript',
+					title: 'JavaScript Animation',
+				},
+			],
+		},
+		{
+			id: 'section-demo',
+			title: 'Demo',
+		},
+		{
+			id: 'section-conclusion',
+			title: 'Conclusion',
+		},
+	],
+};
+---
+
+<BlogPost title={post.title} description={post.description} sections={post.sections}>
+	<section id="section-introduction">
+		<h2>Introduction</h2>
+		<p>
+			The floating image effect is a delightful animation technique that makes images appear to gently float and bob in space. 
+			This effect adds a whimsical, playful touch to any website, perfect for showcasing images in a more engaging way.
+		</p>
+		<p>
+			In this tutorial, we'll explore how to create this effect using CSS animations and JavaScript, maintaining the minimalist 
+			aesthetic of Disney's Three Caballeros while adding a touch of magic.
+		</p>
+	</section>
+
+	<section id="section-implementation">
+		<h2>Implementation</h2>
+		
+		<div id="subsection-css">
+			<h3>CSS Setup</h3>
+			<p>
+				We'll start by creating the base CSS for our floating image. The key is to use CSS transforms and animations 
+				to create a smooth, organic floating motion.
+			</p>
+			
+			<Code language="css" filename="floating-image.css">
+{`@keyframes float {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  25% {
+    transform: translateY(-20px) rotate(2deg);
+  }
+  50% {
+    transform: translateY(-10px) rotate(-1deg);
+  }
+  75% {
+    transform: translateY(-15px) rotate(1deg);
+  }
+}
+
+.floating-image {
+  animation: float 6s ease-in-out infinite;
+  will-change: transform;
+  transition: transform 0.3s ease;
+}
+
+.floating-image:hover {
+  animation-play-state: paused;
+  transform: scale(1.05);
+}`}
+			</Code>
+		</div>
+
+		<div id="subsection-javascript">
+			<h3>JavaScript Animation</h3>
+			<p>
+				For more dynamic control, we can use JavaScript to add random variations to the floating motion, 
+				making each image feel unique and organic.
+			</p>
+			
+			<Code language="javascript" filename="floating-image.js">
+{`function initFloatingImage(element) {
+  const baseDuration = 4000 + Math.random() * 2000; // 4-6 seconds
+  const baseAmplitude = 15 + Math.random() * 10; // 15-25px
+  
+  element.style.setProperty('--float-duration', \`\${baseDuration}ms\`);
+  element.style.setProperty('--float-amplitude', \`\${baseAmplitude}px\`);
+  
+  // Add subtle mouse interaction
+  element.addEventListener('mousemove', (e) => {
+    const rect = element.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width;
+    const y = (e.clientY - rect.top) / rect.height;
+    
+    const tiltX = (x - 0.5) * 10;
+    const tiltY = (y - 0.5) * 10;
+    
+    element.style.transform = \`translateY(0) rotateX(\${tiltY}deg) rotateY(\${tiltX}deg)\`;
+  });
+  
+  element.addEventListener('mouseleave', () => {
+    element.style.transform = '';
+  });
+}`}
+			</Code>
+		</div>
+	</section>
+
+	<section id="section-demo">
+		<h2>Demo</h2>
+		<p>
+			Here's a live example of the floating image effect. Hover over the image to see the interactive tilt effect.
+		</p>
+		
+		<Demo sectionId="floating-image-demo" title="Floating Image Demo">
+			<div class="floating-image-container">
+				<img 
+					src="/src/assets/images/aramis/aramisnarwen.png" 
+					alt="Floating image demo"
+					class="floating-image-demo"
+				/>
+			</div>
+		</Demo>
+	</section>
+
+	<section id="section-conclusion">
+		<h2>Conclusion</h2>
+		<p>
+			The floating image effect is a simple yet effective way to add life and movement to static images. 
+			By combining CSS animations with JavaScript interactions, we can create engaging, playful experiences 
+			that maintain the minimalist aesthetic we're aiming for.
+		</p>
+		<p>
+			Experiment with different animation durations, amplitudes, and easing functions to find the perfect 
+			floating motion for your project. Remember to keep it subtle and organic—too much movement can be 
+			distracting rather than delightful.
+		</p>
+	</section>
+</BlogPost>
+
+<style>
+	.floating-image-container {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		min-height: 300px;
+		padding: 2rem;
+	}
+	
+	.floating-image-demo {
+		max-width: 300px;
+		height: auto;
+		border-radius: 12px;
+		box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+		animation: floatDemo 6s ease-in-out infinite;
+		will-change: transform;
+		transition: transform 0.3s ease;
+	}
+	
+	.floating-image-demo:hover {
+		animation-play-state: paused;
+		transform: scale(1.05);
+		box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+	}
+	
+	@keyframes floatDemo {
+		0%, 100% {
+			transform: translateY(0px) rotate(0deg);
+		}
+		25% {
+			transform: translateY(-20px) rotate(2deg);
+		}
+		50% {
+			transform: translateY(-10px) rotate(-1deg);
+		}
+		75% {
+			transform: translateY(-15px) rotate(1deg);
+		}
+	}
+</style>
+
+<script>
+	// Initialize floating image demo
+	const initFloatingDemo = () => {
+		const image = document.querySelector('.floating-image-demo') as HTMLElement;
+		if (!image) return;
+		
+		const baseDuration = 4000 + Math.random() * 2000;
+		const baseAmplitude = 15 + Math.random() * 10;
+		
+		image.style.setProperty('--float-duration', `${baseDuration}ms`);
+		image.style.setProperty('--float-amplitude', `${baseAmplitude}px`);
+		
+		image.addEventListener('mousemove', (e) => {
+			const rect = image.getBoundingClientRect();
+			const x = (e.clientX - rect.left) / rect.width;
+			const y = (e.clientY - rect.top) / rect.height;
+			
+			const tiltX = (x - 0.5) * 10;
+			const tiltY = (y - 0.5) * 10;
+			
+			image.style.transform = `translateY(0) rotateX(${tiltY}deg) rotateY(${tiltX}deg) scale(1.05)`;
+		});
+		
+		image.addEventListener('mouseleave', () => {
+			image.style.transform = '';
+		});
+	};
+	
+	if (document.readyState === 'loading') {
+		document.addEventListener('DOMContentLoaded', initFloatingDemo);
+	} else {
+		initFloatingDemo();
+	}
+</script>
+

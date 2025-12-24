@@ -1,0 +1,75 @@
+---
+// Props
+const {
+    id,
+    className = "",
+    variant = "primary",
+    type = "button"
+} = Astro.props;
+
+---
+
+<button
+    class={`basic-button ${variant === 'primary' ? 'basic-button-primary' : variant === 'secondary' ? 'basic-button-secondary' : 'basic-button-ghost'} ${className}`}
+    id={id}
+    type={type}
+>
+    <slot />
+</button>
+
+<style>
+.basic-button {
+    padding: 0.75rem 1.5rem;
+    font-weight: 600;
+    font-size: 0.875rem;
+    border: none;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    font-family: var(--font-lato);
+}
+
+.basic-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.basic-button:active {
+    transform: scale(0.98);
+}
+
+.basic-button-primary {
+    background: linear-gradient(135deg, var(--color-secondary), var(--color-tertiary));
+    color: var(--color-background);
+}
+
+.basic-button-primary:hover {
+    background: linear-gradient(135deg, var(--color-tertiary), var(--color-secondary));
+}
+
+.basic-button-secondary {
+    background: var(--color-quaternary);
+    color: var(--color-primary);
+    border: 2px solid var(--color-tertiary);
+}
+
+.basic-button-secondary:hover {
+    background: var(--color-background);
+    border-color: var(--color-secondary);
+}
+
+.basic-button-ghost {
+    background: transparent;
+    color: var(--color-primary);
+    border: 2px solid transparent;
+}
+
+.basic-button-ghost:hover {
+    background: var(--color-quaternary);
+    border-color: var(--color-tertiary);
+}
+</style>
+

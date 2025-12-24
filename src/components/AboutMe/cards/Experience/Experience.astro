@@ -1,0 +1,50 @@
+---
+
+---
+
+<div id="experience-card" class="experience-card py-4 px-6 w-full h-full overflow-y-hidden">
+    <h3 class="text-xl font-bold font-abril-fatface mb-4 tracking-wider">Experience</h3>
+    <div class="space-y-6">
+        <div class="border-l-2 border-primary pl-6 pb-6 relative">
+            <div class="absolute -left-2 top-0 w-4 h-4 rounded-full bg-primary"></div>
+            <div class="flex flex-col mb-2">
+                <h4 class="text-base font-semibold font-playfair-display tracking-wider">PerformYard</h4>
+                <span class="text-muted text-xs">Feb 2023 - Present</span>
+            </div>
+            <p class="text-xs mb-2">Led React development for performance management software serving 5,000+ clients. Architected component systems, built complex UI implementations, optimized performance, and integrated AI features.</p>
+            <p class="text-xs text-muted italic">React, JavaScript, Python, AI</p>
+        </div>
+        <div class="border-l-2 border-primary pl-6 relative">
+            <div class="absolute -left-2 top-0 w-4 h-4 rounded-full bg-primary"></div>
+            <div class="flex flex-col mb-2">
+                <h4 class="text-base font-semibold font-playfair-display tracking-wider">Paycom Dev III</h4>
+                <span class="text-muted text-xs">May 2021 - Feb 2023</span>
+            </div>
+            <p class="text-xs mb-2">Developed employee scheduling module used by 50,000+ clients. Built team schedule management system with shift reminders, recurrence rules, and performance optimizations.</p>
+            <p class="text-xs text-muted italic">PHP, JavaScript, React</p>
+        </div>
+    </div>
+</div>
+
+<script>
+    import gsap from 'gsap';
+    import ScrollTrigger from 'gsap/ScrollTrigger';
+    gsap.registerPlugin(ScrollTrigger);
+
+
+    
+    const experienceCard = document.getElementById('experience-card');
+    if (experienceCard) {
+        gsap.to(experienceCard, {
+            opacity: 1,
+            y: 0,
+            duration: 1,
+            ease: 'power2.inOut',
+            scrollTrigger: {
+                trigger: experienceCard,
+                start: 'top 80%',
+                toggleActions: 'play none none none',
+            }
+        });
+    }
+</script>

@@ -1,0 +1,100 @@
+---
+interface Props {
+	sections: Array<{
+		id: string;
+		title: string;
+		subsections?: Array<{
+			id: string;
+			title: string;
+		}>;
+	}>;
+}
+
+const { sections } = Astro.props;
+---
+
+<nav id="table-of-contents" class="sticky top-24 hidden lg:block w-64">
+	<div class="border-l-2 border-secondary pl-6 py-4">
+		<h3 class="text-sm font-bold font-abril-fatface mb-4 text-secondary">Table of Contents</h3>
+		<ul class="space-y-2">
+			{sections.map((section) => (
+				<li>
+					<a 
+						href={`#${section.id}`}
+						data-section-id={section.id}
+						class="toc-link text-sm text-muted hover:text-primary transition-colors block py-1"
+					>
+						{section.title}
+					</a>
+					{section.subsections && section.subsections.length > 0 && (
+						<ul class="ml-4 mt-1 space-y-1">
+							{section.subsections.map((subsection) => (
+								<li>
+									<a 
+										href={`#${subsection.id}`}
+										data-section-id={subsection.id}
+										class="toc-link text-xs text-muted hover:text-primary transition-colors block py-0.5"
+									>
+										{subsection.title}
+									</a>
+								</li>
+							))}
+						</ul>
+					)}
+				</li>
+			))}
+		</ul>
+	</div>
+</nav>
+
+<script>
+	// Highlight active section in table of contents on scroll
+	const initTOC = () => {
+		const tocLinks = document.querySelectorAll('.toc-link');
+		const sections = document.querySelectorAll('[id^="section-"], [id^="subsection-"]');
+		
+		if (tocLinks.length === 0 || sections.length === 0) return;
+
+		const observerOptions = {
+			rootMargin: '-20% 0px -70% 0px',
+			threshold: 0
+		};
+
+		const observer = new IntersectionObserver((entries) => {
+			entries.forEach((entry) => {
+				if (entry.isIntersecting) {
+					const id = entry.target.id;
+					tocLinks.forEach((link) => {
+						link.classList.remove('text-primary', 'font-semibold');
+						link.classList.add('text-muted');
+					});
+					
+					const activeLink = document.querySelector(`[data-section-id="${id}"]`);
+					if (activeLink) {
+						activeLink.classList.remove('text-muted');
+						activeLink.classList.add('text-primary', 'font-semibold');
+					}
+				}
+			});
+		}, observerOptions);
+
+		sections.forEach((section) => {
+			observer.observe(section);
+		});
+	};
+
+	// Initialize when DOM is ready
+	if (document.readyState === 'loading') {
+		document.addEventListener('DOMContentLoaded', initTOC);
+	} else {
+		initTOC();
+	}
+</script>
+
+<style>
+	.toc-link.active {
+		color: var(--color-primary);
+		font-weight: 600;
+	}
+</style>
+

@@ -1,0 +1,38 @@
+---
+import Image from 'astro/components/Image.astro';
+import spiral from '../../../../assets/images/spiral.png';
+---
+
+<div class="w-full h-full flex items-center justify-center overflow-hidden  sm:max-h-40 lg:max-h-full">
+    <Image
+        src={spiral} 
+        alt="Spiral" 
+        class="w-full scale-200  lg:scale-100 spiral-slow-spin"
+        width={1000}
+        height={1000}
+        id="spiral"
+    />
+</div>
+
+<style>
+    @keyframes slow-spin {
+        from {
+            transform: rotate(0deg);
+        }
+        to {
+            transform: rotate(360deg);
+        }
+    }
+    
+    .spiral-slow-spin {
+        animation: slow-spin 120s linear infinite;
+    }
+    
+    html[data-theme="dark"] #spiral {
+        filter: grayscale(0%) brightness(80%) contrast(100%);
+    }
+
+    html[data-theme="light"] #spiral {
+        filter: grayscale(0%) brightness(90%) contrast(100%) saturate(120%);
+    }
+</style>

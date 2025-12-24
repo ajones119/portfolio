@@ -1,0 +1,31 @@
+---
+---
+<button 
+	id="theme-toggle" 
+	class="border-1 border-solid border-primary size-8 rounded-full bg-background flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity"
+	aria-label="Toggle theme"
+>
+	<!-- Icon will be injected by JavaScript -->
+</button>
+
+
+<script>
+	import { initThemeToggle } from '../../scripts/themeToggle';
+	
+	const button = document.getElementById('theme-toggle') as HTMLButtonElement;
+	const circleOverlay = document.getElementById('theme-circle-overlay');
+	
+	if (button && circleOverlay) {
+		initThemeToggle({ button, circleOverlay });
+	}
+</script>
+
+<style>
+
+	
+	.theme-toggle-button svg {
+		width: 20px;
+		height: 20px;
+	}
+</style>
+

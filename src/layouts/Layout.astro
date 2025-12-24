@@ -1,0 +1,59 @@
+---
+import "../styles/global.css";
+import Navbar from "../components/Navbar/Navbar.astro";
+import Footer from "../components/Footer.astro";
+
+interface Props {
+	title?: string;
+	description?: string;
+	consoleMessage?: string;
+}
+
+const { title = "Astro Basics", description, consoleMessage } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<meta name="generator" content={Astro.generator} />
+		{description && <meta name="description" content={description} />}
+		<title>{title}</title>
+
+		<!-- Prevent flash of unstyled content by setting theme immediately -->
+		<script is:inline>
+			(function() {
+				const getTheme = () => {
+					const stored = localStorage.getItem('theme');
+					if (stored === 'light' || stored === 'dark') return stored;
+					return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+				};
+				document.documentElement.setAttribute('data-theme', getTheme());
+			})();
+		</script>
+
+		<!-- Google Fonts -->
+		<link rel="preconnect" href="https://fonts.googleapis.com">
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+		<link href="https://fonts.googleapis.com/css2?family=Abril+Fatface&family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap" rel="stylesheet">
+	</head>
+	<body>
+		<Navbar />
+		<main>
+			<slot />
+		</main>
+		<Footer />
+	</body>
+</html>
+
+<script src="../scripts/lenis.ts"></script>
+
+{consoleMessage && (
+	<script define:vars={{ message: consoleMessage }}>
+		document.addEventListener('DOMContentLoaded', () => {
+			console.log(message);
+		});
+	</script>
+)}

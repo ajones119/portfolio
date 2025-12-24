@@ -1,0 +1,94 @@
+---
+import sunny from "../../../../assets/images/weather/portfolio-weather-sunny.webp";
+import { Image } from "astro:assets";
+import WeatherCanvas from "./WeatherCanvas/WeatherCanvas.astro";
+
+---
+
+<div id="weather-widget" data-loading="true" data-weather-theme="light" class="h-full w-full group text-secondary data-[weather-theme=dark]:text-senary relative">
+    <div id="weather-loading" class="absolute inset-0 w-full h-full items-center justify-center hidden group-data-[loading=true]:flex">
+        <!-- Sunny background at 20% opacity -->
+        <Image
+            src={sunny}
+            widths={[600, 800, 1000]}
+            sizes="(max-width: 600px) 600px, (max-width: 800px) 800px, (max-width: 1000px) 1000px, 600px"
+            alt=""
+            class="absolute inset-0 w-full h-full object-cover opacity-40"
+            aria-hidden="true"
+        />
+        <!-- Loader -->
+        <div class="relative z-10 flex flex-col items-center gap-4">
+            <div class="w-12 h-12 border-4 border-current border-t-transparent rounded-full animate-spin"></div>
+            <p class="text-lg font-bold font-abril-fatface">Loading...</p>
+        </div>
+    </div>
+    <div id="weather-widget-content" class="hidden group-data-[loading=false]:flex relative h-full">
+        <WeatherCanvas />
+
+        <div class="absolute inset-0 w-full h-full flex-col justify-between">
+            <img
+                id="weather-image"
+                src={sunny.src}
+                alt="Weather"
+                class="w-full h-full object-cover weather-image"
+            />
+        </div>
+        <div class="p-6 lg:p-10 flex flex-col z-10 relative h-full font-lato">
+            <div>
+                <h3 class="text-sm font-bold font-lato flex items-center gap-2 weather-section">
+                    
+                    Today in OKC
+                    <svg id="weather-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="inline-block -mt-1">
+                        <!-- Icon will be inserted via JavaScript -->
+                    </svg>
+                </h3>
+                <p id="weather-temperature" class="text-4xl font-bold mb-2 weather-section">-°F</p>
+                <div id="weather-high-low" class="text-sm flex items-center gap-3 mb-2 weather-section">
+                    <span>H: <span id="temp-high">-</span>°</span>
+                    <span>L: <span id="temp-low">-</span>°</span>
+                </div>
+            </div>
+            <div id="weather-wind" class="text-xs flex items-center gap-2 weather-section">
+                <svg width="20" height="20" viewBox="0 0 50 50" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <g id="wind-arrow" transform="rotate(0 25 25)">
+                        <!-- Wind Direction arrow pointing up (will be rotated via transform) -->
+                        <!-- Arrow shaft -->
+                        <line x1="25" y1="40" x2="25" y2="10"/>
+                        <!-- Arrowhead -->
+                        <line x1="25" y1="10" x2="18" y2="17"/>
+                        <line x1="25" y1="10" x2="32" y2="17"/>
+                    </g>
+                </svg>
+                <span id="wind-speed">-</span>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<style>
+    /* overcast on dark theme */
+    html[data-theme="dark"] #weather-widget[data-weather-theme="dark"] .weather-image {
+        filter: grayscale(50%) brightness(50%) contrast(100%);
+    }
+
+    /* clear on dark theme */
+    html[data-theme="dark"] #weather-widget[data-weather-theme="light"] .weather-image {
+        filter: grayscale(0%) brightness(90%) contrast(100%) saturate(120%);
+    }
+
+    html[data-theme="light"] #weather-widget[data-weather-theme="dark"] .weather-image {
+        filter: grayscale(0%) brightness(80%) contrast(120%);
+    }
+
+    /* clear on dark theme */
+    html[data-theme="light"] #weather-widget[data-weather-theme="light"] .weather-image {
+        filter: grayscale(0%) brightness(100%) contrast(100%) saturate(120%);
+    }
+</style>
+
+<script>
+    import { initializeWeatherWidget } from './Weather.ts';
+
+    initializeWeatherWidget();
+</script>

@@ -1,0 +1,154 @@
+---
+const {
+    id = "slider",
+    label = "",
+    min = 0,
+    max = 100,
+    step = 1,
+    value = 50,
+    unit = "",
+    name,
+} = Astro.props;
+---
+
+<div class="slider-container">
+    {label && <label for={id} class="slider-label">{label}</label>}
+
+    <div data-type={"rangeInput"} data-unit={unit} class="slider-wrapper">
+        <input
+            type="range"
+            id={id}
+            name={name || id}
+            min={min}
+            max={max}
+            step={step}
+            value={value}
+            class="slider-input"
+        />
+        <output for={id} id={`${id}-output`} class="slider-output">
+            {value + " "}{unit}
+        </output>
+    </div>
+</div>
+
+<style>
+    .slider-container {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        width: 100%;
+        max-width: 28rem;
+        color: var(--color-primary);
+        font-family: var(--font-lato);
+    }
+
+    .slider-label {
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: var(--color-muted);
+        margin-bottom: 0.25rem;
+    }
+
+    .slider-wrapper {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .slider-output {
+        font-size: 0.875rem;
+        font-weight: 600;
+        min-width: 3.5rem;
+        text-align: left;
+        white-space: nowrap;
+        color: var(--color-primary);
+    }
+
+    .slider-input {
+        width: 100%;
+        height: 6px;
+        -webkit-appearance: none;
+        appearance: none;
+        background: var(--color-quaternary);
+        border-radius: 3px;
+        outline: none;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        position: relative;
+    }
+
+    .slider-input:hover {
+        opacity: 0.9;
+    }
+
+    /* Webkit browsers (Chrome, Safari, Edge) */
+    .slider-input::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 18px;
+        height: 18px;
+        background: linear-gradient(135deg, var(--color-secondary), var(--color-tertiary));
+        border-radius: 50%;
+        cursor: pointer;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        border: 2px solid var(--color-background);
+    }
+
+    .slider-input::-webkit-slider-thumb:hover {
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        transform: scale(1.1);
+    }
+
+    .slider-input::-webkit-slider-thumb:active {
+        transform: scale(0.95);
+    }
+
+    /* Firefox */
+    .slider-input::-moz-range-thumb {
+        width: 18px;
+        height: 18px;
+        background: linear-gradient(135deg, var(--color-secondary), var(--color-tertiary));
+        border-radius: 50%;
+        cursor: pointer;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        border: 2px solid var(--color-background);
+    }
+
+    .slider-input::-moz-range-thumb:hover {
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        transform: scale(1.1);
+    }
+
+    .slider-input::-moz-range-thumb:active {
+        transform: scale(0.95);
+    }
+
+    /* Firefox track */
+    .slider-input::-moz-range-track {
+        background: var(--color-quaternary);
+        border-radius: 3px;
+    }
+</style>
+<script>
+    const containers = document.querySelectorAll('[data-type="rangeInput"]');
+    containers.forEach((element) => {
+        const container = element as HTMLDivElement;
+        const unit = container.dataset.unit;
+        if (container) {
+            const slider = container.querySelector('input[type="range"]');
+            const output = container.querySelector('output');
+
+            if (slider && output) {
+            slider.addEventListener('input', (e) => {
+                const target = e.target as HTMLInputElement;
+                const val = target.value;
+                output.textContent = val + (unit ? " " + unit : "");
+            });
+            }
+        }
+    });
+    
+</script>
+

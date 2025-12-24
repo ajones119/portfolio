@@ -1,0 +1,83 @@
+<!--
+  SNOWFALL SYSTEM
+  A canvas-based snowfall simulation with interactive surfaces
+  
+  How it works:
+  1. Snowflakes fall with wave-like motion
+  2. They accumulate on surfaces marked with the "surface" class
+  3. Snow piles up and can slide/spread based on physics rules
+  4. Surfaces block snow accumulation
+-->
+
+<div class="snowfall-container">
+  <!-- 
+    Content containers that will collect snow on their tops
+    Elements with class "surface" will collect snow on their top surfaces
+  -->
+  <div class="html-content-container">
+    <button class="surface" onclick="window.clearSnowfall()">
+      Let it Snow
+    </button>
+    <button class="surface" onclick="window.clearSnowfall()">
+      Let it Snow, Let it Snow, Let it Snow
+    </button>
+  </div>
+  
+  <!-- Canvas element for rendering the snowfall simulation -->
+  <canvas id="snow-canvas" class="snow-canvas" />
+</div>
+
+<style>
+  .snow-canvas {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    left: 0;
+    top: 0;
+    pointer-events: none; /* Allow clicks to pass through to content below */
+  }
+  
+  .snowfall-container {
+    position: relative;
+    width: 600px;
+    height: 600px;
+    background-color: black;
+    margin: 0 auto;
+    overflow: hidden;
+  }
+  
+  .html-content-container {
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 48px;
+    justify-content: center;
+    align-items: center;
+    z-index: 10;
+  }
+  
+  /* Elements with this class will collect snow on their top surfaces */
+  .surface {
+    border: 1px solid #87ceeb;
+    padding: 8px 16px;
+    color: #e0f6ff;
+    background-color: transparent;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.2s, transform 0.1s;
+  }
+
+  .surface:hover {
+    background-color: rgba(173, 216, 230, 0.2);
+    transform: scale(1.05);
+  }
+
+  .surface:active {
+    transform: scale(0.98);
+  }
+</style>
+
+<script src="./Snowfall.js"></script>

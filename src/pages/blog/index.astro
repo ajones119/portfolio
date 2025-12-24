@@ -1,0 +1,107 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import BlogLayout from '../../layouts/BlogLayout.astro';
+
+interface BlogPost {
+	title: string;
+	description: string;
+	slug: string;
+	date?: string;
+}
+
+const blogPosts: BlogPost[] = [
+	{
+		title: 'Snowfall Canvas',
+		description: 'Creating an interactive snowfall animation with HTML5 Canvas that accumulates on page elements using grid-based state tracking',
+		slug: '/blog/snowfall-canvas',
+	},
+	{
+		title: 'Rainfall Canvas',
+		description: 'Creating an interactive rainfall animation with HTML5 Canvas that responds to page elements with splash effects',
+		slug: '/blog/rainfall-canvas',
+	},
+	{
+		title: 'Fuzzy Searches',
+		description: 'Exploring fuzzy search algorithms: Contains, Hamming, Levenshtein, Jaro-Winkler, and Damerau-Levenshtein distance algorithms',
+		slug: '/blog/fuzzy-search',
+	},
+	{
+		title: 'Gradients',
+		description: 'Exploring CSS gradients: linear, radial, and conic gradients with practical examples and a gradient playground',
+		slug: '/blog/gradients',
+	},
+	{
+		title: '3D Effect with CSS',
+		description: 'Exploring CSS perspective, transforms, and 3D positioning to create immersive visual effects',
+		slug: '/blog/3d-css',
+	},
+	{
+		title: 'Floating Image Effect',
+		description: 'Creating a whimsical floating image effect with CSS animations and JavaScript',
+		slug: '/blog/floating-image',
+	},
+];
+---
+
+<BlogLayout title="Blog" description="Technical articles, tutorials, and explorations">
+	<div class="min-h-screen py-12">
+		<div class="container mx-auto px-4 max-w-7xl">
+			<header class="mb-12 text-center">
+				<h1 class="text-4xl lg:text-5xl font-bold font-abril-fatface mb-4">Blog</h1>
+				<p class="text-lg text-muted font-playfair-display italic">
+					Technical articles, tutorials, and explorations
+				</p>
+			</header>
+
+			<div class="space-y-8 md:space-y-0 md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-6">
+				{blogPosts.map((post) => (
+					<article class="blog-post-card border-2 border-primary rounded-lg p-6 bg-quaternary/10 hover:bg-quaternary/20 transition-colors">
+						<a href={post.slug} class="block h-full flex flex-col">
+							<h2 class="text-2xl lg:text-3xl font-bold font-abril-fatface mb-3 text-primary hover:text-secondary">
+								{post.title}
+							</h2>
+							<p class="text-muted font-playfair-display italic mb-4 flex-grow">
+								{post.description}
+							</p>
+							<div class="flex items-center justify-between mt-auto">
+								<span class="text-sm text-muted">
+									Read more →
+								</span>
+								{post.date && (
+									<span class="text-xs text-muted">
+										{post.date}
+									</span>
+								)}
+							</div>
+						</a>
+					</article>
+				))}
+			</div>
+
+			{blogPosts.length === 0 && (
+				<div class="text-center py-12">
+					<p class="text-muted font-playfair-display italic">
+						No blog posts yet. Check back soon!
+					</p>
+				</div>
+			)}
+		</div>
+	</div>
+</BlogLayout>
+
+<style>
+	.blog-post-card {
+		transition: transform 0.2s ease, box-shadow 0.2s ease;
+	}
+
+	.blog-post-card:hover {
+		transform: translateY(-2px);
+		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+	}
+
+	.blog-post-card a {
+		text-decoration: none;
+		color: inherit;
+	}
+</style>
+
