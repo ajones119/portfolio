@@ -1,5 +1,5 @@
 ---
-import Image from 'astro/components/Image.astro';
+import { Image } from 'astro:assets';
 import spiral from '../../../../assets/images/spiral.png';
 ---
 
@@ -8,8 +8,10 @@ import spiral from '../../../../assets/images/spiral.png';
         src={spiral} 
         alt="Spiral" 
         class="w-full scale-200  lg:scale-100 spiral-slow-spin"
-        width={1000}
-        height={1000}
+        width={800}
+        height={800}
+        widths={[400, 600, 800]}
+        sizes="(max-width: 768px) 400px, (max-width: 1024px) 600px, 800px"
         id="spiral"
     />
 </div>

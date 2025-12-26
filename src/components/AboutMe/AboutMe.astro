@@ -9,6 +9,7 @@ import MinesweeperDemo from './cards/MinesweeperDemo/MinesweeperDemo.astro';
 import AppraiseCSVParser from './cards/AppraiseCSVParser/AppraiseCSVParser.astro';
 import RPGSoundboard from './cards/RPGSoundboard/RPGSoundboard.astro';
 import GoblinScribe from './cards/GoblinScribe/GoblinScribe.astro';
+import BlankCard from './cards/BlankCard/BlankCard.astro';
 import { lordOfTheRingsQuotes } from './quotes';
 
 ---
@@ -47,33 +48,36 @@ import { lordOfTheRingsQuotes } from './quotes';
             </div>
 
             <!-- Contact Info -->
-            <div class="grid-item-6 w-full h-full lg:border border-tertiary lg:row-span-2 lg:col-span-4 card-bg-tertiary">
+            <div class="grid-item-6 w-full h-auto md:h-full lg:border border-tertiary lg:row-span-2 lg:col-span-4 card-bg-tertiary">
                 <Contact />
             </div>
 
             <!-- Nav Cards -->
-            <a href="#projects" class="grid-item-7 w-full h-full lg:border border-primary lg:col-span-2 lg:col-start-1 lg:row-start-7 lg:row-end-8 p-6 flex items-center justify-center card-bg-primary hover:opacity-80 transition-opacity cursor-pointer">
+            <a href="#projects" class="grid-item-7 w-full h-full lg:border border-primary lg:col-span-2 lg:col-start-1 lg:row-start-7 lg:row-end-8 p-6 flex items-center justify-center card-bg-primary hover:opacity-80 transition-opacity cursor-pointer projects-link">
                 <p class="text-lg font-bold font-abril-fatface">Projects</p>
             </a>
-            <a href="#dungeons-and-dragons" class="grid-item-8 w-full h-full lg:border border-secondary lg:col-span-2 lg:col-start-3 lg:row-start-7 lg:row-end-8 p-6 flex items-center justify-center card-bg-secondary hover:opacity-80 transition-opacity cursor-pointer">
-                <p class="text-lg font-bold font-abril-fatface">D&D</p>
+            <a href="/resume" class="grid-item-8 w-full h-full lg:border border-secondary lg:col-span-2 lg:col-start-3 lg:row-start-7 lg:row-end-8 p-6 flex items-center justify-center card-bg-secondary hover:opacity-80 transition-opacity cursor-pointer">
+                <p class="text-lg font-bold font-abril-fatface">Resume</p>
             </a>
             <a href="/blog" class="grid-item-9 w-full h-full lg:border border-tertiary lg:col-span-2 lg:col-start-5 lg:row-start-7 lg:row-end-8 p-6 flex items-center justify-center card-bg-tertiary hover:opacity-80 transition-opacity cursor-pointer">
                 <p class="text-lg font-bold font-abril-fatface">Dev Blog</p>
             </a>
-            <div class="grid-item-10 w-full h-full lg:border border-quaternary lg:col-span-4 lg:col-start-1 lg:row-start-8 lg:row-end-10 card-bg-quaternary">
+            <div id="projects" class="grid-item-10 w-full h-auto md:h-full lg:border border-quaternary lg:col-span-4 lg:col-start-1 lg:row-start-8 lg:row-end-10 card-bg-quaternary">
                 <DnDInitiativeTracker />
             </div>
-            <div class="grid-item-11 w-full h-full lg:border border-quinary lg:col-span-2 lg:col-start-5 lg:row-start-8 lg:row-end-10 card-bg-quinary">
+            <div class="grid-item-11 w-full h-auto md:h-full lg:border border-quinary lg:col-span-2 lg:col-start-5 lg:row-start-8 lg:row-end-10 card-bg-quinary">
                 <MinesweeperDemo />
             </div>
             <div class="grid-item-12 w-full h-full lg:border border-senary lg:col-span-2 lg:col-start-0 lg:row-start-10 lg:row-end-12 card-bg-senary">
                 <AppraiseCSVParser />
             </div>
-            <div class="grid-item-13 w-full h-full lg:border border-primary lg:col-span-4 lg:col-start-3 lg:row-start-10 lg:row-end-12 card-bg-primary">
+            <div class="grid-item-13 w-full h-auto md:h-full lg:border border-primary lg:col-span-4 lg:col-start-3 lg:row-start-10 lg:row-end-12 card-bg-primary">
                 <RPGSoundboard />
             </div>
-            <div class="grid-item-14 w-full h-full lg:border border-secondary lg:col-span-6 lg:col-start-1 lg:row-start-12 lg:row-end-14 card-bg-secondary">
+            <div class="grid-item-14 w-full h-full lg:border border-secondary lg:col-span-3 lg:col-start-1 lg:row-start-12 lg:row-end-14 card-bg-secondary order-15 lg:order-14">
+                <BlankCard />
+            </div>
+            <div class="grid-item-15 w-full h-full lg:border border-tertiary lg:col-span-3 lg:col-start-4 lg:row-start-12 lg:row-end-14 card-bg-tertiary order-14 lg:order-15">
                 <GoblinScribe />
             </div>
            
@@ -122,5 +126,17 @@ import { lordOfTheRingsQuotes } from './quotes';
         document.addEventListener('DOMContentLoaded', displayRandomQuote);
     } else {
         displayRandomQuote();
+    }
+    
+    // Handle Projects link scroll
+    const projectsLink = document.querySelector('.projects-link');
+    if (projectsLink) {
+        projectsLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            const projectsSection = document.getElementById('projects');
+            if (projectsSection) {
+                projectsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        });
     }
 </script>

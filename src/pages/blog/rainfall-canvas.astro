@@ -60,7 +60,7 @@ const post = {
 			We'll start by setting up our canvas and script. We'll need to ensure we have a canvas, then we'll set it to its 
 			container size and add a listener to adjust for changing screen sizes.
 		</p>
-		<Code language="html" filename="canvas-setup.html">
+		<Code language="html">
 {`<canvas id="garden-canvas" class="w-full h-full"/>
 <script type="module">
 const canvas = document.getElementById("garden-canvas");
@@ -93,7 +93,7 @@ window.addEventListener("scroll", updateElementPositions);
 			Let's start by considering our state! We'll need to keep track of each rain drop as it passes down the canvas. 
 			We can start with an empty class with a few states that we can use to track the rain drop's position, velocity, and size.
 		</p>
-		<Code language="javascript" filename="RainDrop.js">
+		<Code language="javascript">
 {`class RainDrop {
   x = 0;
   y = 0;
@@ -124,7 +124,7 @@ window.addEventListener("scroll", updateElementPositions);
 			drop, but adding a small streak behind it gives a little more flair to the entire thing. So we'll also add a new trail 
 			state to track the last few positions for our draw function later.
 		</p>
-		<Code language="javascript" filename="update.js">
+		<Code language="javascript">
 {`update(deltaTime) {
   const speed = (this.velocity * deltaTime) / 1000; // Adjust speed based on delta time
 
@@ -146,7 +146,7 @@ window.addEventListener("scroll", updateElementPositions);
 		<p>
 			Now we can add a draw function. This will draw an arc at the current position, and draw a line behind it.
 		</p>
-		<Code language="javascript" filename="draw.js">
+		<Code language="javascript">
 {`draw(ctx) {
   ctx.fillStyle = mainFill;
   // shadows are a fun but expensive flair
@@ -172,7 +172,7 @@ window.addEventListener("scroll", updateElementPositions);
 			Before we can start animating though, we need a way to reset rain drops that go off screen so they don't fall forever. 
 			To do this, let's update our `Update` function to catch when a drop has gone too far off screen and reset it to the top again.
 		</p>
-		<Code language="javascript" filename="reset.js">
+		<Code language="javascript">
 {`update(deltaTime) {
   //...updateFunc
 
@@ -195,7 +195,7 @@ reset() {
 			Next we'll add our actual animation loop function. This will leverage `requestAnimationFrame` to recursively call itself. 
 			In order to keep the backdrop efficient, we'll use the targetFPS to limit the rate we actually commit to render and draw on the canvas.
 		</p>
-		<Code language="javascript" filename="animate.js">
+		<Code language="javascript">
 {`// set the canvas state
 let numberOfDrops = 50;
 const targetFPS = 45;
@@ -234,7 +234,7 @@ animate()`}
 			their positions on <code>resize</code> and <code>scroll</code>, storing them in a shared <code>surfacePositions</code> array that's 
 			used for collision detection.
 		</p>
-		<Code language="javascript" filename="element-detection.js">
+		<Code language="javascript">
 {`function updateElementPositions() {
   const canvasRect = canvas.getBoundingClientRect();
   const container = canvas.parentElement.parentElement;
@@ -254,7 +254,7 @@ animate()`}
 		<p>
 			Each drop checks whether its position intersects one of these rectangles using <code>nodeCollideWithElement</code>:
 		</p>
-		<Code language="javascript" filename="collision.js">
+		<Code language="javascript">
 {`function nodeCollideWithElement(x, y){ 
   return surfacePositions.some((pos) => {
     return x < pos.right && x > pos.left && y < pos.bottom && y > pos.top;
@@ -274,7 +274,7 @@ animate()`}
 			by generating a few <code>SplashDrop</code> particles at the point of impact. Each splash is just a small particle with basic 
 			gravity and velocity, giving it a quick arc motion before falling out of view.
 		</p>
-		<Code language="javascript" filename="SplashDrop.js">
+		<Code language="javascript">
 {`class SplashDrop {
   x = 0;
   y = 0;
@@ -313,7 +313,7 @@ animate()`}
 			Each splash drop fades naturally as it falls off screen. In the animation loop, splashes are updated and drawn just like raindrops 
 			— and removed once they're done:
 		</p>
-		<Code language="javascript" filename="splash-loop.js">
+		<Code language="javascript">
 {`splashes.forEach((splash) => {
   splash.update(delta);
   splash.draw(ctx);
@@ -323,7 +323,7 @@ splashes = splashes.filter((splash) => !splash.canRemove);`}
 		<p>
 			To create the splash, I spawn 3 particles at slightly different angles when a raindrop hits an HTML element:
 		</p>
-		<Code language="javascript" filename="splash-creation.js">
+		<Code language="javascript">
 {`if (nodeCollideWithElement(this.x, this.y)) {
   splashes.push(new SplashDrop(this.x, this.y, Math.PI / 3));
   splashes.push(new SplashDrop(this.x, this.y, Math.PI / 2));

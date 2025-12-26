@@ -1,0 +1,33 @@
+---
+import { Image } from 'astro:assets';
+import oklahomaImage from '../../../../assets/images/oklahoma.png';
+---
+
+<div class="w-full h-full flex items-center justify-center overflow-hidden relative">
+    <Image
+        src={oklahomaImage}
+        alt="Oklahoma"
+        class="w-full h-full object-cover oklahoma-positioned"
+        width={1200}
+        height={1200}
+        widths={[400, 600, 800, 1200]}
+        sizes="(max-width: 768px) 400px, (max-width: 1024px) 600px, (max-width: 1280px) 800px, 1200px"
+        id="oklahoma-image"
+    />
+</div>
+
+<style>
+    .oklahoma-positioned {
+        object-position: center 20%;
+        object-fit: cover;
+    }
+    
+    html[data-theme="dark"] #oklahoma-image {
+        filter: grayscale(0%) brightness(80%) contrast(100%);
+    }
+
+    html[data-theme="light"] #oklahoma-image {
+        filter: grayscale(0%) brightness(90%) contrast(100%) saturate(120%);
+    }
+</style>
+

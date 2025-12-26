@@ -76,7 +76,7 @@ const post = {
 			<li>The <strong>Snowflake</strong> should detect when it collides with a screen element OR a snow pile and "land".</li>
 			<li>The <strong>Snowflake</strong> should help snow spread by randomly moving 1 column left or right on contact.</li>
 		</ul>
-		<Code language="javascript" filename="Snowflake.js">
+		<Code language="javascript">
 {`class Snowflake {
   x = 0;
   y = 0;
@@ -148,7 +148,7 @@ const post = {
 			<li>It should combat the tendency for the columns to be tall and narrow by looking at its neighbors and randomly 'spreading' by knocking the top flake off and to the left or right.</li>
 			<li>The column should animate snow cells falling if there is an empty cell under it.</li>
 		</ul>
-		<Code language="javascript" filename="SnowPile.js">
+		<Code language="javascript">
 {`class SnowPile {
   cellWidth;
   // 0 = empty, 1 = snow 2 = blocker
@@ -379,7 +379,7 @@ const post = {
 		<p>
 			To detect them, we update a <code>surfacePositions</code> array using <code>getBoundingClientRect()</code>:
 		</p>
-		<Code language="javascript" filename="element-detection.js">
+		<Code language="javascript">
 {`function initializeCanvas() {
   surfacePositions.length = 0;
   const canvasRect = canvas.getBoundingClientRect();
@@ -410,7 +410,7 @@ const post = {
 		<p>
 			The snow animation uses a frame-throttled loop to balance visual smoothness with CPU efficiency.
 		</p>
-		<Code language="javascript" filename="animate.js">
+		<Code language="javascript">
 {`let lastFrameTime = 0;
 const frameDelay = 1000 / 45;
 
@@ -437,8 +437,8 @@ animate();`}
 		<p>
 			Here's a live demo of the snowfall canvas in action. The snow will accumulate on elements marked with the "surface" class.
 		</p>
-		<Demo sectionId="snowfall-demo" title="Snowfall Canvas Demo" className="w-full max-w-none">
-			<div class="relative min-h-[400px] overflow-hidden rounded-lg border-2 border-tertiary w-full">
+		<Demo sectionId="snowfall-demo" title="Snowfall Canvas Demo">
+			<div class="relative min-h-[400px] overflow-hidden rounded-lg border-2 border-tertiary w-full max-w-full">
 				<!-- Backdrop: fills container -->
 				<div class="absolute inset-0 z-0">
 					<SnowfallCanvasBackdrop />

@@ -15,7 +15,7 @@ const { sectionId, title, description } = Astro.props;
 	{description && (
 		<p class="text-sm text-muted mb-4">{description}</p>
 	)}
-	<div class="demo-container">
+	<div class="demo-container w-full max-w-full overflow-hidden">
 		<slot />
 	</div>
 </div>

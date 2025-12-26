@@ -1,20 +1,127 @@
 ---
+import logoSrc from '../../../../assets/images/projects/initiative-tracker/init-tracker-logo.png';
 ---
 
-<div id="dnd-initiative-tracker-card" class="w-full h-full p-6 flex flex-col">
-    <div class="flex items-center gap-4 mb-4">
-        <!-- Logo placeholder -->
-        <div class="w-16 h-16 border-2 border-dashed border-primary rounded-lg flex items-center justify-center">
-            <span class="text-xs text-muted">Logo</span>
+<div 
+    id="dnd-initiative-tracker-card" 
+    class="group w-full h-auto md:h-full p-6 flex flex-col relative overflow-hidden cursor-pointer min-h-fit"
+>
+    <a 
+        href="https://initiative.aramisjones.com" 
+        target="_blank" 
+        rel="noopener noreferrer" 
+        class="absolute inset-0 z-10"
+        aria-label="Visit D&D Initiative Tracker"
+    ></a>
+    
+    <div class="flex items-center gap-4 mb-4 relative z-20 pointer-events-none">
+        <img 
+            src={logoSrc.src} 
+            alt="D&D Initiative Tracker Logo" 
+            class="w-16 h-16 object-contain"
+        />
+        <div>
+            <h3 class="text-2xl font-bold font-abril-fatface">D&D Initiative Tracker</h3>
+            <p class="text-xs text-muted mt-1">2025</p>
         </div>
-        <a href="https://initiative.aramisjones.com" target="_blank" rel="noopener noreferrer" class="text-2xl font-bold font-abril-fatface hover:opacity-80 transition-opacity">D&D Initiative Tracker</a>
     </div>
     
-    <div class="flex-1 flex flex-col justify-center">
+    <div class="flex flex-col justify-center relative z-20 pointer-events-none">
         <p class="text-sm text-muted mb-4">
             A digital initiative tracker for Dungeons & Dragons sessions. Keep track of combat order, 
             character stats, and turn management with an intuitive interface.
         </p>
     </div>
+    
+    <!-- GitHub Button -->
+    <a 
+        href="https://github.com/ajones119/dnd-initiative-tracker" 
+        target="_blank" 
+        rel="noopener noreferrer"
+        class="github-button absolute bottom-4 right-4 z-30 opacity-0 md:opacity-0 pointer-events-auto"
+    >
+        <svg class="w-8 h-8 fill-current text-primary hover:text-secondary transition-colors" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+        </svg>
+    </a>
 </div>
+
+<script>
+    import gsap from 'gsap';
+    
+    const initDnDCard = () => {
+        const card = document.getElementById('dnd-initiative-tracker-card');
+        if (!card) return;
+        
+        const githubButton = card.querySelector('.github-button');
+        
+        // Check if mobile (touch device or small screen)
+        const isMobile = window.matchMedia('(max-width: 768px)').matches || 'ontouchstart' in window;
+        
+        // Initial animation on load
+        if (githubButton) {
+            if (isMobile) {
+                // Show on mobile immediately
+                gsap.set(githubButton, {
+                    opacity: 1,
+                    scale: 1,
+                    y: 0,
+                });
+            } else {
+                // Hide on desktop initially
+                gsap.set(githubButton, {
+                    opacity: 0,
+                    scale: 0.8,
+                    y: 10,
+                });
+            }
+        }
+        
+        // Only add hover effects on desktop
+        if (!isMobile) {
+            // Animate in on hover
+            card.addEventListener('mouseenter', () => {
+                // Slow reveal for GitHub button
+                if (githubButton) {
+                    gsap.to(githubButton, {
+                        opacity: 1,
+                        scale: 1,
+                        y: 0,
+                        duration: 0.8,
+                        delay: 0.3,
+                        ease: 'power2.out',
+                        overwrite: true,
+                    });
+                }
+            });
+            
+            card.addEventListener('mouseleave', () => {
+                // Hide GitHub button
+                if (githubButton) {
+                    gsap.to(githubButton, {
+                        opacity: 0,
+                        scale: 0.8,
+                        y: 10,
+                        duration: 0.3,
+                        ease: 'power2.in',
+                        overwrite: true,
+                    });
+                }
+            });
+        }
+        
+        // Prevent GitHub button from triggering card click
+        if (githubButton) {
+            githubButton.addEventListener('click', (e) => {
+                e.stopPropagation();
+            });
+        }
+    };
+    
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initDnDCard);
+    } else {
+        initDnDCard();
+    }
+</script>
 
