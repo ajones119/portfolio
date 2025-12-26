@@ -1,10 +1,4 @@
 import { fetchWeatherApi } from "openmeteo";
-import { getImage } from "astro:assets";
-import sunny from "../../../../assets/images/weather/portfolio-weather-sunny.webp";
-import night from "../../../../assets/images/weather/portfolio-weather-night.webp";
-import cloudy from "../../../../assets/images/weather/portfolio-weather-overcast.webp";
-import snowy from "../../../../assets/images/weather/portfolio-weather-snowy.webp";
-import windy from "../../../../assets/images/weather/portfolio-weather-windy.webp";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
@@ -96,50 +90,13 @@ export const weatherIcons = {
     wind: `<path d="M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2m15.73-8.27A2.5 2.5 0 1 1 19.5 12H2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>`,
 };
 
-// Generate optimized image data with responsive srcsets
-async function getOptimizedImageData(image: ImageMetadata) {
-    const optimized = await getImage({
-        src: image,
-        widths: [600, 800, 1000],
-        formats: ['webp'],
-        sizes: '(max-width: 600px) 600px, (max-width: 800px) 800px, (max-width: 1080px) 1000px, 600px',
-    });
-    // Handle srcSet - it might be a string or a SrcSet object
-    let srcSetString = '';
-    if (optimized.srcSet) {
-        if (typeof optimized.srcSet === 'string') {
-            srcSetString = optimized.srcSet;
-        } else if (typeof optimized.srcSet === 'object' && 'toString' in optimized.srcSet) {
-            srcSetString = optimized.srcSet.toString();
-        }
-    }
-    
-    return {
-        src: optimized.src,
-        srcSet: srcSetString,
-        attributes: optimized.attributes,
-    };
-}
-
-export const weatherImages = {
-    sunny: sunny,
-    night: night,
-    cloudy: cloudy,
-    snowy: snowy,
-    windy: windy,
-};
-
 export const weatherLightDarkTheme = {
     sunny: 'light',
     night: 'dark',
     cloudy: 'dark',
     snowy: 'dark',
     windy: 'light',
-
 }
-
-// Store optimized image data (will be populated at runtime)
-let optimizedImages: Record<string, { src: string; srcSet: string; attributes: any }> = {};
 
 // Helper function to get the appropriate weather icon based on conditions
 function getWeatherIcon(weather: { snowfall: number; rain: number; showers: number; is_day: number }): string {
@@ -158,7 +115,7 @@ function getWeatherIcon(weather: { snowfall: number; rain: number; showers: numb
     return weatherIcons.moon;
 }
 
-function getWeatherImageKey(weather: { snowfall: number; rain: number; showers: number; is_day: number }): keyof typeof weatherImages {
+function getWeatherImageKey(weather: { snowfall: number; rain: number; showers: number; is_day: number }): 'sunny' | 'night' | 'cloudy' | 'snowy' | 'windy' {
     if (weather.snowfall > 0) {
         return 'snowy';
     }
@@ -197,17 +154,6 @@ export async function initializeWeatherWidget() {
 
     weatherWidget.setAttribute('data-loading', 'true');
 
-    // Preload and optimize all weather images
-    if (Object.keys(optimizedImages).length === 0) {
-        optimizedImages = {
-            sunny: await getOptimizedImageData(weatherImages.sunny),
-            night: await getOptimizedImageData(weatherImages.night),
-            cloudy: await getOptimizedImageData(weatherImages.cloudy),
-            snowy: await getOptimizedImageData(weatherImages.snowy),
-            windy: await getOptimizedImageData(weatherImages.windy),
-        };
-    }
-
     // Use mock data instead of API call for testing
     //const weather = mockWeatherData;
     const weather = await getWeather();
@@ -222,9 +168,20 @@ export async function initializeWeatherWidget() {
         weatherIcon.innerHTML = getWeatherIcon(weather.current);
     }
 
-    // Update weather image with responsive attributes
-    const weatherImage = document.getElementById('weather-image') as HTMLImageElement;
+    // Update weather image by showing/hiding pre-loaded images
     const imageKey = getWeatherImageKey(weather.current);
+    
+    // Hide all weather images first
+    const allImages = document.querySelectorAll('.weather-image-option');
+    allImages.forEach(img => {
+        img.classList.add('hidden');
+    });
+    
+    // Show the appropriate image
+    const targetImage = document.getElementById(`weather-image-${imageKey}`);
+    if (targetImage) {
+        targetImage.classList.remove('hidden');
+    }
     
     // Update widget theme attribute for text color
     if (weatherWidget && weatherLightDarkTheme[imageKey]) {
@@ -240,22 +197,6 @@ export async function initializeWeatherWidget() {
             canvas.setAttribute('data-weather-animation', 'rainy');
         } else {
             canvas.setAttribute('data-weather-animation', 'clear');
-        }
-    }
-    
-    if (weatherImage) {
-        const imageData = optimizedImages[imageKey];
-        if (imageData) {
-            weatherImage.src = imageData.src;
-            if (imageData.srcSet && typeof imageData.srcSet === 'string' && imageData.srcSet.length > 0) {
-                weatherImage.srcset = imageData.srcSet;
-            }
-            weatherImage.sizes = "(max-width: 600px) 600px, (max-width: 800px) 800px, (max-width: 1000px) 1000px, 600px";
-            if (imageData.attributes.width) weatherImage.width = imageData.attributes.width;
-            if (imageData.attributes.height) weatherImage.height = imageData.attributes.height;
-            weatherImage.alt = weather.current.snowfall > 0 ? 'Snowy' : 
-                weather.current.rain > 0 || weather.current.showers > 0 ? 'Cloudy' :
-                weather.current.is_day === 1 ? 'Sunny' : 'Night';
         }
     }
     

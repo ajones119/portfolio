@@ -1,5 +1,9 @@
 ---
 import sunny from "../../../../assets/images/weather/portfolio-weather-sunny.webp";
+import night from "../../../../assets/images/weather/portfolio-weather-night.webp";
+import cloudy from "../../../../assets/images/weather/portfolio-weather-overcast.webp";
+import snowy from "../../../../assets/images/weather/portfolio-weather-snowy.webp";
+import windy from "../../../../assets/images/weather/portfolio-weather-windy.webp";
 import { Image } from "astro:assets";
 import WeatherCanvas from "./WeatherCanvas/WeatherCanvas.astro";
 
@@ -26,11 +30,46 @@ import WeatherCanvas from "./WeatherCanvas/WeatherCanvas.astro";
         <WeatherCanvas />
 
         <div class="absolute inset-0 w-full h-full flex-col justify-between">
-            <img
-                id="weather-image"
-                src={sunny.src}
-                alt="Weather"
-                class="w-full h-full object-cover weather-image"
+            <!-- Pre-load all weather images, hidden by default -->
+            <Image
+                id="weather-image-sunny"
+                src={sunny}
+                widths={[600, 800, 1000]}
+                sizes="(max-width: 600px) 600px, (max-width: 800px) 800px, (max-width: 1000px) 1000px, 600px"
+                alt="Sunny"
+                class="weather-image weather-image-option hidden"
+            />
+            <Image
+                id="weather-image-night"
+                src={night}
+                widths={[600, 800, 1000]}
+                sizes="(max-width: 600px) 600px, (max-width: 800px) 800px, (max-width: 1000px) 1000px, 600px"
+                alt="Night"
+                class="weather-image weather-image-option hidden"
+            />
+            <Image
+                id="weather-image-cloudy"
+                src={cloudy}
+                widths={[600, 800, 1000]}
+                sizes="(max-width: 600px) 600px, (max-width: 800px) 800px, (max-width: 1000px) 1000px, 600px"
+                alt="Cloudy"
+                class="weather-image weather-image-option hidden"
+            />
+            <Image
+                id="weather-image-snowy"
+                src={snowy}
+                widths={[600, 800, 1000]}
+                sizes="(max-width: 600px) 600px, (max-width: 800px) 800px, (max-width: 1000px) 1000px, 600px"
+                alt="Snowy"
+                class="weather-image weather-image-option hidden"
+            />
+            <Image
+                id="weather-image-windy"
+                src={windy}
+                widths={[600, 800, 1000]}
+                sizes="(max-width: 600px) 600px, (max-width: 800px) 800px, (max-width: 1000px) 1000px, 600px"
+                alt="Windy"
+                class="weather-image weather-image-option hidden"
             />
         </div>
         <div class="p-6 lg:p-10 flex flex-col z-10 relative h-full font-lato">
@@ -67,6 +106,18 @@ import WeatherCanvas from "./WeatherCanvas/WeatherCanvas.astro";
 </div>
 
 <style>
+    .weather-image-option {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    
+    .weather-image-option:not(.hidden) {
+        display: block;
+    }
+
     /* overcast on dark theme */
     html[data-theme="dark"] #weather-widget[data-weather-theme="dark"] .weather-image {
         filter: grayscale(50%) brightness(50%) contrast(100%);
