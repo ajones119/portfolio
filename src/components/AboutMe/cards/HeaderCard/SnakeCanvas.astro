@@ -3,7 +3,7 @@
 
 <div class="snake-canvas-container">
     <canvas id="snake-canvas" class="snake-canvas size-full"></canvas>
-    <button id="snake-start-btn" class="snake-start-btn">Start Snake</button>
+    <button id="snake-start-btn" class="snake-start-btn">Press Start to Play (WASD)</button>
 </div>
 
 <style>
@@ -31,7 +31,7 @@
 
     .snake-start-btn {
         position: absolute;
-        top: 50%;
+        top: calc(50% + 48px);
         left: 50%;
         transform: translate(-50%, -50%);
         padding: 12px 24px;
@@ -42,7 +42,7 @@
         font-size: 18px;
         font-weight: bold;
         cursor: pointer;
-        z-index: 1;
+        z-index: 30;
         pointer-events: auto;
         transition: all 0.3s ease;
     }

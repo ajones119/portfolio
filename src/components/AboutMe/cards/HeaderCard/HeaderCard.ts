@@ -64,6 +64,11 @@ export const initCanvas = () => {
                 if (hideIcon) hideIcon.classList.remove('hidden');
                 // Setup canvas when shown (will be ready for start button)
                 setupCanvas();
+                // Show start button when canvas is shown
+                if (startButton) {
+                    startButton.style.display = 'block';
+                    startButton.textContent = 'Press Start to Play (WASD)';
+                }
             } else {
                 canvasWrapper.classList.add('hidden');
                 // Update icon
@@ -83,7 +88,6 @@ export const initCanvas = () => {
             if (snakeGame) {
                 snakeGame.start();
                 startButton.style.display = 'none';
-                startButton.textContent = 'Start Snake';
             }
         });
     }

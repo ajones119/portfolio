@@ -202,7 +202,7 @@ export class SnakeGame {
             this.ctx.fillStyle = primary || '#000000';
             this.ctx.font = '24px Arial';
             this.ctx.textAlign = 'center';
-            this.ctx.fillText('Press Start to Play', this.canvas.width / 2, this.canvas.height / 2);
+            this.ctx.fillText('Press Start to Play (WASD)', this.canvas.width / 2, this.canvas.height / 2);
             this.ctx.textAlign = 'left';
         }
     }
@@ -237,14 +237,14 @@ export class SnakeGame {
         this.ctx.fillText('Game Over!', this.canvas.width / 2, this.canvas.height / 2 - 20);
         this.ctx.font = '20px Arial';
         this.ctx.fillText(`Final Score: ${this.score}`, this.canvas.width / 2, this.canvas.height / 2 + 20);
-        this.ctx.fillText('Press Start to Play Again', this.canvas.width / 2, this.canvas.height / 2 + 50);
+        this.ctx.fillText('Press Start to Play Again (WASD)', this.canvas.width / 2, this.canvas.height / 2 + 50);
         this.ctx.textAlign = 'left';
         
         // Show start button again
         const startButton = document.querySelector("#snake-start-btn") as HTMLButtonElement;
         if (startButton) {
             startButton.style.display = 'block';
-            startButton.textContent = 'Play Again';
+            startButton.textContent = 'Press Start to Play Again (WASD)';
         }
     }
     
