@@ -56,7 +56,7 @@ const blogPosts: BlogPost[] = [
 			<div class="space-y-8 md:space-y-0 md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-6">
 				{blogPosts.map((post) => (
 					<article class="blog-post-card border-2 border-primary rounded-lg p-6 bg-quaternary/10 hover:bg-quaternary/20 transition-colors">
-						<a href={post.slug} class="block h-full flex flex-col">
+						<a href={post.slug} data-astro-prefetch class="block h-full flex flex-col">
 							<h2 class="text-2xl lg:text-3xl font-bold font-abril-fatface mb-3 text-primary">
 								{post.title}
 							</h2>
