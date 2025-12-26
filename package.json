@@ -4,7 +4,7 @@
   "version": "0.0.1",
   "scripts": {
     "dev": "astro dev",
-    "build": "astro build",
+    "build": "tsx src/scripts/fetch-computer-books.ts && astro build",
     "preview": "astro preview",
     "astro": "astro",
     "fetch:books": "tsx src/scripts/fetch-computer-books.ts"
