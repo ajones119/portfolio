@@ -7,20 +7,66 @@ interface Props {
 	title?: string;
 	description?: string;
 	consoleMessage?: string;
+	image?: string;
+	type?: string;
 }
 
-const { title = "Aramis Jones", description, consoleMessage } = Astro.props;
+const { 
+	title = "Aramis Jones - Software Engineer", 
+	description = "Portfolio of Aramis Jones, Software Engineer specializing in React, TypeScript, and modern web development. Explore projects, blog posts, and technical demos.",
+	consoleMessage,
+	image,
+	type = "website"
+} = Astro.props;
+
+const siteURL = Astro.site || "https://aramisjones.com";
+const canonicalURL = new URL(Astro.url.pathname, siteURL);
+// Default to a public image path - update this to match your actual public image location
+const defaultImage = `${siteURL}/favicon.png`;
+const fullImageURL = image 
+	? (image.startsWith('http') ? image : new URL(image, siteURL).href)
+	: defaultImage;
 ---
 
 <!doctype html>
 <html lang="en">
 	<head>
 		<meta charset="UTF-8" />
-		<meta name="viewport" content="width=device-width" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.png" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<meta name="generator" content={Astro.generator} />
-		{description && <meta name="description" content={description} />}
+		
+		<!-- Primary Meta Tags -->
 		<title>{title}</title>
+		<meta name="title" content={title} />
+		<meta name="description" content={description} />
+		<meta name="author" content="Aramis Jones" />
+		<meta name="keywords" content="Aramis Jones, Frontend Developer, Software Engineer, React Developer, TypeScript, Web Development, Portfolio, JavaScript, CSS, HTML" />
+		<meta name="robots" content="index, follow" />
+		<meta name="language" content="English" />
+		<link rel="canonical" href={canonicalURL.href} />
+		
+		<!-- Open Graph / Facebook -->
+		<meta property="og:type" content={type} />
+		<meta property="og:url" content={canonicalURL.href} />
+		<meta property="og:title" content={title} />
+		<meta property="og:description" content={description} />
+		<meta property="og:image" content={fullImageURL} />
+		<meta property="og:site_name" content="Aramis Jones Portfolio" />
+		
+		<!-- Twitter -->
+		<meta name="twitter:card" content="summary_large_image" />
+		<meta name="twitter:url" content={canonicalURL.href} />
+		<meta name="twitter:title" content={title} />
+		<meta name="twitter:description" content={description} />
+		<meta name="twitter:image" content={fullImageURL} />
+		
+		<!-- Favicon -->
+		<link rel="icon" type="image/png" href="/favicon.png" />
+		<link rel="apple-touch-icon" href="/favicon.png" />
+		
+		<!-- Theme Color -->
+		<meta name="theme-color" content="#336666" media="(prefers-color-scheme: light)" />
+		<meta name="theme-color" content="#0a0a0a" media="(prefers-color-scheme: dark)" />
 
 		<!-- Prevent flash of unstyled content by setting theme immediately -->
 		<script is:inline>
@@ -38,6 +84,54 @@ const { title = "Aramis Jones", description, consoleMessage } = Astro.props;
 		<link rel="preconnect" href="https://fonts.googleapis.com">
 		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 		<link href="https://fonts.googleapis.com/css2?family=Abril+Fatface&family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap" rel="stylesheet">
+		
+		<!-- JSON-LD Structured Data -->
+		<script type="application/ld+json" set:html={JSON.stringify({
+			"@context": "https://schema.org",
+			"@type": "Person",
+			"name": "Aramis Jones",
+			"jobTitle": "Frontend Software Engineer",
+			"url": canonicalURL.origin,
+			"image": fullImageURL,
+			"email": "agj1113@gmail.com",
+			"sameAs": [
+				"https://www.linkedin.com/in/aramis-jones-904b2b1ba/",
+				"https://github.com/ajones119"
+			],
+			"knowsAbout": [
+				"React",
+				"TypeScript",
+				"JavaScript",
+				"CSS",
+				"HTML",
+				"Frontend Development",
+				"Web Development"
+			],
+			"alumniOf": {
+				"@type": "Organization",
+				"name": "Software Engineering"
+			}
+		})} />
+		
+		<script type="application/ld+json" set:html={JSON.stringify({
+			"@context": "https://schema.org",
+			"@type": "WebSite",
+			"name": "Aramis Jones Portfolio",
+			"url": canonicalURL.origin,
+			"author": {
+				"@type": "Person",
+				"name": "Aramis Jones"
+			},
+			"description": description,
+			"potentialAction": {
+				"@type": "SearchAction",
+				"target": {
+					"@type": "EntryPoint",
+					"urlTemplate": `${canonicalURL.origin}/blog?q={search_term_string}`
+				},
+				"query-input": "required name=search_term_string"
+			}
+		})} />
 	</head>
 	<body>
 		<Navbar />
