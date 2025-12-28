@@ -1,234 +1,260 @@
 ---
 import BlogPost from '../../components/Blog/BlogPost.astro';
-import Demo from '../../components/Blog/Demo.astro';
 import Code from '../../components/Blog/Code.astro';
 
 const post = {
-	title: 'Floating Image Effect',
-	description: 'Creating a whimsical floating image effect with CSS animations and JavaScript',
+	title: 'Floating Image',
+	description: 'Exploring CSS float and shape-outside properties for text wrapping around images and custom shapes',
 	sections: [
 		{
-			id: 'section-introduction',
+			id: 'section-intro',
 			title: 'Introduction',
 		},
 		{
-			id: 'section-implementation',
-			title: 'Implementation',
-			subsections: [
-				{
-					id: 'subsection-css',
-					title: 'CSS Setup',
-				},
-				{
-					id: 'subsection-javascript',
-					title: 'JavaScript Animation',
-				},
-			],
+			id: 'section-float',
+			title: 'Float',
 		},
 		{
-			id: 'section-demo',
-			title: 'Demo',
-		},
-		{
-			id: 'section-conclusion',
-			title: 'Conclusion',
+			id: 'section-shape-outside',
+			title: 'Shape Outside',
 		},
 	],
 };
 ---
 
 <BlogPost title={post.title} description={post.description} sections={post.sections}>
-	<section id="section-introduction">
+	<section id="section-intro">
 		<h2>Introduction</h2>
 		<p>
-			The floating image effect is a delightful animation technique that makes images appear to gently float and bob in space. 
-			This effect adds a whimsical, playful touch to any website, perfect for showcasing images in a more engaging way.
+			Sometimes we want text to wrap around images, elements or shapes in general. Whether it be implementing a drop cap, or inserting a cool graphic into a paragraph, there's a lot of reasons why someone might want to have text wrapping with a non-square container.
 		</p>
 		<p>
-			In this tutorial, we'll explore how to create this effect using CSS animations and JavaScript, maintaining the minimalist 
-			aesthetic of Disney's Three Caballeros while adding a touch of magic.
+			The container can refine the shape-outside with one of the following:
 		</p>
+		<ul>
+			<li><code>ellipse()</code> - rounded shapes</li>
+			<li><code>inset()</code> - rectangle shapes</li>
+			<li><code>circle()</code> - circles</li>
+			<li><code>polygon()</code> - shapes with 3 or more vertices</li>
+			<li><code>url()</code> - generate shapes from an image</li>
+		</ul>
 	</section>
 
-	<section id="section-implementation">
-		<h2>Implementation</h2>
-		
-		<div id="subsection-css">
-			<h3>CSS Setup</h3>
-			<p>
-				We'll start by creating the base CSS for our floating image. The key is to use CSS transforms and animations 
-				to create a smooth, organic floating motion.
-			</p>
-			
-			<Code language="css" filename="floating-image.css">
-{`@keyframes float {
-  0%, 100% {
-    transform: translateY(0px) rotate(0deg);
-  }
-  25% {
-    transform: translateY(-20px) rotate(2deg);
-  }
-  50% {
-    transform: translateY(-10px) rotate(-1deg);
-  }
-  75% {
-    transform: translateY(-15px) rotate(1deg);
-  }
-}
-
-.floating-image {
-  animation: float 6s ease-in-out infinite;
-  will-change: transform;
-  transition: transform 0.3s ease;
-}
-
-.floating-image:hover {
-  animation-play-state: paused;
-  transform: scale(1.05);
-}`}
-			</Code>
-		</div>
-
-		<div id="subsection-javascript">
-			<h3>JavaScript Animation</h3>
-			<p>
-				For more dynamic control, we can use JavaScript to add random variations to the floating motion, 
-				making each image feel unique and organic.
-			</p>
-			
-			<Code language="javascript" filename="floating-image.js">
-{`function initFloatingImage(element) {
-  const baseDuration = 4000 + Math.random() * 2000; // 4-6 seconds
-  const baseAmplitude = 15 + Math.random() * 10; // 15-25px
-  
-  element.style.setProperty('--float-duration', \`\${baseDuration}ms\`);
-  element.style.setProperty('--float-amplitude', \`\${baseAmplitude}px\`);
-  
-  // Add subtle mouse interaction
-  element.addEventListener('mousemove', (e) => {
-    const rect = element.getBoundingClientRect();
-    const x = (e.clientX - rect.left) / rect.width;
-    const y = (e.clientY - rect.top) / rect.height;
-    
-    const tiltX = (x - 0.5) * 10;
-    const tiltY = (y - 0.5) * 10;
-    
-    element.style.transform = \`translateY(0) rotateX(\${tiltY}deg) rotateY(\${tiltX}deg)\`;
-  });
-  
-  element.addEventListener('mouseleave', () => {
-    element.style.transform = '';
-  });
-}`}
-			</Code>
-		</div>
-	</section>
-
-	<section id="section-demo">
-		<h2>Demo</h2>
+	<section id="section-float">
+		<h2>Float</h2>
 		<p>
-			Here's a live example of the floating image effect. Hover over the image to see the interactive tilt effect.
+			The <code>float</code> CSS property places an element to the left or right side of its container. This is what allows text and inline elements to wrap around it. <code>float</code> can be one of the following values:
 		</p>
-		
-		<Demo sectionId="floating-image-demo" title="Floating Image Demo">
-			<div class="floating-image-container">
-				<img 
-					src="/src/assets/images/aramis/aramisnarwen.png" 
-					alt="Floating image demo"
-					class="floating-image-demo"
-				/>
+		<ul>
+			<li><code>left</code> - The element must float on the left side of its containing block.</li>
+			<li><code>right</code> - The element must float on the right side of its containing block.</li>
+			<li><code>none</code> (default) - The element must not float.</li>
+			<li><code>inline-start</code> - The element must float on the start side of its containing block. That is the left side with ltr scripts, and the right side with rtl scripts.</li>
+			<li><code>inline-end</code> - The element must float on the end side of its containing block. That is the right side with ltr scripts, and the left side with rtl scripts.</li>
+		</ul>
+
+		<div class="demo-container">
+			<fieldset id="float-example-input" class="radio-group">
+				<label class="radio-label">
+					<input type="radio" name="float-option" value="left" checked />
+					<span><code>left</code> - The element must float on the left side of its containing block.</span>
+				</label>
+				<label class="radio-label">
+					<input type="radio" name="float-option" value="right" />
+					<span><code>right</code> - The element must float on the right side of its containing block.</span>
+				</label>
+				<label class="radio-label">
+					<input type="radio" name="float-option" value="none" />
+					<span><code>none</code> (default) - The element must not float.</span>
+				</label>
+				<label class="radio-label">
+					<input type="radio" name="float-option" value="inline-start" />
+					<span><code>inline-start</code> - The element must float on the start side of its containing block (left for LTR scripts, right for RTL).</span>
+				</label>
+				<label class="radio-label">
+					<input type="radio" name="float-option" value="inline-end" />
+					<span><code>inline-end</code> - The element must float on the end side of its containing block (right for LTR scripts, left for RTL).</span>
+				</label>
+			</fieldset>
+
+			<div class="float-demo-container">
+				<div id="float-example-square" style="float: left;" class="float-demo-square"></div>
+				<p class="float-demo-text">
+					Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec gravida eget metus non lobortis. Integer ac imperdiet enim. Suspendisse tempor est sed ante aliquam, ut condimentum leo hendrerit. Maecenas ut pellentesque dolor, eget viverra lectus. Etiam at sapien nec quam suscipit feugiat. Proin at lectus eget diam semper congue. Praesent rutrum sapien at sapien tincidunt, quis tincidunt eros vulputate. Praesent varius sed nibh vel pretium.
+				</p>
 			</div>
-		</Demo>
+		</div>
+
+		<script>
+			const floatContainer = document.getElementById('section-float');
+			if (floatContainer) {
+				const input = floatContainer.querySelector('#float-example-input') as HTMLFieldSetElement;
+				const square = floatContainer.querySelector('#float-example-square') as HTMLDivElement;
+				
+				if (input && square) {
+					input?.addEventListener('change', (e) => {
+						const target = e?.target as HTMLInputElement;
+						if (target && target.type === 'radio') {
+							const value = target?.value;
+							square.style.float = value;
+						}
+					});
+				}
+			}
+		</script>
 	</section>
 
-	<section id="section-conclusion">
-		<h2>Conclusion</h2>
+	<section id="section-shape-outside">
+		<h2>Shape Outside</h2>
 		<p>
-			The floating image effect is a simple yet effective way to add life and movement to static images. 
-			By combining CSS animations with JavaScript interactions, we can create engaging, playful experiences 
-			that maintain the minimalist aesthetic we're aiming for.
+			The <code>shape-outside</code> property defines the shape used to wrap inline content around a floated element. This can create visually interesting text flow effects around non-rectangular shapes.
 		</p>
-		<p>
-			Experiment with different animation durations, amplitudes, and easing functions to find the perfect 
-			floating motion for your project. Remember to keep it subtle and organic—too much movement can be 
-			distracting rather than delightful.
-		</p>
+
+		<div class="demo-container">
+			<fieldset id="shape-outside-input" class="radio-group">
+				<label class="radio-label">
+					<input type="radio" name="shape-option" value="circle(50% at 50% 50%)" checked />
+					<span>Circle</span>
+				</label>
+				<label class="radio-label">
+					<input type="radio" name="shape-option" value="ellipse(50% 35% at 50% 50%)" />
+					<span>Ellipse</span>
+				</label>
+				<label class="radio-label">
+					<input type="radio" name="shape-option" value="inset(10% 10% 10% 10%)" />
+					<span>Inset (rounded rect)</span>
+				</label>
+				<label class="radio-label">
+					<input type="radio" name="shape-option" value="polygon(0% 0%, 100% 0%, 0% 75%, 50% 100%, 0% 75%)" />
+					<span>Polygon (triangle)</span>
+				</label>
+			</fieldset>
+
+			<div class="float-demo-container">
+				<div
+					id="shape-outside-demo"
+					style="float: left;"
+					class="shape-demo-square"
+				></div>
+				<p class="float-demo-text">
+					Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque euismod lacus nec mauris fringilla, ac rhoncus ipsum pulvinar. Praesent rhoncus purus at nulla cursus, vel finibus nulla tincidunt. Mauris ut orci aliquet, dignissim purus sed, pulvinar ipsum. Nullam laoreet eu urna ut cursus.
+				</p>
+			</div>
+		</div>
+
+		<script>
+			const shapeContainer = document.getElementById('section-shape-outside') as HTMLDivElement;
+			if (shapeContainer) {
+				const input = shapeContainer.querySelector('#shape-outside-input') as HTMLFieldSetElement;
+				const demo = shapeContainer.querySelector('#shape-outside-demo') as HTMLDivElement;
+
+				if (input && demo) {
+					input.addEventListener('change', (e) => {
+						const target = e?.target as HTMLInputElement;
+						if (target && target.type === 'radio') {
+							const value = target?.value;
+
+							demo.style.shapeOutside = value;
+							demo.style.clipPath = value;
+
+							// Optional: Adjust border radius based on shape type for visual appeal
+							if(value.startsWith('circle') || value.startsWith('ellipse')) {
+								demo.style.borderRadius = '50%';
+							} else if(value.startsWith('inset')) {
+								demo.style.borderRadius = '15%';
+							} else {
+								demo.style.borderRadius = '0';
+							}
+						}
+					});
+				}
+			}
+		</script>
 	</section>
 </BlogPost>
 
 <style>
-	.floating-image-container {
+	.demo-container {
+		margin: 2rem 0;
+	}
+
+	.radio-group {
 		display: flex;
-		justify-content: center;
+		flex-direction: column;
+		gap: 0.75rem;
+		border: 2px solid var(--color-quaternary);
+		border-radius: 8px;
+		padding: 1rem;
+		background: var(--color-background);
+		margin-bottom: 1.5rem;
+	}
+
+	.radio-label {
+		display: flex;
 		align-items: center;
-		min-height: 300px;
-		padding: 2rem;
+		gap: 0.5rem;
+		cursor: pointer;
+		padding: 0.5rem;
+		border-radius: 4px;
+		transition: background-color 0.2s ease;
 	}
-	
-	.floating-image-demo {
-		max-width: 300px;
-		height: auto;
-		border-radius: 12px;
-		box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-		animation: floatDemo 6s ease-in-out infinite;
-		will-change: transform;
-		transition: transform 0.3s ease;
+
+	.radio-label:hover {
+		background-color: var(--color-quaternary);
 	}
-	
-	.floating-image-demo:hover {
-		animation-play-state: paused;
-		transform: scale(1.05);
-		box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+
+	.radio-label input[type="radio"] {
+		accent-color: var(--color-primary);
+		cursor: pointer;
 	}
-	
-	@keyframes floatDemo {
-		0%, 100% {
-			transform: translateY(0px) rotate(0deg);
-		}
-		25% {
-			transform: translateY(-20px) rotate(2deg);
-		}
-		50% {
-			transform: translateY(-10px) rotate(-1deg);
-		}
-		75% {
-			transform: translateY(-15px) rotate(1deg);
-		}
+
+	.radio-label span {
+		font-size: 0.875rem;
+		color: var(--color-primary);
+	}
+
+	.radio-label code {
+		background: var(--color-quaternary);
+		padding: 0.125rem 0.375rem;
+		border-radius: 4px;
+		font-size: 0.875em;
+	}
+
+	.float-demo-container {
+		max-width: 100%;
+		margin: 1.5rem 0;
+		padding: 1rem;
+		border: 2px solid var(--color-quaternary);
+		border-radius: 8px;
+		background: var(--color-background);
+		overflow: hidden;
+	}
+
+	.float-demo-square {
+		width: 80px;
+		height: 80px;
+		background: var(--color-tertiary);
+		border: 2px solid var(--color-primary);
+		margin-right: 1rem;
+		margin-bottom: 1rem;
+	}
+
+	.shape-demo-square {
+		width: 120px;
+		height: 120px;
+		border: 2px solid var(--color-primary);
+		margin-right: 1rem;
+		margin-bottom: 1rem;
+		background: linear-gradient(135deg, var(--color-tertiary), var(--color-quaternary));
+		shape-outside: circle(50% at 50% 50%);
+		clip-path: circle(50% at 50% 50%);
+		border-radius: 50%;
+	}
+
+	.float-demo-text {
+		text-align: justify;
+		color: var(--color-primary);
+		line-height: 1.6;
+		margin: 0;
 	}
 </style>
-
-<script>
-	// Initialize floating image demo
-	const initFloatingDemo = () => {
-		const image = document.querySelector('.floating-image-demo') as HTMLElement;
-		if (!image) return;
-		
-		const baseDuration = 4000 + Math.random() * 2000;
-		const baseAmplitude = 15 + Math.random() * 10;
-		
-		image.style.setProperty('--float-duration', `${baseDuration}ms`);
-		image.style.setProperty('--float-amplitude', `${baseAmplitude}px`);
-		
-		image.addEventListener('mousemove', (e) => {
-			const rect = image.getBoundingClientRect();
-			const x = (e.clientX - rect.left) / rect.width;
-			const y = (e.clientY - rect.top) / rect.height;
-			
-			const tiltX = (x - 0.5) * 10;
-			const tiltY = (y - 0.5) * 10;
-			
-			image.style.transform = `translateY(0) rotateX(${tiltY}deg) rotateY(${tiltX}deg) scale(1.05)`;
-		});
-		
-		image.addEventListener('mouseleave', () => {
-			image.style.transform = '';
-		});
-	};
-	
-	if (document.readyState === 'loading') {
-		document.addEventListener('DOMContentLoaded', initFloatingDemo);
-	} else {
-		initFloatingDemo();
-	}
-</script>
-
