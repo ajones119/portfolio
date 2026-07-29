@@ -1,0 +1,42 @@
+---
+import { Image } from 'astro:assets';
+import logoSrc from '../../../../assets/images/projects/smileloc/smileloc logo.webp';
+---
+
+<div
+	id="smileloc-card"
+	class="freelance-card group w-full h-full min-h-36 p-4 flex flex-col items-center justify-center relative overflow-hidden"
+	data-freelance-card
+>
+	<a
+		href="https://www.smileloc.com/"
+		target="_blank"
+		rel="noopener noreferrer"
+		class="absolute inset-0 z-10"
+		aria-label="Visit Smileloc dental implants"
+	></a>
+
+	<div class="freelance-card-content relative z-20 pointer-events-none flex flex-col items-center text-center gap-2">
+		<Image
+			src={logoSrc}
+			alt="Smileloc logo"
+			class="freelance-card-logo w-16 h-16 object-contain"
+			width={128}
+			height={128}
+		/>
+		<h3 class="text-lg font-bold font-abril-fatface text-primary">Smileloc</h3>
+		<p class="text-xs text-muted font-lato">Dental implants</p>
+	</div>
+</div>
+
+<style>
+	.freelance-card-logo {
+		transition: opacity 0.22s ease-out;
+	}
+
+	@media (hover: hover) and (pointer: fine) {
+		.group:hover .freelance-card-logo {
+			opacity: 0.88;
+		}
+	}
+</style>

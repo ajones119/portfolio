@@ -10,6 +10,8 @@ import MinesweeperDemo from './cards/MinesweeperDemo/MinesweeperDemo.astro';
 import AppraiseCSVParser from './cards/AppraiseCSVParser/AppraiseCSVParser.astro';
 import RPGSoundboard from './cards/RPGSoundboard/RPGSoundboard.astro';
 import GoblinScribe from './cards/GoblinScribe/GoblinScribe.astro';
+import Alchemy from './cards/Alchemy/Alchemy.astro';
+import Smileloc from './cards/Smileloc/Smileloc.astro';
 import BlankCard from './cards/BlankCard/BlankCard.astro';
 import { lordOfTheRingsQuotes } from './quotes';
 
@@ -17,14 +19,14 @@ import { lordOfTheRingsQuotes } from './quotes';
 
 <section id="about-me" class="relative m-0 p-0 min-h-screen lg:h-[200vh] lg:flex lg:items-center">
     <div class="container mx-auto lg:px-4 py-8 w-full h-full">
-        <div class="flex flex-col lg:grid lg:gap-4 lg:grid-cols-6 lg:grid-rows-16 h-full w-full">
+        <div class="flex flex-col lg:grid lg:gap-4 lg:grid-cols-6 lg:grid-rows-18 h-full w-full">
             <!-- Header Card -->
             <div class="grid-item-1 w-full h-full lg:border border-secondary lg:col-span-4 lg:row-span-3 card-bg-secondary">
                 <HeaderCard />
             </div>
 
             <!-- Experience Timeline -->
-            <div class="grid-item-2 w-full h-full lg:border border-tertiary lg:col-span-2 lg:row-span-4 card-bg-tertiary">
+            <div class="grid-item-2 w-full h-full lg:border border-tertiary lg:col-span-2 lg:row-span-4">
                 <Experience />
             </div>
 
@@ -78,11 +80,24 @@ import { lordOfTheRingsQuotes } from './quotes';
             <div class="grid-item-13 w-full h-auto md:h-full lg:border border-primary lg:col-span-4 lg:col-start-3 lg:row-start-10 lg:row-end-12 card-bg-primary">
                 <RPGSoundboard />
             </div>
-            <div class="grid-item-14 w-full h-full lg:border border-secondary lg:col-span-3 lg:col-start-1 lg:row-start-12 lg:row-end-14 card-bg-secondary order-15 lg:order-14">
-                <BlankCard />
+            <div
+                id="freelance-cards"
+                class="grid-item-14 w-full h-full lg:col-span-3 lg:col-start-1 lg:row-start-12 lg:row-end-14 order-15 lg:order-14"
+            >
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4 h-full min-h-36 lg:min-h-0">
+                    <div class="w-full h-full lg:border border-secondary card-bg-secondary">
+                        <Alchemy />
+                    </div>
+                    <div class="w-full h-full lg:border border-quinary card-bg-quinary">
+                        <Smileloc />
+                    </div>
+                </div>
             </div>
             <div class="grid-item-15 w-full h-full lg:border border-tertiary lg:col-span-3 lg:col-start-4 lg:row-start-12 lg:row-end-14 card-bg-tertiary order-14 lg:order-15">
                 <GoblinScribe />
+            </div>
+            <div class="grid-item-16 w-full h-full min-h-48 lg:border border-senary lg:col-span-6 lg:col-start-1 lg:row-start-14 lg:row-end-16 card-bg-senary order-16">
+                <BlankCard />
             </div>
            
         </div>
@@ -143,4 +158,10 @@ import { lordOfTheRingsQuotes } from './quotes';
             }
         });
     }
+</script>
+
+<script>
+    import { initFreelanceCards } from './freelance-cards';
+
+    initFreelanceCards();
 </script>

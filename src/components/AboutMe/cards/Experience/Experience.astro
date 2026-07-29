@@ -1,50 +1,134 @@
 ---
-
+import Tile from './components/tile.astro';
+import { experienceJobs, experienceJobsByRecency } from './experience-jobs';
 ---
 
-<div id="experience-card" class="experience-card py-4 px-6 w-full h-full overflow-y-hidden">
-    <h3 class="text-xl font-bold font-abril-fatface mb-4 tracking-wider">Experience</h3>
-    <div class="space-y-6">
-        <div class="border-l-2 border-primary pl-6 pb-6 relative">
-            <div class="absolute -left-2 top-0 w-4 h-4 rounded-full bg-primary"></div>
-            <div class="flex flex-col mb-2">
-                <h4 class="text-base font-semibold font-playfair-display tracking-wider">PerformYard</h4>
-                <span class="text-muted text-xs">Feb 2023 - Present</span>
-            </div>
-            <p class="text-xs mb-2">Led React development for performance management software serving 5,000+ clients. Architected component systems, built complex UI implementations, optimized performance, and integrated AI features.</p>
-            <p class="text-xs text-muted italic">React, JavaScript, Python, AI</p>
-        </div>
-        <div class="border-l-2 border-primary pl-6 relative">
-            <div class="absolute -left-2 top-0 w-4 h-4 rounded-full bg-primary"></div>
-            <div class="flex flex-col mb-2">
-                <h4 class="text-base font-semibold font-playfair-display tracking-wider">Paycom Dev III</h4>
-                <span class="text-muted text-xs">May 2021 - Feb 2023</span>
-            </div>
-            <p class="text-xs mb-2">Developed employee scheduling module used by 50,000+ clients. Built team schedule management system with shift reminders, recurrence rules, and performance optimizations.</p>
-            <p class="text-xs text-muted italic">PHP, JavaScript, React</p>
-        </div>
-    </div>
+<div id="experience-card" class="experience-card">
+	<div class="experience-list" data-experience-list>
+		<p class="experience-list-label">Experience</p>
+		<ul class="experience-list-items">
+			{experienceJobsByRecency.map((job) => (
+				<li class="experience-list-item" data-experience-list-item style={`--accent: var(--color-${job.accent});`}>
+					<p class="experience-list-company">{job.company}</p>
+					<p class="experience-list-meta">
+						<span>{job.title}</span>
+						<span class="experience-list-dot" aria-hidden="true">·</span>
+						<span class="experience-list-dates">{job.dates}</span>
+					</p>
+				</li>
+			))}
+		</ul>
+		<a href="/resume" data-astro-prefetch class="experience-list-link">Full resume →</a>
+	</div>
+
+	<div class="experience-stack" data-experience-stack>
+		{experienceJobs.map((job) => (
+			<Tile {...job} />
+		))}
+	</div>
 </div>
 
+<style>
+	.experience-card {
+		position: relative;
+		width: 100%;
+		height: 100%;
+	}
+
+	/* Mobile: Emil-style list */
+	.experience-list {
+		padding: 1.25rem 1rem 1.5rem;
+	}
+
+	.experience-list-label {
+		margin: 0 0 1.25rem;
+		font-family: var(--font-lato);
+		font-size: 0.6875rem;
+		font-weight: 500;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: var(--color-muted);
+	}
+
+	.experience-list-items {
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.experience-list-item {
+		position: relative;
+		padding: 0 0 0 0.65rem;
+		margin-bottom: 1.35rem;
+		border-left: 2px solid var(--accent);
+	}
+
+	.experience-list-item:last-child {
+		margin-bottom: 1rem;
+	}
+
+	.experience-list-company {
+		margin: 0 0 0.2rem;
+		font-family: var(--font-lato);
+		font-size: 0.9375rem;
+		font-weight: 500;
+		line-height: 1.3;
+		letter-spacing: -0.01em;
+		color: var(--color-primary);
+	}
+
+	.experience-list-meta {
+		margin: 0;
+		font-family: var(--font-lato);
+		font-size: 0.8125rem;
+		line-height: 1.45;
+		color: var(--color-muted);
+	}
+
+	.experience-list-dot {
+		margin: 0 0.2rem;
+	}
+
+	.experience-list-link {
+		font-family: var(--font-lato);
+		font-size: 0.8125rem;
+		color: var(--color-secondary);
+		text-decoration: underline;
+		text-underline-offset: 0.15em;
+	}
+
+	.experience-list-link:hover {
+		color: var(--color-primary);
+	}
+
+	.experience-stack {
+		display: none;
+	}
+
+	/* Desktop: fanned card stack */
+	@media (min-width: 1024px) {
+		.experience-card {
+			min-height: 100%;
+			overflow: hidden;
+		}
+
+		.experience-list {
+			display: none;
+		}
+
+		.experience-stack {
+			display: block;
+			position: relative;
+			width: 100%;
+			height: 100%;
+			min-height: 100%;
+			perspective: 900px;
+		}
+	}
+</style>
+
 <script>
-    import gsap from 'gsap';
-    import ScrollTrigger from 'gsap/ScrollTrigger';
-    gsap.registerPlugin(ScrollTrigger);
+	import { initExperienceCards } from './Experience';
 
-
-    
-    const experienceCard = document.getElementById('experience-card');
-    if (experienceCard) {
-        gsap.to(experienceCard, {
-            opacity: 1,
-            y: 0,
-            duration: 1,
-            ease: 'power2.inOut',
-            scrollTrigger: {
-                trigger: experienceCard,
-                start: 'top 80%',
-                toggleActions: 'play none none none',
-            }
-        });
-    }
+	initExperienceCards();
 </script>

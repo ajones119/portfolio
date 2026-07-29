@@ -1,5 +1,196 @@
 ---
+export interface Props {
+	id: string;
+	company: string;
+	title: string;
+	dates: string;
+	accent: 'secondary' | 'tertiary' | 'quaternary';
+	bullets: [string, string];
+	tech: string;
+	stackIndex: number;
+}
 
+const { id, company, title, dates, accent, bullets, tech, stackIndex } = Astro.props;
+
+const accentVar = {
+	secondary: 'var(--color-secondary)',
+	tertiary: 'var(--color-tertiary)',
+	quaternary: 'var(--color-quaternary)',
+}[accent];
 ---
 
+<div
+	class="experience-tile"
+	data-experience-tile
+	data-stack-index={stackIndex}
+	id={id}
+	role="button"
+	tabindex="0"
+	aria-expanded="false"
+	aria-label={`${company}, ${title}. Click to flip for details.`}
+	style={`--accent: ${accentVar};`}
+>
+	<div class="experience-tile-inner">
+		<div class="experience-tile-face experience-tile-front">
+			<div class="experience-tile-stripe experience-tile-stripe-front" aria-hidden="true"></div>
+			<div class="experience-tile-body">
+				<p class="experience-tile-company">{company}</p>
+				<p class="experience-tile-title">{title}</p>
+				<p class="experience-tile-dates">{dates}</p>
+			</div>
+		</div>
+		<div class="experience-tile-face experience-tile-back">
+			<div class="experience-tile-body">
+				<ul class="experience-tile-bullets">
+					<li>{bullets[0]}</li>
+					<li>{bullets[1]}</li>
+				</ul>
+				<p class="experience-tile-tech">{tech}</p>
+				<a href="/resume" data-astro-prefetch class="experience-tile-link">Full resume →</a>
+			</div>
+		</div>
+	</div>
+</div>
 
+<style>
+	.experience-tile {
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		width: min(72%, 11rem);
+		aspect-ratio: 3 / 4;
+		margin: 0;
+		padding: 0;
+		border: none;
+		background: transparent;
+		cursor: pointer;
+		transform-style: preserve-3d;
+		-webkit-tap-highlight-color: transparent;
+	}
+
+	.experience-tile-inner {
+		position: relative;
+		width: 100%;
+		height: 100%;
+		transform-style: preserve-3d;
+	}
+
+	.experience-tile-face {
+		position: absolute;
+		inset: 0;
+		display: flex;
+		flex-direction: column;
+		background: var(--color-background);
+		border: 1px solid color-mix(in srgb, var(--color-primary) 12%, transparent);
+		border-radius: 0.375rem;
+		box-shadow: none;
+		backface-visibility: hidden;
+		-webkit-backface-visibility: hidden;
+		overflow: hidden;
+		transition: box-shadow 0.22s ease-out;
+	}
+
+	.experience-tile-stripe-front {
+		height: 4px;
+		flex-shrink: 0;
+		background: var(--accent);
+	}
+
+	@media (hover: hover) and (pointer: fine) {
+		.experience-tile:hover .experience-tile-face {
+			box-shadow: 0 3px 10px color-mix(in srgb, var(--color-primary) 5%, transparent);
+		}
+	}
+
+	.experience-tile-back {
+		transform: rotateY(180deg);
+	}
+
+	.experience-tile-body {
+		flex: 1;
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		padding: 0.75rem 0.85rem;
+		text-align: left;
+	}
+
+	.experience-tile-company {
+		margin: 0 0 0.35rem;
+		font-family: var(--font-abril-fatface);
+		font-size: 1rem;
+		line-height: 1.2;
+		color: var(--color-primary);
+	}
+
+	.experience-tile-title {
+		margin: 0 0 0.25rem;
+		font-family: var(--font-lato);
+		font-size: 0.75rem;
+		font-weight: 500;
+		line-height: 1.35;
+		color: var(--color-primary);
+	}
+
+	.experience-tile-dates {
+		margin: 0;
+		font-family: var(--font-lato);
+		font-size: 0.6875rem;
+		color: var(--color-muted);
+	}
+
+	.experience-tile-bullets {
+		margin: 0 0 0.5rem;
+		padding: 0 0 0 0.85rem;
+		list-style: none;
+	}
+
+	.experience-tile-bullets li {
+		position: relative;
+		margin-bottom: 0.35rem;
+		font-family: var(--font-lato);
+		font-size: 0.6875rem;
+		line-height: 1.45;
+		color: var(--color-primary);
+	}
+
+	.experience-tile-bullets li::before {
+		content: '–';
+		position: absolute;
+		left: -0.85rem;
+		color: var(--color-muted);
+	}
+
+	.experience-tile-tech {
+		margin: 0 0 0.5rem;
+		font-family: var(--font-lato);
+		font-size: 0.625rem;
+		line-height: 1.4;
+		color: var(--color-muted);
+	}
+
+	.experience-tile-link {
+		margin-top: auto;
+		font-family: var(--font-lato);
+		font-size: 0.6875rem;
+		color: var(--color-secondary);
+		text-decoration: underline;
+		text-underline-offset: 0.15em;
+	}
+
+	.experience-tile-link:hover {
+		color: var(--color-primary);
+	}
+
+	.experience-tile:focus-visible {
+		outline: 2px solid var(--color-secondary);
+		outline-offset: 3px;
+		border-radius: 0.375rem;
+	}
+
+	@media (min-width: 1024px) {
+		.experience-tile {
+			width: min(68%, 10.5rem);
+		}
+	}
+</style>

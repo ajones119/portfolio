@@ -1,0 +1,41 @@
+---
+import { Image } from 'astro:assets';
+import logoSrc from '../../../../assets/images/projects/alchemy/alchemy logo.png';
+---
+
+<div
+	id="alchemy-card"
+	class="freelance-card group w-full h-full min-h-36 p-4 flex flex-col items-center justify-center relative overflow-hidden"
+	data-freelance-card
+>
+	<a
+		href="https://alchemybarok.com/"
+		target="_blank"
+		rel="noopener noreferrer"
+		class="absolute inset-0 z-10"
+		aria-label="Visit Alchemy bar in Edmond"
+	></a>
+
+	<div class="freelance-card-content relative z-20 pointer-events-none flex flex-col items-center text-center gap-2">
+		<Image
+			src={logoSrc}
+			alt="Alchemy logo"
+			class="freelance-card-logo w-16 h-16 object-contain"
+			width={128}
+			height={128}
+		/>
+		<p class="text-xs text-muted font-lato">Local bar · Edmond</p>
+	</div>
+</div>
+
+<style>
+	.freelance-card-logo {
+		transition: opacity 0.22s ease-out;
+	}
+
+	@media (hover: hover) and (pointer: fine) {
+		.group:hover .freelance-card-logo {
+			opacity: 0.88;
+		}
+	}
+</style>

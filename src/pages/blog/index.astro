@@ -1,5 +1,4 @@
 ---
-import Layout from '../../layouts/Layout.astro';
 import BlogLayout from '../../layouts/BlogLayout.astro';
 
 interface BlogPost {
@@ -12,96 +11,157 @@ interface BlogPost {
 const blogPosts: BlogPost[] = [
 	{
 		title: 'Snowfall Canvas',
-		description: 'Creating an interactive snowfall animation with HTML5 Canvas that accumulates on page elements using grid-based state tracking',
+		description: 'Canvas snow that accumulates on page elements',
 		slug: '/blog/snowfall-canvas',
 	},
 	{
 		title: 'Rainfall Canvas',
-		description: 'Creating an interactive rainfall animation with HTML5 Canvas that responds to page elements with splash effects',
+		description: 'Canvas rain with splash effects on page elements',
 		slug: '/blog/rainfall-canvas',
 	},
 	{
 		title: 'Fuzzy Searches',
-		description: 'Exploring fuzzy search algorithms: Contains, Hamming, Levenshtein, Jaro-Winkler, and Damerau-Levenshtein distance algorithms',
+		description: 'Contains, Hamming, Levenshtein, and friends',
 		slug: '/blog/fuzzy-search',
 	},
 	{
 		title: 'Gradients',
-		description: 'Exploring CSS gradients: linear, radial, and conic gradients with practical examples and a gradient playground',
+		description: 'Linear, radial, and conic, with a playground',
 		slug: '/blog/gradients',
 	},
 	{
 		title: '3D Effect with CSS',
-		description: 'Exploring CSS perspective, transforms, and 3D positioning to create immersive visual effects',
+		description: 'Perspective and transforms for depth in CSS',
 		slug: '/blog/3d-css',
 	},
 	{
 		title: 'Floating Image Effect',
-		description: 'Creating a whimsical floating image effect with CSS animations and JavaScript',
+		description: 'A light CSS and JS floating image',
 		slug: '/blog/floating-image',
 	},
 ];
 ---
 
-<BlogLayout title="Blog" description="Technical articles, tutorials, and explorations">
-	<div class="min-h-screen py-12">
-		<div class="container mx-auto px-4 max-w-7xl">
-			<header class="mb-12 text-center">
-				<h1 class="text-4xl lg:text-5xl font-bold font-abril-fatface mb-4">Blog</h1>
-				<p class="text-lg text-muted font-playfair-display italic">
-					Technical articles, tutorials, and explorations
-				</p>
+<BlogLayout title="Blog" description="Notes on animation, CSS, and search">
+	<div class="blog-page">
+		<div class="blog">
+			<header class="blog-header">
+				<p class="blog-label">Blog</p>
+				<p class="blog-intro">Notes on animation, CSS, and search.</p>
 			</header>
 
-			<div class="space-y-8 md:space-y-0 md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-6">
+			<section class="blog-list" aria-label="Blog posts">
 				{blogPosts.map((post) => (
-					<article class="blog-post-card border-2 border-primary rounded-lg p-6 bg-quaternary/10 hover:bg-quaternary/20 transition-colors">
-						<a href={post.slug} data-astro-prefetch class="block h-full flex flex-col">
-							<h2 class="text-2xl lg:text-3xl font-bold font-abril-fatface mb-3 text-primary">
-								{post.title}
-							</h2>
-							<p class="text-muted font-playfair-display italic mb-4 flex-grow">
-								{post.description}
-							</p>
-							<div class="flex items-center justify-between mt-auto">
-								<span class="text-sm text-muted">
-									Read more →
-								</span>
-								{post.date && (
-									<span class="text-xs text-muted">
-										{post.date}
-									</span>
-								)}
-							</div>
-						</a>
+					<article class="blog-post">
+						<h2>
+							<a href={post.slug} data-astro-prefetch>{post.title}</a>
+						</h2>
+						<p>{post.description}</p>
+						{post.date && (
+							<p class="blog-post-date">{post.date}</p>
+						)}
 					</article>
 				))}
-			</div>
+			</section>
 
 			{blogPosts.length === 0 && (
-				<div class="text-center py-12">
-					<p class="text-muted font-playfair-display italic">
-						No blog posts yet. Check back soon!
-					</p>
-				</div>
+				<p class="blog-empty">No posts yet. Check back soon.</p>
 			)}
 		</div>
 	</div>
 </BlogLayout>
 
 <style>
-	.blog-post-card {
-		transition: transform 0.2s ease, box-shadow 0.2s ease;
+	.blog-page {
+		min-height: 100vh;
+		padding: 4rem 1.25rem 6rem;
 	}
 
-	.blog-post-card:hover {
-		transform: translateY(-2px);
-		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+	.blog {
+		max-width: 40rem;
+		margin: 0 auto;
+		font-family: var(--font-lato);
+		color: var(--color-primary);
+		font-size: 1rem;
+		line-height: 1.65;
+		font-weight: 400;
 	}
 
-	.blog-post-card a {
+	.blog-header {
+		margin-bottom: 3rem;
+	}
+
+	.blog-label {
+		margin: 0 0 0.5rem;
+		font-size: 0.75rem;
+		font-weight: 500;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: var(--color-muted);
+	}
+
+	.blog-intro {
+		margin: 0;
+		font-size: 1rem;
+		font-weight: 400;
+		color: var(--color-muted);
+	}
+
+	.blog-list {
+		margin: 0;
+		padding: 0;
+	}
+
+	.blog-post {
+		margin: 0 0 2.25rem;
+		padding: 0;
+	}
+
+	.blog-post:last-child {
+		margin-bottom: 0;
+	}
+
+	.blog-post h2 {
+		margin: 0 0 0.25rem;
+		font-family: var(--font-lato);
+		font-size: 1.0625rem;
+		font-weight: 500;
+		letter-spacing: -0.01em;
+		line-height: 1.35;
+	}
+
+	.blog-post h2 a {
+		color: var(--color-primary);
 		text-decoration: none;
-		color: inherit;
+		text-decoration-color: color-mix(in srgb, var(--color-muted) 45%, transparent);
+		text-underline-offset: 0.2em;
+	}
+
+	.blog-post h2 a:hover {
+		text-decoration: underline;
+	}
+
+	.blog-post p {
+		margin: 0;
+		font-size: 0.9375rem;
+		line-height: 1.55;
+		color: var(--color-muted);
+	}
+
+	.blog-post-date {
+		margin-top: 0.35rem !important;
+		font-size: 0.8125rem !important;
+	}
+
+	.blog-empty {
+		margin: 0;
+		font-size: 0.9375rem;
+		color: var(--color-muted);
+	}
+
+	@media (min-width: 640px) {
+		.blog-page {
+			padding: 5.5rem 1.5rem 7rem;
+		}
 	}
 </style>
-

@@ -1,311 +1,346 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import { Image } from 'astro:assets';
-import linkedInAvatar from '../assets/images/aramis/LinkdInAvatar.jpg';
 ---
 
 <Layout title="Resume • Aramis Jones" description="Professional resume and experience" consoleMessage="Woah! who's this cool guy?">
-	<div class="min-h-screen py-12">
-		<div class="container mx-auto px-4 max-w-4xl">
-			<header class="mb-12 text-center">
-				<h1 class="text-4xl lg:text-5xl font-bold font-abril-fatface mb-4">Aramis Jones</h1>
-				<p class="text-lg text-muted font-playfair-display italic">
-					Frontend Software Engineer
-				</p>
+	<div class="resume-page">
+		<div class="resume">
+			<header class="resume-header">
+				<h1>Aramis Jones</h1>
+				<p class="resume-role">Staff Software Engineer</p>
 			</header>
 
-			<!-- Profile Photo -->
-			<div class="mb-12 flex justify-center">
-				<div class="resume-image-container">
-					<Image
-						src={linkedInAvatar}
-						alt="Aramis Jones"
-						width={500}
-						height={500}
-						class="resume-profile-image"
-						style="z-index: 50;"
-					/>
+			<section class="resume-section">
+				<h2>Experience</h2>
+
+				<article class="resume-job">
+					<div class="resume-job-head">
+						<div>
+							<h3>Boston Dynamics</h3>
+							<p class="resume-job-title">Staff Software Engineer</p>
+						</div>
+						<p class="resume-dates">Mar 2026 – Present</p>
+					</div>
+					<ul>
+						<li>Building the Stretch Web Interface with Three.js for real-time 3D visualization of robot state and layout</li>
+						<li>Working with the cloud team on over-the-air infrastructure for fleet software updates</li>
+						<li>Contributing to agentic flows for operational workflows</li>
+						<li>Contributing to a shared React component library</li>
+					</ul>
+					<p class="resume-tech">React, Three.js, Express, Bazel</p>
+				</article>
+
+				<article class="resume-job">
+					<div class="resume-job-head">
+						<div>
+							<h3>PerformYard</h3>
+							<p class="resume-job-title">React Guild Lead</p>
+						</div>
+						<p class="resume-dates">Jan 2023 – Mar 2026</p>
+					</div>
+					<ul>
+						<li>Led client-side technical direction with a committee of designers and engineers</li>
+						<li>Built and maintained a React component library on ShadCN and an atomic design system</li>
+						<li>Built a Zod form system that cut boilerplate and improved accessibility across pages</li>
+						<li>Raised client unit test coverage from 10% to 60% (Vitest, RTL), with tooling for new pages</li>
+						<li>Led React upgrades from 15 to 18, then 18 to 19, across legacy surfaces</li>
+						<li>Migrated several Tornado Python endpoints to Fastify TypeScript</li>
+					</ul>
+					<p class="resume-tech">TypeScript, React, Fastify, Python, Zod, TanStack, MongoDB, Vitest</p>
+				</article>
+
+				<article class="resume-job">
+					<div class="resume-job-head">
+						<div>
+							<h3>Paycom</h3>
+							<p class="resume-job-title">Software Engineer</p>
+						</div>
+						<p class="resume-dates">May 2021 – Jan 2023</p>
+					</div>
+					<ul>
+						<li>Maintained a React and Redux SPA for employee scheduling and labor calculations against a PHP REST API</li>
+						<li>Built and maintained REST APIs in an internal PHP ecosystem</li>
+						<li>Added unit testing in React (Jest) and PHP for the Scheduling module</li>
+						<li>Code owner for a React codebase on new projects</li>
+						<li>Improved performance in legacy PHP by up to 80%</li>
+					</ul>
+					<p class="resume-tech">React, Redux, PHP, Jest, PHPUnit</p>
+				</article>
+			</section>
+
+			<section class="resume-section">
+				<h2>Freelance</h2>
+
+				<article class="resume-job resume-freelance">
+					<div class="resume-job-head">
+						<div>
+							<h3>
+								<a href="https://alchemybarok.com/" target="_blank" rel="noopener noreferrer">Alchemy</a>
+							</h3>
+							<p class="resume-job-title">Local bar in Edmond, OK</p>
+						</div>
+					</div>
+					<p class="resume-one-liner">Built and maintain the site. Astro, anime.js.</p>
+				</article>
+
+				<article class="resume-job resume-freelance">
+					<div class="resume-job-head">
+						<div>
+							<h3>
+								<a href="https://www.smileloc.com/" target="_blank" rel="noopener noreferrer">Smileloc</a>
+							</h3>
+							<p class="resume-job-title">Dental implant company</p>
+						</div>
+					</div>
+					<p class="resume-one-liner">Built and maintain the site. Astro, GSAP.</p>
+				</article>
+			</section>
+
+			<section class="resume-section">
+				<h2>Tech</h2>
+				<div class="resume-tech-grid">
+					<div>
+						<p class="resume-tech-label">Languages</p>
+						<p>TypeScript, JavaScript, Python, Golang, HTML, CSS</p>
+					</div>
+					<div>
+						<p class="resume-tech-label">Frameworks</p>
+						<p>React, Astro, Three.js, Fastify, Tornado, Mastra</p>
+					</div>
+					<div>
+						<p class="resume-tech-label">Data</p>
+						<p>SQL, MongoDB, Firebase</p>
+					</div>
+					<div>
+						<p class="resume-tech-label">Testing</p>
+						<p>Vitest, Jest, React Testing Library, PHPUnit</p>
+					</div>
+					<div>
+						<p class="resume-tech-label">Other</p>
+						<p>Node.js, Bazel, Zod, Zustand, Redux, Tailwind, ShadCN, AWS Lambda, Supabase</p>
+					</div>
 				</div>
-			</div>
+			</section>
 
-			<div class="resume-content prose prose-lg max-w-none space-y-12">
-				<!-- Professional Work Experience -->
-				<section>
-					<h2 class="text-3xl font-bold font-abril-fatface mb-6 text-secondary border-b-2 border-primary pb-2">
-						Professional Work Experience
-					</h2>
-					
-					<div class="space-y-6">
-						<!-- PerformYard -->
-						<article class="p-6">
-							<div class="flex flex-col md:flex-row md:items-start md:justify-between mb-4 pb-4 border-b-2 border-primary">
-								<div>
-									<h3 class="text-3xl font-bold font-abril-fatface text-primary">Performyard</h3>
-									<p class="text-lg font-playfair-display text-secondary mt-1">React Guild Lead</p>
-								</div>
-								<p class="text-muted font-playfair-display italic mt-2 md:mt-0">Jan. 2023 - Today</p>
-							</div>
-							<ul class="space-y-2 mb-6">
-								<li class="flex items-start">
-									<span class="text-tertiary mr-2 font-bold">▸</span>
-									<span>Served as Guild Lead for the client side code, guiding technical decisions and best practices and processes with a committee of designers and developers</span>
-								</li>
-								<li class="flex items-start">
-									<span class="text-tertiary mr-2 font-bold">▸</span>
-									<span>Built and maintained a React component library, extending ShadCN and an atomic design system to create a series of reusable components</span>
-								</li>
-								<li class="flex items-start">
-									<span class="text-tertiary mr-2 font-bold">▸</span>
-									<span>Developed a comprehensive form system with Zod validation to drastically reduce boilerplate code, enhance consistency across pages, and address accessibility and semantic HTML requirements</span>
-								</li>
-								<li class="flex items-start">
-									<span class="text-tertiary mr-2 font-bold">▸</span>
-									<span>Brought client-side unit test coverage (Vitest and RTL) from 10% to 60%, and wrote tooling to help new developers achieve total coverage on new pages, standardize how unit tests create and access props, redux stores, and the tanstack cache</span>
-								</li>
-								<li class="flex items-start">
-									<span class="text-tertiary mr-2 font-bold">▸</span>
-									<span>Implemented several full-stack refactors, completely rewriting client-side code, majorly refactoring server-side code for better performance, while maintaining backward compatibility with legacy data</span>
-								</li>
-								<li class="flex items-start">
-									<span class="text-tertiary mr-2 font-bold">▸</span>
-									<span>Converted several endpoints from Tornado Python to Fastify TypeScript, improving type safety and performance</span>
-								</li>
-								<li class="flex items-start">
-									<span class="text-tertiary mr-2 font-bold">▸</span>
-									<span>Supported legacy Python template coding and injected newer features using React portaling and optional rendering</span>
-								</li>
-								<li class="flex items-start">
-									<span class="text-tertiary mr-2 font-bold">▸</span>
-									<span>Taught monthly courses on development practices, typically new or lesser known React patterns or tooling</span>
-								</li>
-								<li class="flex items-start">
-									<span class="text-tertiary mr-2 font-bold">▸</span>
-									<span>Expanded RBAC abilities and performance in some key areas</span>
-								</li>
-								<li class="flex items-start">
-									<span class="text-tertiary mr-2 font-bold">▸</span>
-									<span>Wrote documentation around new features or tools we built and or implemented</span>
-								</li>
-								<li class="flex items-start">
-									<span class="text-tertiary mr-2 font-bold">▸</span>
-									<span>Performed multiple React full version upgrades, combing through the database to prepare for upgrading from version 15 to 18, and then 18 to 19, leading to clean rollouts with newer secure code in legacy parts of the system</span>
-								</li>
-								<li class="flex items-start">
-									<span class="text-tertiary mr-2 font-bold">▸</span>
-									<span>Researched AI automation and integration using frameworks like Mastra</span>
-								</li>
-							</ul>
-							<div class="flex flex-wrap gap-2 pt-4 border-t-2 border-primary">
-								<span class="px-3 py-1 rounded-full border-2 border-primary bg-background text-primary font-semibold text-sm">TypeScript</span>
-								<span class="px-3 py-1 rounded-full border-2 border-primary bg-background text-primary font-semibold text-sm">React</span>
-								<span class="px-3 py-1 rounded-full border-2 border-primary bg-background text-primary font-semibold text-sm">Fastify</span>
-								<span class="px-3 py-1 rounded-full border-2 border-primary bg-background text-primary font-semibold text-sm">Python</span>
-								<span class="px-3 py-1 rounded-full border-2 border-primary bg-background text-primary font-semibold text-sm">Zod</span>
-								<span class="px-3 py-1 rounded-full border-2 border-primary bg-background text-primary font-semibold text-sm">TanStack</span>
-								<span class="px-3 py-1 rounded-full border-2 border-primary bg-background text-primary font-semibold text-sm">MongoDB</span>
-								<span class="px-3 py-1 rounded-full border-2 border-primary bg-background text-primary font-semibold text-sm">Vitest</span>
-								<span class="px-3 py-1 rounded-full border-2 border-primary bg-background text-primary font-semibold text-sm">RTL</span>
-								<span class="px-3 py-1 rounded-full border-2 border-primary bg-background text-primary font-semibold text-sm">Mastra</span>
-							</div>
-						</article>
-
-						<!-- Paycom -->
-						<article class="p-6">
-							<div class="flex flex-col md:flex-row md:items-start md:justify-between mb-4 pb-4 border-b-2 border-primary">
-								<div>
-									<h3 class="text-3xl font-bold font-abril-fatface text-primary">Paycom</h3>
-									<p class="text-lg font-playfair-display text-secondary mt-1">Software Engineer</p>
-								</div>
-								<p class="text-muted font-playfair-display italic mt-2 md:mt-0">May 2021 - Jan 2023</p>
-							</div>
-							<ul class="space-y-2 mb-6">
-								<li class="flex items-start">
-									<span class="text-quaternary mr-2 font-bold">▸</span>
-									<span>Worked in React JS and Redux to maintain a large Single Page Application dealing with managing employee shifts and long term schedules, and labor calculations alongside a PHP REST API</span>
-								</li>
-								<li class="flex items-start">
-									<span class="text-quaternary mr-2 font-bold">▸</span>
-									<span>Developed in and maintained a REST API in a larger internal PHP ecosystem</span>
-								</li>
-								<li class="flex items-start">
-									<span class="text-quaternary mr-2 font-bold">▸</span>
-									<span>Researched and implemented Unit Testing in both React (JEST) and PHP for the Scheduling module</span>
-								</li>
-								<li class="flex items-start">
-									<span class="text-quaternary mr-2 font-bold">▸</span>
-									<span>Served as a required code owner (reviewer) for a React codebase, helping to maintain high code standards and clean code in new React projects</span>
-								</li>
-								<li class="flex items-start">
-									<span class="text-quaternary mr-2 font-bold">▸</span>
-									<span>Increased performance in legacy PHP areas by up to 80%</span>
-								</li>
-							</ul>
-							<div class="flex flex-wrap gap-2 pt-4 border-t-2 border-primary">
-								<span class="px-3 py-1 rounded-full border-2 border-primary bg-background text-primary font-semibold text-sm">React</span>
-								<span class="px-3 py-1 rounded-full border-2 border-primary bg-background text-primary font-semibold text-sm">Redux</span>
-								<span class="px-3 py-1 rounded-full border-2 border-primary bg-background text-primary font-semibold text-sm">PHP</span>
-								<span class="px-3 py-1 rounded-full border-2 border-primary bg-background text-primary font-semibold text-sm">JEST</span>
-								<span class="px-3 py-1 rounded-full border-2 border-primary bg-background text-primary font-semibold text-sm">PHPUnit</span>
-							</div>
-						</article>
+			<section class="resume-section">
+				<h2>Education</h2>
+				<article class="resume-job">
+					<div class="resume-job-head">
+						<div>
+							<h3>University of Central Oklahoma</h3>
+							<p class="resume-job-title">Bachelor's in Software Engineering</p>
+						</div>
+						<p class="resume-dates">2017 – 2021</p>
 					</div>
-				</section>
-
-				<!-- Skills & Experience -->
-				<section>
-					<h2 class="text-3xl font-bold font-abril-fatface mb-6 text-secondary border-b-2 border-primary pb-2">
-						Tech Stack Experience
-					</h2>
-					<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-						<div>
-							<h3 class="text-xl font-bold text-tertiary mb-3">Languages</h3>
-							<ul class="space-y-1 text-foreground">
-								<li>TypeScript, JavaScript, Python, Golang</li>
-								<li>HTML, CSS</li>
-							</ul>
-						</div>
-						<div>
-							<h3 class="text-xl font-bold text-tertiary mb-3">Frameworks</h3>
-							<ul class="space-y-1 text-foreground">
-								<li>React, Fastify, Tornado, Astro</li>
-								<li>Mastra (AI Agents and workflows)</li>
-							</ul>
-						</div>
-						<div>
-							<h3 class="text-xl font-bold text-tertiary mb-3">Runtime Environment</h3>
-							<ul class="space-y-1 text-foreground">
-								<li>NodeJS</li>
-							</ul>
-						</div>
-						<div>
-							<h3 class="text-xl font-bold text-tertiary mb-3">Database</h3>
-							<ul class="space-y-1 text-foreground">
-								<li>SQL, MongoDB, Firebase</li>
-							</ul>
-						</div>
-						<div>
-							<h3 class="text-xl font-bold text-tertiary mb-3">Testing</h3>
-							<ul class="space-y-1 text-foreground">
-								<li>Jest, Vitest, React Testing Library</li>
-								<li>PHP Unit</li>
-								<li>Unit tests on the client and server</li>
-								<li>Integration tests on a Fastify server</li>
-							</ul>
-						</div>
-						<div>
-							<h3 class="text-xl font-bold text-tertiary mb-3">Others</h3>
-							<ul class="space-y-1 text-foreground">
-								<li>Git, Zod (Form Validation)</li>
-								<li>Zustand (State management), Redux (State Management)</li>
-								<li>AWS Lambdas, Supabase, Supabase Realtime</li>
-								<li>Tailwind CSS</li>
-								<li>Atomic UI libraries like Material UI, Chakra, Radix, and ShadCN</li>
-							</ul>
-						</div>
-					</div>
-				</section>
-
-				<!-- Education -->
-				<section>
-					<h2 class="text-3xl font-bold font-abril-fatface mb-6 text-secondary border-b-2 border-primary pb-2">
-						Education
-					</h2>
-					<div class="space-y-4">
-						<article>
-							<div class="flex flex-col md:flex-row md:items-start md:justify-between mb-2">
-								<h3 class="text-xl font-bold text-tertiary">University of Central Oklahoma</h3>
-								<p class="text-muted font-playfair-display italic">2017 - 2021</p>
-							</div>
-							<p class="text-foreground">Bachelor's Degree in Software Engineering</p>
-						</article>
-						<article>
-							<div class="flex flex-col md:flex-row md:items-start md:justify-between mb-2">
-								<h3 class="text-xl font-bold text-tertiary">Oklahoma State University OKC</h3>
-								<p class="text-muted font-playfair-display italic">2016 - 2017</p>
-							</div>
-							<p class="text-foreground">Engineering Major</p>
-						</article>
-						<article>
-							<div class="flex flex-col md:flex-row md:items-start md:justify-between mb-2">
-								<h3 class="text-xl font-bold text-tertiary">Northern Oklahoma College</h3>
-								<p class="text-muted font-playfair-display italic">2015 - 2016</p>
-							</div>
-							<p class="text-foreground">Engineering Major</p>
-						</article>
-					</div>
-				</section>
-			</div>
+				</article>
+			</section>
 		</div>
 	</div>
 </Layout>
 
 <style>
-	/* Prose styling for resume content */
-	:global(.resume-content .prose) {
-		color: var(--color-foreground);
+	.resume-page {
+		min-height: 100vh;
+		padding: 4rem 1.25rem 6rem;
+	}
+
+	.resume {
+		max-width: 40rem;
+		margin: 0 auto;
 		font-family: var(--font-lato);
+		color: var(--color-primary);
+		font-size: 1rem;
+		line-height: 1.65;
+		font-weight: 400;
 	}
 
-	:global(.resume-content .prose h2) {
-		font-family: var(--font-abril-fatface);
-		color: var(--color-secondary);
-		margin-top: 3rem;
-		margin-bottom: 1.5rem;
-		border-bottom: 2px solid var(--color-primary);
-		padding-bottom: 0.5rem;
+	.resume-header {
+		margin-bottom: 4rem;
 	}
 
-	:global(.resume-content .prose h3) {
-		font-family: var(--font-playfair-display);
-		color: var(--color-tertiary);
-		font-weight: 700;
-		margin-top: 2rem;
-		margin-bottom: 1rem;
+	.resume-header h1 {
+		font-family: var(--font-lato);
+		font-size: clamp(1.75rem, 4vw, 2.25rem);
+		font-weight: 500;
+		letter-spacing: -0.02em;
+		line-height: 1.2;
+		margin: 0 0 0.35rem;
+		color: var(--color-primary);
 	}
 
-	:global(.resume-content .prose p) {
-		margin-bottom: 1rem;
-		line-height: 1.7;
+	.resume-role {
+		margin: 0;
+		font-size: 1rem;
+		font-weight: 400;
+		color: var(--color-muted);
 	}
 
-	:global(.resume-content .prose ul) {
-		margin-left: 1.5rem;
-		margin-bottom: 1rem;
+	.resume-section {
+		margin-bottom: 3.5rem;
 	}
 
-	:global(.resume-content .prose li) {
-		margin-bottom: 0.75rem;
-		line-height: 1.7;
+	.resume-section h2 {
+		font-family: var(--font-lato);
+		font-size: 0.75rem;
+		font-weight: 500;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: var(--color-muted);
+		margin: 0 0 1.75rem;
+		padding: 0;
+		border: none;
 	}
 
+	.resume-job {
+		margin-bottom: 2.75rem;
+		padding: 0;
+		border: none;
+	}
 
-	.resume-image-container {
-		width: 100%;
-		max-width: 500px;
+	.resume-job:last-child {
+		margin-bottom: 0;
+	}
+
+	.resume-freelance {
+		margin-bottom: 2rem;
+	}
+
+	.resume-job-head {
 		display: flex;
-		justify-content: center;
+		flex-direction: column;
+		gap: 0.25rem;
+		margin-bottom: 0.85rem;
 	}
 
-	.resume-profile-image {
-		width: 100%;
-		max-width: 500px;
-		height: auto;
-		border-radius: 0.5rem;
-		object-fit: cover;
+	.resume-job h3 {
+		font-family: var(--font-lato);
+		font-size: 1.0625rem;
+		font-weight: 500;
+		letter-spacing: -0.01em;
+		margin: 0;
+		color: var(--color-primary);
 	}
 
-	section {
-		margin-bottom: 3rem;
+	.resume-job h3 a {
+		color: inherit;
+		text-decoration: underline;
+		text-decoration-color: color-mix(in srgb, var(--color-muted) 45%, transparent);
+		text-underline-offset: 0.2em;
+	}
+
+	.resume-job h3 a:hover {
+		text-decoration-color: var(--color-primary);
+	}
+
+	.resume-job-title {
+		margin: 0.15rem 0 0;
+		font-size: 0.9375rem;
+		font-weight: 400;
+		color: var(--color-muted);
+	}
+
+	.resume-dates {
+		margin: 0;
+		font-size: 0.875rem;
+		font-weight: 400;
+		font-style: normal;
+		color: var(--color-muted);
+	}
+
+	.resume-job ul {
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.resume-job li {
+		position: relative;
+		padding-left: 1rem;
+		margin-bottom: 0.55rem;
+		font-size: 0.975rem;
+		line-height: 1.6;
+		color: var(--color-primary);
+	}
+
+	.resume-job li::before {
+		content: "–";
+		position: absolute;
+		left: 0;
+		color: var(--color-muted);
+	}
+
+	.resume-tech {
+		margin: 0.9rem 0 0;
+		font-size: 0.8125rem;
+		line-height: 1.5;
+		color: var(--color-muted);
+	}
+
+	.resume-one-liner {
+		margin: 0;
+		font-size: 0.975rem;
+		line-height: 1.6;
+		color: var(--color-primary);
+	}
+
+	.resume-tech-grid {
+		display: grid;
+		gap: 1.25rem;
+	}
+
+	.resume-tech-label {
+		margin: 0 0 0.2rem;
+		font-size: 0.8125rem;
+		font-weight: 500;
+		color: var(--color-muted);
+	}
+
+	.resume-tech-grid p:not(.resume-tech-label) {
+		margin: 0;
+		font-size: 0.9375rem;
+		line-height: 1.55;
+		color: var(--color-primary);
+	}
+
+	@media (min-width: 640px) {
+		.resume-page {
+			padding: 5.5rem 1.5rem 7rem;
+		}
+
+		.resume-job-head {
+			flex-direction: row;
+			align-items: baseline;
+			justify-content: space-between;
+			gap: 1.5rem;
+		}
+
+		.resume-dates {
+			flex-shrink: 0;
+			text-align: right;
+		}
+
+		.resume-tech-grid {
+			grid-template-columns: 1fr 1fr;
+			gap: 1.5rem 2rem;
+		}
+
+		.resume-tech-grid > :last-child:nth-child(odd) {
+			grid-column: 1 / -1;
+		}
 	}
 
 	@media print {
-		.resume-item {
-			page-break-inside: avoid;
+		.resume-page {
+			padding: 0;
 		}
-		
-		.resume-profile-image {
-			max-width: 300px;
+
+		.resume-job {
+			break-inside: avoid;
+		}
+
+		.resume-job h3 a {
+			text-decoration: none;
 		}
 	}
-</style>
 
+</style>
