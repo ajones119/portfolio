@@ -1,0 +1,107 @@
+---
+import Layout from '../../layouts/Layout.astro';
+---
+
+<Layout
+  title="Ethereal Forest • Aramis Jones"
+  description="A walkable procedural Three.js forest"
+>
+  <section class="forest-experience" aria-label="Interactive ethereal forest">
+    <canvas class="forest-canvas" aria-label="Three-dimensional forest scene"></canvas>
+
+    <div class="forest-hud" data-forest-hud>
+      <div class="hud-switcher time-switcher" role="group" aria-label="Time of day">
+        <button type="button" data-time="day" aria-pressed="false">Daytime</button>
+        <button type="button" data-time="evening" aria-pressed="true">Evening</button>
+        <button type="button" data-time="night" aria-pressed="false">Nighttime</button>
+      </div>
+      <div class="hud-switcher" role="group" aria-label="Camera mode">
+        <button type="button" data-mode="walk" aria-pressed="true">Walk <kbd>1</kbd></button>
+        <button type="button" data-mode="fly" aria-pressed="false">Fly <kbd>2</kbd></button>
+      </div>
+      <p data-control-hint>Click the forest to look around · WASD move · Shift sprint</p>
+      <p class="debug-hint">Add <code>#debug</code> to the URL for scene controls</p>
+    </div>
+  </section>
+
+  <script src="../../components/ThreeJS/forest/index.ts"></script>
+</Layout>
+
+<style>
+  .forest-experience {
+    position: fixed;
+    inset: 0;
+    overflow: hidden;
+    background: #758a80;
+  }
+
+  .forest-canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+    cursor: crosshair;
+  }
+
+  .forest-hud {
+    position: absolute;
+    left: 50%;
+    bottom: 1.5rem;
+    transform: translateX(-50%);
+    display: grid;
+    justify-items: center;
+    gap: .55rem;
+    color: #fff8df;
+    font: 600 .72rem/1.35 Lato, sans-serif;
+    letter-spacing: .06em;
+    text-align: center;
+    text-shadow: 0 1px 12px rgb(18 31 24 / 75%);
+    pointer-events: none;
+  }
+
+  .hud-switcher {
+    display: flex;
+    gap: .35rem;
+    padding: .3rem;
+    border: 1px solid rgb(255 248 223 / 22%);
+    border-radius: 999px;
+    background: rgb(16 30 23 / 52%);
+    box-shadow: 0 8px 28px rgb(10 19 14 / 24%);
+    backdrop-filter: blur(12px);
+    pointer-events: auto;
+  }
+
+  .hud-switcher button {
+    border: 0;
+    border-radius: 999px;
+    padding: .55rem .85rem;
+    color: inherit;
+    background: transparent;
+    cursor: pointer;
+  }
+
+  .hud-switcher button[aria-pressed="true"] {
+    color: #24392c;
+    background: #f4db9a;
+  }
+
+  .time-switcher {
+    margin-bottom: -.15rem;
+  }
+
+  kbd, code {
+    font: inherit;
+    opacity: .7;
+  }
+
+  .forest-hud p {
+    margin: 0;
+  }
+
+  .debug-hint {
+    opacity: .62;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .forest-hud { scroll-behavior: auto; }
+  }
+</style>

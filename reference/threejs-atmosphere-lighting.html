@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Three.js Atmosphere Lighting — Quick Reference</title>
+  <style>
+    :root { color-scheme: light; --ink:#173126; --paper:#f7f2e5; --green:#315843; --gold:#d49b4a; --mist:#d8e1dc; }
+    * { box-sizing:border-box; }
+    body { margin:0; color:var(--ink); background:var(--paper); font:16px/1.55 ui-serif, Georgia, serif; }
+    main { width:min(960px, calc(100% - 2rem)); margin:3rem auto; }
+    h1 { max-width:16ch; margin:0 0 .5rem; font-size:clamp(2.2rem, 6vw, 4.4rem); line-height:.92; letter-spacing:-.045em; }
+    .lede { max-width:58ch; color:#486156; font-size:1.1rem; }
+    .stack { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:1rem; margin:2.5rem 0; }
+    article { min-height:12rem; padding:1.25rem; border:1px solid #becbc3; border-radius:1rem; background:rgb(255 255 255 / 42%); }
+    article::before { content:attr(data-step); display:block; color:var(--gold); font:700 .72rem/1 ui-sans-serif,system-ui; letter-spacing:.15em; }
+    h2 { margin:.75rem 0 .4rem; font-size:1.25rem; }
+    p { margin:.35rem 0; }
+    code { padding:.12rem .3rem; color:#244836; border-radius:.3rem; background:#e5e6d9; font: .85em/1.4 ui-monospace,monospace; }
+    table { width:100%; border-collapse:collapse; margin:1.5rem 0; }
+    th,td { padding:.7rem; border-bottom:1px solid #c9d2cc; text-align:left; vertical-align:top; }
+    th { font:700 .72rem/1 ui-sans-serif,system-ui; letter-spacing:.1em; text-transform:uppercase; }
+    .rule { padding:1rem 1.2rem; border-left:4px solid var(--gold); background:var(--mist); }
+    @media print { main { margin:1cm auto; } article { break-inside:avoid; } }
+  </style>
+</head>
+<body>
+<main>
+  <h1>Atmosphere lighting stack</h1>
+  <p class="lede">A compact recipe for making simple Three.js geometry read as a warm, misty outdoor scene.</p>
+
+  <section class="stack">
+    <article data-step="01 · KEY">
+      <h2>Warm directional sun</h2>
+      <p>Use <code>DirectionalLight</code> for parallel daylight. Place it high and far to one side. A lower angle stretches shadows.</p>
+    </article>
+    <article data-step="02 · FILL">
+      <h2>Cool hemisphere fill</h2>
+      <p>Give upward faces a cool sky color and downward faces a dark ground color. This preserves form inside shadows.</p>
+    </article>
+    <article data-step="03 · DEPTH">
+      <h2>Fog + matching background</h2>
+      <p>Use one color for both. Linear fog leaves the foreground clear, then compresses distant trees into soft layers.</p>
+    </article>
+    <article data-step="04 · OUTPUT">
+      <h2>Tone mapping + exposure</h2>
+      <p>ACES filmic tone mapping rolls bright sunlight into a pleasing range. Exposure controls the whole final image.</p>
+    </article>
+  </section>
+
+  <table>
+    <thead><tr><th>Control</th><th>Raise it</th><th>Lower it</th></tr></thead>
+    <tbody>
+      <tr><td>Sun Y</td><td>Shorter, flatter shadows</td><td>Longer, more dramatic shadows</td></tr>
+      <tr><td>Hemisphere intensity</td><td>More readable shadow detail</td><td>Deeper, moodier contrast</td></tr>
+      <tr><td>Fog near</td><td>More clear foreground</td><td>Mist reaches the camera sooner</td></tr>
+      <tr><td>Fog far</td><td>Distant forest stays visible</td><td>Forest fades out sooner</td></tr>
+      <tr><td>Shadow camera area</td><td>More ground covered, less detail</td><td>Sharper shadows, smaller coverage</td></tr>
+      <tr><td>Exposure</td><td>Brighter entire image</td><td>Darker entire image</td></tr>
+    </tbody>
+  </table>
+
+  <p class="rule"><strong>Debug order:</strong> key light direction → shadow coverage → fill intensity → fog range → exposure. Change one layer at a time.</p>
+</main>
+</body>
+</html>

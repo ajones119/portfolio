@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EventEmitter — Quick Reference</title>
+  <style>
+    :root { --text: #1a1a1a; --muted: #555; --accent: #2563eb; --border: #ddd; --bg: #fafafa; }
+    * { box-sizing: border-box; }
+    body { font-family: "Palatino Linotype", Palatino, Georgia, serif; max-width: 42rem; margin: 2rem auto; padding: 0 1.5rem; color: var(--text); line-height: 1.55; background: var(--bg); }
+    h1 { font-size: 1.5rem; font-weight: 600; margin-bottom: 0.25rem; }
+    .subtitle { color: var(--muted); font-size: 0.95rem; margin-bottom: 2rem; }
+    h2 { font-size: 1.1rem; margin-top: 2rem; border-bottom: 1px solid var(--border); padding-bottom: 0.25rem; }
+    table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.92rem; }
+    th, td { text-align: left; padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+    th { font-weight: 600; }
+    code { font-family: "Consolas", monospace; font-size: 0.88em; background: #eee; padding: 0.1em 0.35em; border-radius: 3px; }
+    pre { background: #1e1e1e; color: #d4d4d4; padding: 1rem; overflow-x: auto; font-size: 0.85rem; border-radius: 4px; }
+    a { color: var(--accent); }
+    .diagram { font-family: monospace; font-size: 0.8rem; background: #fff; border: 1px solid var(--border); padding: 1rem; white-space: pre; overflow-x: auto; }
+  </style>
+</head>
+<body>
+  <h1>EventEmitter — Quick Reference</h1>
+  <p class="subtitle">Pub/sub for Three.js experience classes · <a href="../lessons/0001-how-event-emitter-works.html">Lesson</a></p>
+
+  <h2>API</h2>
+  <table>
+    <tr><th>Method</th><th>Role</th><th>Example</th></tr>
+    <tr><td><code>on(name, fn)</code></td><td>Subscribe</td><td><code>sizes.on('resize', fn)</code></td></tr>
+    <tr><td><code>off(name)</code></td><td>Unsubscribe all listeners for name</td><td><code>sizes.off('resize')</code></td></tr>
+    <tr><td><code>trigger(name, args?)</code></td><td>Fire event, call all listeners</td><td><code>sizes.trigger('resize')</code></td></tr>
+  </table>
+
+  <h2>Namespaces</h2>
+  <p><code>eventName.namespace</code> — default namespace is <code>base</code>.</p>
+  <table>
+    <tr><th>String</th><th>value</th><th>namespace</th></tr>
+    <tr><td><code>resize</code></td><td>resize</td><td>base</td></tr>
+    <tr><td><code>resize.sizes</code></td><td>resize</td><td>sizes</td></tr>
+  </table>
+  <p>Base namespace listeners fire across <em>all</em> namespaces. Specific namespace only fires there.</p>
+
+  <h2>Storage shape</h2>
+  <div class="diagram">callbacks = {
+  base: {
+    resize: [ fn1, fn2 ],
+    tick:   [ fn3 ]
+  },
+  sizes: {
+    resize: [ fn4 ]
+  }
+}</div>
+
+  <h2>DOM vs app events</h2>
+  <table>
+    <tr><th>Layer</th><th>API</th><th>When</th></tr>
+    <tr><td>Browser</td><td><code>window.addEventListener('resize')</code></td><td>OS / viewport changed</td></tr>
+    <tr><td>App class</td><td><code>sizes.trigger('resize')</code></td><td>Your class updated its state</td></tr>
+  </table>
+
+  <h2>Typical flow in your project</h2>
+  <pre>window 'resize'
+  → Sizes.resize() updates width/height
+  → Sizes.trigger('resize')
+  → Experience listener runs (camera, renderer, etc.)</pre>
+</body>
+</html>

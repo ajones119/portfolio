@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lighting the Ethereal Forest</title>
+  <style>
+    :root { color-scheme:dark; --ink:#f6efd9; --muted:#aabbb1; --night:#102019; --leaf:#1f3c2d; --gold:#f0c779; --mist:#82978e; }
+    * { box-sizing:border-box; }
+    body { margin:0; color:var(--ink); background:radial-gradient(circle at 82% 0,#526c5e 0,transparent 34rem),var(--night); font:17px/1.65 ui-serif,Georgia,serif; }
+    main { width:min(820px,calc(100% - 2rem)); margin:auto; padding:5rem 0 7rem; }
+    header { margin-bottom:4rem; }
+    .eyebrow { color:var(--gold); font:700 .72rem/1 ui-sans-serif,system-ui; letter-spacing:.18em; text-transform:uppercase; }
+    h1 { max-width:12ch; margin:.5rem 0 1rem; font-size:clamp(3rem,9vw,6.5rem); line-height:.87; letter-spacing:-.06em; }
+    .lede { max-width:55ch; color:#d1dbd5; font-size:1.2rem; }
+    section { margin:3.5rem 0; }
+    h2 { font-size:1.55rem; line-height:1.2; }
+    code { padding:.12rem .35rem; border:1px solid #40594c; border-radius:.35rem; color:#ffe4a9; background:#152b20; font:.83em/1.4 ui-monospace,monospace; }
+    pre { overflow:auto; padding:1.2rem; border:1px solid #3a5246; border-radius:.8rem; background:#0b1711; }
+    pre code { padding:0; border:0; background:none; }
+    .layers { display:grid; gap:1rem; counter-reset:layer; }
+    .layer { padding:1.1rem 1.25rem; border:1px solid #3b5447; border-radius:.9rem; background:rgb(29 55 42 / 65%); }
+    .layer::before { counter-increment:layer; content:"0" counter(layer); float:right; color:#6f8d7e; font:700 2rem/1 ui-sans-serif,system-ui; }
+    .layer h3 { margin:0 0 .25rem; color:var(--gold); }
+    .try { padding:1.4rem; border-left:4px solid var(--gold); background:#1b3025; }
+    button { margin:.35rem .25rem .35rem 0; padding:.65rem .9rem; border:1px solid #607b6c; border-radius:999px; color:var(--ink); background:#233d30; cursor:pointer; }
+    button:hover { border-color:var(--gold); }
+    #feedback { min-height:1.7rem; color:var(--gold); }
+    a { color:#f4cd83; }
+    footer { padding-top:2rem; border-top:1px solid #385044; color:var(--muted); }
+  </style>
+</head>
+<body>
+<main>
+  <header>
+    <p class="eyebrow">Lesson 0001 · 8 minutes</p>
+    <h1>Light the forest in layers</h1>
+    <p class="lede">The forest does not get its mood from one magic light. It comes from five layers with separate jobs. Your win: know which layer to adjust when the image feels flat, harsh, or empty.</p>
+  </header>
+
+  <section>
+    <h2>The mental model</h2>
+    <div class="layers">
+      <article class="layer"><h3>Warm key</h3><p>A <code>DirectionalLight('#ffd79a', 4.2)</code> acts as the sun. Its off-axis position produces readable long shadows between trunks.</p></article>
+      <article class="layer"><h3>Cool fill</h3><p>A <code>HemisphereLight</code> softly colors upward and downward faces differently. It keeps shadowed trees legible without erasing direction.</p></article>
+      <article class="layer"><h3>Shadow pipeline</h3><p>The renderer enables shadow maps, the sun casts them, trees opt into <code>castShadow</code>, and the ground opts into <code>receiveShadow</code>. Miss any link and shadows disappear.</p></article>
+      <article class="layer"><h3>Atmospheric depth</h3><p><code>Fog('#758a80', 18, 78)</code> fades distant trees into the same color as the background. This creates layers without modeling more detail.</p></article>
+      <article class="layer"><h3>Output shaping</h3><p>ACES filmic tone mapping and <code>toneMappingExposure = 1.08</code> control how warm highlights and deep greens reach the screen.</p></article>
+    </div>
+  </section>
+
+  <section>
+    <h2>Why the shadows stretch</h2>
+    <p>The sun sits at <code>(-28, 34, 18)</code> and aims at the origin. Directional-light rays are parallel, so its side angle creates a consistent diagonal shadow direction across the whole forest. Three.js uses an orthographic camera to decide which region receives those shadows.</p>
+    <pre><code>sun.castShadow = true;
+sun.shadow.mapSize.set(2048, 2048);
+sun.shadow.camera.left = -48;
+sun.shadow.camera.right = 48;
+sun.shadow.camera.top = 48;
+sun.shadow.camera.bottom = -48;</code></pre>
+    <p>The tradeoff: a fixed 2048² map spread across a larger camera area has fewer shadow pixels per world unit. Cover more forest and shadows get less detailed.</p>
+  </section>
+
+  <section class="try">
+    <h2>Try it in the real scene</h2>
+    <ol>
+      <li>Open <a href="http://127.0.0.1:4321/three/forest#debug">the forest with <code>#debug</code></a>.</li>
+      <li>In <strong>Light</strong>, lower <strong>sun y</strong>. Predict the shadow change before looking.</li>
+      <li>Set sun intensity to zero. Notice that the hemisphere fill preserves shape but loses strong direction.</li>
+      <li>Restore the values and adjust exposure last.</li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>Retrieval check</h2>
+    <p>Which layer creates the long directional shadows?</p>
+    <button type="button" data-answer="correct">Sun beam</button>
+    <button type="button" data-answer="wrong">Sky fill</button>
+    <button type="button" data-answer="wrong">Cool fog</button>
+    <p id="feedback" aria-live="polite"></p>
+  </section>
+
+  <section>
+    <h2>Primary source</h2>
+    <p>Read the official <a href="https://threejs.org/manual/en/lights.html">Three.js lights manual</a>, especially <em>HemisphereLight</em> and <em>DirectionalLight</em>. Then keep the <a href="../reference/threejs-atmosphere-lighting.html">atmosphere lighting quick reference</a> nearby while tuning.</p>
+  </section>
+
+  <footer>
+    <p>Implementation: <a href="../src/components/ThreeJS/forest/classes/Environment.ts">Environment.ts</a> and <a href="../src/components/ThreeJS/forest/classes/Renderer.ts">Renderer.ts</a>. Ask your agent any follow-up question that is unclear; the next useful lesson can cover shadow-camera debugging.</p>
+  </footer>
+</main>
+<script>
+  const feedback = document.querySelector('#feedback');
+  document.querySelectorAll('[data-answer]').forEach((button) => {
+    button.addEventListener('click', () => {
+      feedback.textContent = button.dataset.answer === 'correct'
+        ? 'Correct. The warm directional light is the key light and shadow source.'
+        : 'Not quite. That layer supports depth or fill, but does not create the long shadows.';
+    });
+  });
+</script>
+</body>
+</html>

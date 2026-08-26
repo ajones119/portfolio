@@ -1,0 +1,38 @@
+<div class="relative h-full w-full">
+
+    <div class="relative z-10 w-full h-[30vh] overflow-hidden">
+        <canvas class="webgl absolute inset-0 block h-full w-full"></canvas>
+
+        <div
+            class="planet-view  aspect-square w-6/12 lg:w-2/12 border border-white/20 rounded-full absolute left-0 top-0"
+            data-rotation-x="0"
+            data-rotation-z="0"
+            data-rotation-y="0.1"
+            data-radius="5"
+            data-camera-radius="10"
+            data-color="#88aa88"
+            id="threeai-canvas-1"></div>
+        <div
+            class="planet-view aspect-square w-3/12 border border-white/20 rounded-full absolute right-0 top-0"
+            data-rotation-x="0"
+            data-rotation-z="0.2"
+            data-rotation-y="0"
+            data-radius="5"
+            data-camera-radius="10"
+            data-color="#aa8888"
+            id="threeai-canvas-2"></div>
+        <div
+            class="planet-view aspect-square w-1/12 border border-white/20 rounded-full absolute left-1/2 bottom-0"
+            data-rotation-x="0"
+            data-rotation-z="0.3"
+            data-rotation-y="0.3"
+            data-radius="3"
+            data-camera-radius="6"
+            data-color="#8888aa"
+            id="threeai-canvas-3"></div>
+
+    </div>
+    <h1>Hey this is pretty cool</h1>
+</div>
+
+<script src="./animate-planet-interactive.ts"></script>

@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 1 — How EventEmitter Works</title>
+  <style>
+    :root {
+      --text: #1a1a1a;
+      --muted: #555;
+      --accent: #2563eb;
+      --accent-soft: #eff6ff;
+      --border: #d4d4d4;
+      --bg: #fafaf8;
+      --correct: #166534;
+      --wrong: #991b1b;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: "Palatino Linotype", Palatino, Georgia, serif;
+      max-width: 40rem;
+      margin: 0 auto;
+      padding: 2.5rem 1.5rem 4rem;
+      color: var(--text);
+      line-height: 1.6;
+      background: var(--bg);
+    }
+    h1 { font-size: 1.75rem; font-weight: 600; line-height: 1.25; margin: 0 0 0.5rem; }
+    .meta { color: var(--muted); font-size: 0.9rem; margin-bottom: 2rem; }
+    .meta a { color: var(--accent); }
+    h2 { font-size: 1.15rem; margin: 2.25rem 0 0.75rem; font-weight: 600; }
+    p { margin: 0.75rem 0; }
+    em { font-style: italic; }
+    strong { font-weight: 600; }
+    code {
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 0.88em;
+      background: #eee;
+      padding: 0.12em 0.4em;
+      border-radius: 3px;
+    }
+    pre {
+      background: #1e1e1e;
+      color: #d4d4d4;
+      padding: 1rem 1.1rem;
+      overflow-x: auto;
+      font-size: 0.82rem;
+      line-height: 1.45;
+      border-radius: 4px;
+      margin: 1rem 0;
+    }
+    .flow {
+      background: #fff;
+      border: 1px solid var(--border);
+      padding: 1rem 1.25rem;
+      margin: 1rem 0;
+      font-family: Consolas, monospace;
+      font-size: 0.78rem;
+      line-height: 1.7;
+      overflow-x: auto;
+    }
+    .callout {
+      background: var(--accent-soft);
+      border-left: 3px solid var(--accent);
+      padding: 0.75rem 1rem;
+      margin: 1.25rem 0;
+      font-size: 0.95rem;
+    }
+    .quiz {
+      background: #fff;
+      border: 1px solid var(--border);
+      padding: 1.25rem;
+      margin: 1.5rem 0;
+      border-radius: 4px;
+    }
+    .quiz p { margin-top: 0; font-weight: 600; }
+    .quiz button {
+      display: block;
+      width: 100%;
+      text-align: left;
+      font-family: inherit;
+      font-size: 0.92rem;
+      padding: 0.6rem 0.75rem;
+      margin: 0.4rem 0;
+      border: 1px solid var(--border);
+      background: #fff;
+      cursor: pointer;
+      border-radius: 3px;
+      line-height: 1.4;
+    }
+    .quiz button:hover:not(:disabled) { background: #f5f5f5; }
+    .quiz button.correct { border-color: var(--correct); background: #f0fdf4; color: var(--correct); }
+    .quiz button.wrong { border-color: var(--wrong); background: #fef2f2; color: var(--wrong); }
+    .quiz .feedback { margin: 0.75rem 0 0; font-size: 0.9rem; min-height: 1.4em; }
+    .sandbox {
+      background: #fff;
+      border: 1px solid var(--border);
+      padding: 1rem;
+      margin: 1.25rem 0;
+      border-radius: 4px;
+    }
+    .sandbox button.run {
+      font-family: inherit;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      padding: 0.5rem 1rem;
+      cursor: pointer;
+      border-radius: 3px;
+      font-size: 0.9rem;
+    }
+    .sandbox button.run:hover { opacity: 0.9; }
+    #sandbox-log {
+      margin-top: 0.75rem;
+      font-family: Consolas, monospace;
+      font-size: 0.8rem;
+      background: #1e1e1e;
+      color: #a3e635;
+      padding: 0.75rem;
+      min-height: 4rem;
+      border-radius: 3px;
+      white-space: pre-wrap;
+    }
+    footer {
+      margin-top: 3rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--border);
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+    footer a { color: var(--accent); }
+  </style>
+</head>
+<body>
+
+  <h1>How EventEmitter Works</h1>
+  <p class="meta">
+    Lesson 1 · Three.js Experience Architecture ·
+    <a href="../reference/event-emitter-cheatsheet.html">Cheatsheet</a> ·
+    <a href="../MISSION.md">Mission</a>
+  </p>
+
+  <h2>The one-sentence version</h2>
+  <p>
+    <strong>EventEmitter is a message board inside a class.</strong>
+    Other parts of your app can <em>subscribe</em> (<code>on</code>) and get called when that class <em>broadcasts</em> (<code>trigger</code>) — without importing each other directly.
+  </p>
+
+  <h2>Your code, right now</h2>
+  <p>Two classes in your project already use this pattern:</p>
+  <pre>// Sizes extends EventEmitter — it CAN broadcast
+class Sizes extends EventEmitter {
+  resize() {
+    this.width = window.innerWidth;
+    this.trigger('resize');  // ← broadcast
+  }
+}
+
+// Experience listens — it CAN subscribe
+this.sizes.on('resize', () => {
+  console.log('resize');
+});</pre>
+
+  <p>Notice the <strong>two layers</strong>:</p>
+  <div class="flow">window.addEventListener('resize')  ← browser says viewport changed
+       ↓
+Sizes.resize()                     ← your class updates its numbers
+       ↓
+this.trigger('resize')             ← your class tells the rest of the app
+       ↓
+Experience callback runs           ← camera / renderer can react</div>
+
+  <div class="callout">
+    DOM events and <code>EventEmitter</code> are not duplicates.
+    The browser event is the <em>input</em>; <code>trigger</code> is your app’s <em>output</em> to other classes.
+  </div>
+
+  <h2>What’s stored inside</h2>
+  <p>
+    The constructor creates an empty registry: <code>this.callbacks</code>.
+    Think of it as nested folders of listener functions:
+  </p>
+  <pre>callbacks = {
+  base: {           // "namespace"
+    resize: [ fn, fn ],   // event name → array of callbacks
+    tick:   [ fn ]
+  }
+}</pre>
+  <p>
+    <code>on('resize', fn)</code> pushes <code>fn</code> into that array.
+    <code>trigger('resize')</code> loops the array and calls every function.
+    <code>off('resize')</code> deletes the array.
+  </p>
+
+  <h2>Walk through <code>on</code></h2>
+  <ol>
+    <li>Parse the name string (strip junk, split on spaces for multiple events).</li>
+    <li>Split <code>event.namespace</code> on the dot — default namespace is <code>base</code>.</li>
+    <li>Create the namespace bucket and event array if missing.</li>
+    <li>Push your callback. Return <code>this</code> for chaining.</li>
+  </ol>
+
+  <h2>Walk through <code>trigger</code></h2>
+  <ol>
+    <li>Resolve the event name the same way.</li>
+    <li>If namespace is <code>base</code>, search <em>every</em> namespace for listeners named <code>resize</code>.</li>
+    <li>If namespace is specific (e.g. <code>resize.sizes</code>), only fire in that namespace.</li>
+    <li>Call each listener with <code>callback.apply(this, args)</code> — <code>this</code> inside the listener is the emitter instance (<code>Sizes</code>).</li>
+    <li>Return the first listener’s return value (rarely used, but supported).</li>
+  </ol>
+
+  <h2>Why extend instead of import?</h2>
+  <p>
+    <code>class Sizes extends EventEmitter</code> means every <code>Sizes</code> instance <em>is</em> an emitter.
+    You write <code>this.trigger(...)</code> naturally — no extra property, no wrapper object.
+    Camera, Renderer, and Time will do the same; Experience wires them together with <code>.on()</code>.
+  </p>
+
+  <h2>Try it — mini sandbox</h2>
+  <div class="sandbox">
+    <p style="margin-top:0;font-size:0.95rem;">A tiny in-browser copy of the pattern. Click Run.</p>
+    <button class="run" type="button" id="run-sandbox">Run sandbox</button>
+    <div id="sandbox-log"></div>
+  </div>
+
+  <h2>Check your understanding</h2>
+  <div class="quiz" id="quiz-1">
+    <p>After <code>sizes.trigger('resize')</code>, what runs first?</p>
+    <button type="button" data-answer="wrong">The browser reflows the page layout first.</button>
+    <button type="button" data-answer="correct">Every callback registered with on('resize').</button>
+    <button type="button" data-answer="wrong">The window resize listener fires again.</button>
+    <button type="button" data-answer="wrong">The Experience constructor runs again.</button>
+    <p class="feedback" id="quiz-1-feedback"></p>
+  </div>
+
+  <div class="quiz" id="quiz-2">
+    <p>Why not use window.dispatchEvent instead of trigger?</p>
+    <button type="button" data-answer="wrong">dispatchEvent cannot pass data to listeners.</button>
+    <button type="button" data-answer="wrong">trigger is faster than dispatchEvent always.</button>
+    <button type="button" data-answer="correct">Plain classes are not DOM nodes; this keeps app logic separate.</button>
+    <button type="button" data-answer="wrong">dispatchEvent is deprecated in modern browsers.</button>
+    <p class="feedback" id="quiz-2-feedback"></p>
+  </div>
+
+  <h2>Primary source</h2>
+  <p>
+    Read the architecture intro from
+    <a href="https://threejs-journey.com/lessons/introduction" target="_blank" rel="noopener">Three.js Journey — Introduction</a>
+    (Bruno Simon). The <code>EventEmitter</code> file is boilerplate from that course’s class-based setup — not a Three.js library feature.
+  </p>
+
+  <footer>
+    <strong>Stuck on something?</strong> Ask your agent follow-up questions — e.g. “what happens if I register two listeners?” or “walk me through <code>off</code> with namespaces.” That feedback loop is how this sticks.
+    <br><br>
+    Next up (when ready): wire <code>Experience</code> so resize actually updates a camera — turning this pattern into a visible skill.
+  </footer>
+
+  <script>
+    // --- Sandbox: minimal EventEmitter ---
+    document.getElementById('run-sandbox').addEventListener('click', () => {
+      const log = document.getElementById('sandbox-log');
+      const lines = [];
+
+      class MiniEmitter {
+        constructor() { this.callbacks = { base: {} }; }
+        on(name, fn) {
+          const ns = 'base', val = name;
+          if (!this.callbacks[ns][val]) this.callbacks[ns][val] = [];
+          this.callbacks[ns][val].push(fn);
+          return this;
+        }
+        trigger(name, args = []) {
+          const cbs = this.callbacks.base[name] || [];
+          cbs.forEach(fn => fn.apply(this, args));
+        }
+      }
+
+      class Sizes extends MiniEmitter {
+        constructor() { super(); this.width = 800; }
+        resize() {
+          this.width = 1024;
+          this.trigger('resize');
+        }
+      }
+
+      const sizes = new Sizes();
+      sizes.on('resize', function() {
+        lines.push('Listener fired! width = ' + this.width);
+      });
+      lines.push('Before resize: width = ' + sizes.width);
+      sizes.resize();
+      lines.push('After resize: width = ' + sizes.width);
+      log.textContent = lines.join('\n');
+    });
+
+    // --- Quizzes ---
+    function wireQuiz(id, correctMsg, wrongMsg) {
+      const quiz = document.getElementById(id);
+      const feedback = document.getElementById(id + '-feedback');
+      quiz.querySelectorAll('button[data-answer]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          if (quiz.dataset.done) return;
+          const buttons = quiz.querySelectorAll('button[data-answer]');
+          buttons.forEach(b => b.disabled = true);
+          quiz.dataset.done = '1';
+          if (btn.dataset.answer === 'correct') {
+            btn.classList.add('correct');
+            feedback.textContent = correctMsg;
+            feedback.style.color = 'var(--correct)';
+          } else {
+            btn.classList.add('wrong');
+            feedback.textContent = wrongMsg;
+            feedback.style.color = 'var(--wrong)';
+            quiz.querySelector('[data-answer="correct"]').classList.add('correct');
+          }
+        });
+      });
+    }
+
+    wireQuiz('quiz-1',
+      'Right — trigger calls every fn in the resize array, in registration order.',
+      'Not quite. trigger only calls registered callbacks; it does not touch the browser or re-run constructors.'
+    );
+    wireQuiz('quiz-2',
+      'Right — you could hack DOM events onto a div, but plain classes + trigger is cleaner for app architecture.',
+      'Not quite. dispatchEvent works fine on DOM nodes; the point is separation — app classes are not the DOM.'
+    );
+  </script>
+</body>
+</html>

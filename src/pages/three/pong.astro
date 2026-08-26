@@ -1,0 +1,11 @@
+---
+import Layout from '../../layouts/Layout.astro';
+
+---
+<Layout title="Three.js • Aramis Jones" description="Three.js demo" consoleMessage="Woah! who's this cool guy?">
+  <section class="fixed inset-0 z-0">
+    <canvas class="webgl size-full" id="three-container"></canvas>
+
+    <script src="../../components/ThreeJS/pong/index.ts"></script>
+  </section>
+</Layout>

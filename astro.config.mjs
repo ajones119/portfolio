@@ -2,12 +2,19 @@
 import { defineConfig } from 'astro/config';
 
 import tailwindcss from '@tailwindcss/vite';
+import wasm from 'vite-plugin-wasm';
+
+import react from '@astrojs/react';
 
 // https://astro.build/config
 export default defineConfig({
   site: 'https://aramisjones.com',
   prefetch: true,
+
   vite: {
-    plugins: [tailwindcss()]
-  }
+    plugins: [tailwindcss(), wasm()],
+    assetsInclude: ['**/*.hdr', '**/*.exr', '**/*.gltf', '**/*.glb']
+  },
+
+  integrations: [react()]
 });
