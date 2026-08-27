@@ -1,0 +1,1 @@
+export const GAME_CONFIG={camera:{fov:65,distance:9.5,height:3.2,lookAhead:8,smoothing:7,collisionPadding:.35},arena:{radius:54,ceiling:31,ground:0},network:{commandHeartbeatMs:50,interpolation:12}}as const;

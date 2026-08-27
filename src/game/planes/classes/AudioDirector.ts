@@ -1,0 +1,13 @@
+import type { CombatEvent, PlayerSnapshot } from './GameClient';
+import type { GameSettings } from './settings';
+
+export default class AudioDirector {
+  private context?:AudioContext; private engine?:OscillatorNode; private engineGain?:GainNode; private lastOverheated=false;
+  private unlock=()=>{this.ensure();void this.context?.resume()};
+  constructor(){window.addEventListener('pointerdown',this.unlock,{once:true});window.addEventListener('keydown',this.unlock,{once:true})}
+  update(local:PlayerSnapshot|undefined,settings:GameSettings):void{if(!this.context||!this.engineGain||!this.engine||!local)return;const master=settings.masterVolume,engine=settings.engineVolume;this.engineGain.gain.setTargetAtTime(master*engine*(local.flightStatus==='flying'?.055:.018),this.context.currentTime,.08);this.engine.frequency.setTargetAtTime(local.flightStatus==='disabled'?42:65+local.speed*2.1,this.context.currentTime,.06);if(local.overheated&&!this.lastOverheated)this.tone(115,.22,'sawtooth',settings,.18);this.lastOverheated=local.overheated}
+  event(event:CombatEvent,settings:GameSettings):void{const sounds:Record<string,[number,number,OscillatorType,number]>={shot:[260,.035,'square',.055],'plane-hit':[95,.12,'sawtooth',.14],'target-hit':[520,.1,'triangle',.12],knockout:[72,.4,'sawtooth',.18],crash:[48,.32,'square',.2],respawn:[180,.35,'triangle',.16],collision:[60,.18,'square',.16]};const sound=sounds[event.type];if(sound)this.tone(sound[0],sound[1],sound[2],settings,sound[3])}
+  destroy():void{window.removeEventListener('pointerdown',this.unlock);window.removeEventListener('keydown',this.unlock);this.engine?.stop();void this.context?.close()}
+  private ensure():void{if(this.context)return;this.context=new AudioContext();this.engine=this.context.createOscillator();this.engineGain=this.context.createGain();this.engine.type='sawtooth';this.engine.frequency.value=90;this.engineGain.gain.value=0;this.engine.connect(this.engineGain).connect(this.context.destination);this.engine.start()}
+  private tone(frequency:number,duration:number,type:OscillatorType,settings:GameSettings,level:number):void{this.ensure();const context=this.context!;if(context.state==='suspended')return;const oscillator=context.createOscillator(),gain=context.createGain();oscillator.type=type;oscillator.frequency.setValueAtTime(frequency,context.currentTime);oscillator.frequency.exponentialRampToValueAtTime(Math.max(28,frequency*.55),context.currentTime+duration);gain.gain.setValueAtTime(level*settings.masterVolume*settings.effectsVolume,context.currentTime);gain.gain.exponentialRampToValueAtTime(.0001,context.currentTime+duration);oscillator.connect(gain).connect(context.destination);oscillator.start();oscillator.stop(context.currentTime+duration)}
+}

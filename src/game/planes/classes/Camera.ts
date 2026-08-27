@@ -1,0 +1,10 @@
+import { PerspectiveCamera, Raycaster, Vector3, type Object3D } from 'three';
+import type { Sizes } from '../../../components/ThreeJS/shared/runtime';
+import { GAME_CONFIG } from './config';
+export default class Camera {
+  readonly instance:PerspectiveCamera; private target:Object3D|null=null; private ray=new Raycaster(); private desired=new Vector3(); private look=new Vector3(); private obstacles:Object3D[]=[]; private snap=true; private trauma=0;
+  constructor(private sizes:Sizes){this.instance=new PerspectiveCamera(GAME_CONFIG.camera.fov,sizes.width/sizes.height,.1,160);this.instance.position.set(0,10,15)}
+  setTarget(target:Object3D|null):void{this.target=target} setObstacles(value:Object3D[]):void{this.obstacles=value} recenter():void{this.snap=true} shake(amount:number):void{this.trauma=Math.min(1,this.trauma+amount)}
+  resize():void{this.instance.aspect=this.sizes.width/this.sizes.height;this.instance.updateProjectionMatrix()}
+  update(delta:number,shakeStrength=.5,reducedMotion=false):void{if(!this.target)return;const forward=new Vector3(0,0,-1).applyQuaternion(this.target.quaternion),up=new Vector3(0,1,0);this.desired.copy(this.target.position).addScaledVector(forward,-GAME_CONFIG.camera.distance).addScaledVector(up,GAME_CONFIG.camera.height);const offset=this.desired.clone().sub(this.target.position),distance=offset.length();this.ray.set(this.target.position,offset.normalize());const hit=this.ray.intersectObjects(this.obstacles,false)[0];if(hit&&hit.distance<distance)this.desired.copy(hit.point).addScaledVector(offset,-GAME_CONFIG.camera.collisionPadding);const smoothing=this.snap?1:1-Math.exp(-GAME_CONFIG.camera.smoothing*delta);this.instance.position.lerp(this.desired,smoothing);this.look.copy(this.target.position).addScaledVector(forward,GAME_CONFIG.camera.lookAhead);if(!reducedMotion&&this.trauma>0){const magnitude=this.trauma*this.trauma*.16*shakeStrength;this.instance.position.x+=(Math.random()-.5)*magnitude;this.instance.position.y+=(Math.random()-.5)*magnitude;this.look.x+=(Math.random()-.5)*magnitude}this.instance.lookAt(this.look);this.trauma=Math.max(0,this.trauma-delta*2.4);this.snap=false}
+}
