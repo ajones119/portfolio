@@ -1,18 +1,13 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
-import node from '@astrojs/node';
-
 import tailwindcss from '@tailwindcss/vite';
-import wasm from 'vite-plugin-wasm';
 
+import wasm from 'vite-plugin-wasm';
 import react from '@astrojs/react';
 // https://astro.build/config
 export default defineConfig({
   site: 'https://aramisjones.com',
-  output: 'server',
-  adapter: node({
-    mode: 'standalone'
-  }),
+  output: 'static',
   prefetch: true,
 
   vite: {
