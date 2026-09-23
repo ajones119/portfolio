@@ -5,10 +5,10 @@
   "scripts": {
     "dev": "astro dev",
     "build": "tsx src/scripts/fetch-computer-books.ts && astro build",
+    "start": "node ./dist/server/entry.mjs",
     "preview": "astro preview",
     "astro": "astro",
-    "fetch:books": "tsx src/scripts/fetch-computer-books.ts",
-    "test:tic-tac-toe": "tsx --test \"src/**/*.test.ts\""
+    "fetch:books": "tsx src/scripts/fetch-computer-books.ts"
   },
   "dependencies": {
     "@astrojs/node": "^9.5.5",
@@ -18,7 +18,6 @@
     "@tailwindcss/vite": "^4.1.17",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
-    "@typesafe-ai/sdk": "^0.6.0",
     "astro": "^5.16.4",
     "cannon": "^0.6.2",
     "gsap": "^3.14.1",
