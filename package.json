@@ -13,6 +13,7 @@
   "dependencies": {
     "@astrojs/node": "^9.5.5",
     "@astrojs/react": "^5.0.4",
+    "@colyseus/sdk": "^0.18.4",
     "@dimforge/rapier3d": "^0.19.3",
     "@strudel/core": "^1.2.6",
     "@tailwindcss/vite": "^4.1.17",
