@@ -1,0 +1,24 @@
+---
+import Layout from '../layouts/Layout.astro';
+import '../components/Soundscape/soundscape.css';
+---
+
+<Layout
+  title="Soundscape — Aramis Jones"
+  description="Describe a scene and find the sounds that belong in it."
+>
+  <section class="soundscape" data-soundscape>
+    <div class="soundscape__surface">
+      <div class="soundscape__status" data-soundscape-status aria-live="polite">Loading sounds…</div>
+    </div>
+    <aside class="soundscape__master-volume" aria-label="Master volume">
+      <label for="soundscape-master-volume">Master volume</label>
+      <div class="soundscape__master-volume-row">
+        <span aria-hidden="true">🔊</span>
+        <input id="soundscape-master-volume" data-master-volume type="range" min="0" max="100" step="1" value="70" />
+        <output data-master-volume-output for="soundscape-master-volume">70%</output>
+      </div>
+    </aside>
+  </section>
+</Layout>
+<script src="../scripts/soundscape.ts"></script>

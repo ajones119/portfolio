@@ -7,14 +7,18 @@
     "build": "tsx src/scripts/fetch-computer-books.ts && astro build",
     "preview": "astro preview",
     "astro": "astro",
-    "fetch:books": "tsx src/scripts/fetch-computer-books.ts"
+    "fetch:books": "tsx src/scripts/fetch-computer-books.ts",
+    "test:tic-tac-toe": "tsx --test \"src/**/*.test.ts\""
   },
   "dependencies": {
+    "@astrojs/node": "^9.5.5",
     "@astrojs/react": "^5.0.4",
     "@dimforge/rapier3d": "^0.19.3",
+    "@strudel/core": "^1.2.6",
     "@tailwindcss/vite": "^4.1.17",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
+    "@typesafe-ai/sdk": "^0.6.0",
     "astro": "^5.16.4",
     "cannon": "^0.6.2",
     "gsap": "^3.14.1",
@@ -24,7 +28,9 @@
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
     "tailwindcss": "^4.1.17",
-    "three": "^0.184.0"
+    "three": "^0.184.0",
+    "tonal": "^6.4.3",
+    "tone": "^15.1.22"
   },
   "devDependencies": {
     "@types/cannon": "^0.1.13",

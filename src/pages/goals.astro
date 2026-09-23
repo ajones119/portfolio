@@ -1,0 +1,135 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Goals — Aramis Jones" description="A focused OKR dashboard for turning intentions into measurable progress.">
+  <main class="okr-shell">
+    <section class="okr-hero">
+      <div>
+        <p class="eyebrow">Personal operating system</p>
+        <h1>Make the next move measurable.</h1>
+        <p class="hero-copy">Set a small number of meaningful objectives, then keep the evidence visible.</p>
+      </div>
+      <div class="hero-mark" aria-hidden="true">◎</div>
+    </section>
+
+    <section class="okr-summary" aria-label="Goal summary">
+      <div><span id="objective-count">0</span><small>objectives</small></div>
+      <div><span id="result-count">0</span><small>key results</small></div>
+      <div><span id="average-progress">0%</span><small>average progress</small></div>
+    </section>
+
+    <section class="okr-layout">
+      <div>
+        <div class="section-heading"><div><p class="eyebrow">Current cycle</p><h2>Your objectives</h2></div><button class="button button-primary" id="open-objective">+ New objective</button></div>
+        <div id="objective-list" class="objective-list" aria-live="polite"></div>
+      </div>
+
+      <aside class="form-card" aria-labelledby="form-title">
+        <p class="eyebrow">Build momentum</p>
+        <h2 id="form-title">New objective</h2>
+        <form id="objective-form">
+          <label>Objective <input name="title" required maxlength="100" placeholder="What will be meaningfully different?"></label>
+          <label>Why it matters <textarea name="description" maxlength="240" rows="3" placeholder="Give this goal a useful north star."></textarea></label>
+          <label>Deadline <input name="deadline" type="date" required></label>
+          <div class="form-divider"><span>First key result</span></div>
+          <label>Key result <input name="resultTitle" required maxlength="100" placeholder="A measurable outcome"></label>
+          <div class="split-fields"><label>Target <input name="target" type="number" min="1" step="any" required placeholder="10"></label><label>Unit <input name="unit" required maxlength="20" placeholder="projects"></label></div>
+          <button class="button button-primary" type="submit">Add objective</button>
+          <p id="form-message" class="form-message" role="status"></p>
+        </form>
+      </aside>
+    </section>
+  </main>
+</Layout>
+
+<script>
+  import { progressFor, statusFor, validateOKRSet } from '../data/okr';
+  import type { KeyResult, Objective, OKRSet } from '../data/okr';
+
+  const storageKey = 'aramis-okr-set';
+  const list = document.querySelector<HTMLDivElement>('#objective-list')!;
+  const form = document.querySelector<HTMLFormElement>('#objective-form')!;
+  const message = document.querySelector<HTMLParagraphElement>('#form-message')!;
+  const id = () => crypto.randomUUID();
+  let state: OKRSet = load();
+
+  function load(): OKRSet {
+    try {
+      const saved = localStorage.getItem(storageKey);
+      const parsed = saved ? JSON.parse(saved) : null;
+      return validateOKRSet(parsed) ? parsed : { objectives: [] };
+    } catch { return { objectives: [] }; }
+  }
+
+  function save() { localStorage.setItem(storageKey, JSON.stringify(state)); }
+  function formatDate(value: string) { const date = new Date(`${value}T12:00:00`); return Number.isNaN(date.getTime()) ? 'date not set' : new Intl.DateTimeFormat(undefined, { month: 'short', day: 'numeric', year: 'numeric' }).format(date); }
+  function escapeHTML(value: string) { const element = document.createElement('span'); element.textContent = value; return element.innerHTML; }
+
+  function render() {
+    const results = state.objectives.flatMap((objective) => objective.keyResults);
+    const average = results.length ? Math.round(results.reduce((sum, result) => sum + progressFor(result), 0) / results.length) : 0;
+    document.querySelector('#objective-count')!.textContent = String(state.objectives.length);
+    document.querySelector('#result-count')!.textContent = String(results.length);
+    document.querySelector('#average-progress')!.textContent = `${average}%`;
+    list.innerHTML = state.objectives.length ? state.objectives.map(renderObjective).join('') : '<div class="empty-state"><span>✳</span><h3>Nothing on the board yet.</h3><p>Add one objective. Clarity compounds from there.</p></div>';
+    list.querySelectorAll<HTMLButtonElement>('[data-delete]').forEach((button) => button.addEventListener('click', () => { state.objectives = state.objectives.filter((item) => item.id !== button.dataset.delete); save(); render(); }));
+    list.querySelectorAll<HTMLInputElement>('[data-progress]').forEach((input) => input.addEventListener('change', () => { const [objectiveId, resultId] = input.dataset.progress!.split(':'); const objective = state.objectives.find((item) => item.id === objectiveId); const result = objective?.keyResults.find((item) => item.id === resultId); if (result) { result.current = Number(input.value); result.status = statusFor(result); save(); render(); } }));
+  }
+
+  function renderObjective(objective: Objective) {
+    const progress = objective.keyResults.length ? Math.round(objective.keyResults.reduce((sum, result) => sum + progressFor(result), 0) / objective.keyResults.length) : 0;
+    return `<article class="objective-card"><header><div><span class="status-dot"></span><span class="objective-label">Objective</span><h3>${escapeHTML(objective.title)}</h3><p>${escapeHTML(objective.description || 'No description yet.')}</p></div><button class="icon-button" aria-label="Delete objective" data-delete="${objective.id}">×</button></header><div class="objective-meta"><span>Due ${formatDate(objective.deadline)}</span><strong>${progress}% complete</strong></div><div class="progress-track"><span style="width:${progress}%"></span></div><div class="result-list">${objective.keyResults.map((result) => renderResult(objective, result)).join('')}</div></article>`;
+  }
+
+  function renderResult(objective: Objective, result: KeyResult) {
+    const progress = Math.round(progressFor(result));
+    const status = statusFor(result);
+    return `<div class="result-row"><div class="result-copy"><span class="result-status ${status}">${status.replace('-', ' ')}</span><strong>${escapeHTML(result.title)}</strong><small>${result.current} / ${result.target} ${escapeHTML(result.unit)}</small></div><label class="range-label"><span>${progress}%</span><input aria-label="Progress for ${escapeHTML(result.title)}" data-progress="${objective.id}:${result.id}" type="range" min="0" max="${result.target}" step="any" value="${result.current}"></label></div>`;
+  }
+
+  form.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const values = new FormData(form);
+    const target = Number(values.get('target'));
+    if (!values.get('title') || !values.get('resultTitle') || !/^\d{4}-\d{2}-\d{2}$/.test(String(values.get('deadline'))) || !Number.isFinite(target) || target <= 0) { message.textContent = 'Add a title, valid deadline, and positive target.'; return; }
+    state.objectives.unshift({ id: id(), title: String(values.get('title')).trim(), description: String(values.get('description') ?? '').trim(), deadline: String(values.get('deadline')), keyResults: [{ id: id(), title: String(values.get('resultTitle')).trim(), target, current: 0, unit: String(values.get('unit') || 'items').trim(), status: 'at-risk' }] });
+    save(); form.reset(); message.textContent = 'Objective added. Keep the feedback loop short.'; render();
+  });
+  document.querySelector('#open-objective')?.addEventListener('click', () => document.querySelector<HTMLInputElement>('input[name="title"]')?.focus());
+  render();
+</script>
+
+<style>
+  :global(body) { background: #f5f1e8; color: #213936; }
+  .okr-shell { max-width: 1180px; margin: 0 auto; padding: 7rem 1.5rem 6rem; font-family: Lato, sans-serif; }
+  .okr-hero { display:flex; justify-content:space-between; align-items:end; gap:2rem; border-bottom:1px solid #c8d0c5; padding-bottom:3.5rem; }
+  .eyebrow { color:#9a5b42; font-size:.72rem; font-weight:800; letter-spacing:.16em; text-transform:uppercase; margin:0 0 .75rem; }
+  h1,h2,h3 { font-family: 'Playfair Display', serif; font-weight:500; margin:0; }
+  h1 { max-width:680px; font-size:clamp(2.8rem, 7vw, 6rem); line-height:.96; letter-spacing:-.05em; }
+  h2 { font-size:2rem; } h3 { font-size:1.45rem; }
+  .hero-copy { color:#61716a; font-size:1.05rem; margin:1.3rem 0 0; max-width:430px; }
+  .hero-mark { color:#9a5b42; font-size:7rem; line-height:1; transform:rotate(-12deg); }
+  .okr-summary { display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:#c8d0c5; margin:2rem 0 5rem; border:1px solid #c8d0c5; }
+  .okr-summary div { background:#f5f1e8; padding:1.25rem 1.5rem; display:flex; align-items:baseline; gap:.65rem; }
+  .okr-summary span { font-family:'Playfair Display',serif; font-size:2.2rem; } .okr-summary small { color:#61716a; }
+  .okr-layout { display:grid; grid-template-columns:minmax(0,1.5fr) minmax(280px,.75fr); gap:4rem; align-items:start; }
+  .section-heading { display:flex; justify-content:space-between; align-items:end; gap:1rem; margin-bottom:1.5rem; }
+  .button { border:0; border-radius:999px; cursor:pointer; font:700 .8rem Lato,sans-serif; padding:.8rem 1.2rem; transition:transform .2s,background .2s; } .button:hover { transform:translateY(-2px); }
+  .button-primary { background:#213936; color:#f5f1e8; } .button-primary:hover { background:#9a5b42; }
+  .objective-list { display:grid; gap:1rem; }
+  .objective-card,.form-card { background:#fffdf7; border:1px solid #d9ded4; padding:1.5rem; box-shadow:0 10px 28px #2139360a; }
+  .objective-card header { display:flex; justify-content:space-between; gap:1rem; } .objective-card header p { color:#718079; margin:.5rem 0 1.2rem; }
+  .status-dot { background:#829f73; border-radius:50%; display:inline-block; height:8px; width:8px; vertical-align:middle; margin-right:.4rem; } .objective-label { color:#829f73; font-size:.7rem; font-weight:800; letter-spacing:.12em; text-transform:uppercase; }
+  .icon-button { background:transparent; border:0; color:#8b9b93; cursor:pointer; font-size:1.5rem; line-height:1; }
+  .objective-meta { display:flex; justify-content:space-between; color:#718079; font-size:.8rem; } .objective-meta strong { color:#213936; }
+  .progress-track { background:#e5e9e0; height:5px; margin: .8rem 0 1.2rem; overflow:hidden; } .progress-track span { background:#9a5b42; display:block; height:100%; transition:width .3s; }
+  .result-list { display:grid; gap:.8rem; } .result-row { align-items:center; border-top:1px solid #e7ebe4; display:flex; gap:1rem; justify-content:space-between; padding-top:.85rem; }
+  .result-copy { display:grid; gap:.2rem; min-width:0; } .result-copy strong { font-size:.9rem; font-weight:700; } .result-copy small { color:#718079; font-size:.75rem; }
+  .result-status { font-size:.65rem; font-weight:800; letter-spacing:.08em; text-transform:uppercase; } .result-status.complete { color:#598052; } .result-status.on-track { color:#9a5b42; } .result-status.at-risk { color:#ad5147; }
+  .range-label { color:#213936; font-size:.8rem; min-width:110px; text-align:right; } input[type=range] { accent-color:#9a5b42; display:block; width:110px; }
+  .form-card { position:sticky; top:2rem; } .form-card h2 { margin-bottom:1.5rem; } form { display:grid; gap:1rem; } label { color:#61716a; display:grid; font-size:.75rem; font-weight:700; gap:.4rem; letter-spacing:.03em; } input,textarea { background:#f5f1e8; border:1px solid #d9ded4; border-radius:2px; color:#213936; font:400 .9rem Lato,sans-serif; padding:.75rem; width:100%; } input:focus,textarea:focus { border-color:#9a5b42; outline:2px solid #9a5b4233; } .split-fields { display:grid; grid-template-columns:1fr 1fr; gap:.75rem; } .form-divider { border-top:1px solid #d9ded4; color:#9a5b42; font-size:.7rem; font-weight:800; letter-spacing:.12em; margin:.5rem 0 .1rem; padding-top:1rem; text-transform:uppercase; } .form-message { color:#598052; font-size:.8rem; min-height:1.1em; margin:0; }
+  .empty-state { border:1px dashed #c8d0c5; padding:3rem 1.5rem; text-align:center; } .empty-state span { color:#9a5b42; font-size:2rem; } .empty-state h3 { margin:.5rem 0; } .empty-state p { color:#718079; margin:0; }
+  @media (max-width: 800px) { .okr-shell { padding-top:5rem; } .okr-hero { align-items:start; } .hero-mark { font-size:4rem; } .okr-layout { grid-template-columns:1fr; gap:2.5rem; } .form-card { position:static; } }
+  @media (max-width: 520px) { .okr-summary { grid-template-columns:1fr; } .section-heading { align-items:start; flex-direction:column; } .result-row { align-items:start; flex-direction:column; } .range-label { text-align:left; width:100%; } input[type=range] { width:100%; } }
+</style>
