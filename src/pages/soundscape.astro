@@ -22,6 +22,12 @@ import '../components/Soundscape/soundscape.css';
         <output data-master-volume-output for="soundscape-master-volume">70%</output>
       </div>
     </aside>
+    <details class="soundscape__info">
+      <summary aria-label="Soundscape instructions">i</summary>
+      <div class="soundscape__info-tooltip" role="tooltip">
+        Type a scene name to shape the mix. Click a sound to remove it, or drag sounds under the bar to add them.
+      </div>
+    </details>
   </section>
 </Layout>
 <script src="../scripts/soundscape.ts"></script>

@@ -55,12 +55,18 @@ button.soundscape__sound { cursor: pointer; }
 .soundscape__master-volume input::-moz-range-track { height: 1px; background: var(--sound-line); }
 .soundscape__master-volume input::-moz-range-thumb { width: .45rem; height: .45rem; border: 0; border-radius: 50%; background: var(--sound-accent); }
 .soundscape__master-volume output { min-width: 2.8rem; color: var(--sound-paper); font-size: .75rem; text-align: right; }
+.soundscape__info { position: fixed; left: max(1rem, env(safe-area-inset-left)); bottom: max(1rem, env(safe-area-inset-bottom)); z-index: 11; color: var(--sound-paper); }
+.soundscape__info summary { display: grid; width: 1.45rem; height: 1.45rem; place-items: center; border: 1px solid var(--sound-line); border-radius: 50%; color: var(--sound-muted); font-size: .72rem; line-height: 1; cursor: pointer; list-style: none; }
+.soundscape__info summary::-webkit-details-marker { display: none; }
+.soundscape__info summary:focus-visible { outline: 2px solid var(--sound-paper); outline-offset: 3px; }
+.soundscape__info-tooltip { position: absolute; left: 0; bottom: calc(100% + .6rem); width: min(17rem, calc(100vw - 2rem)); padding: .7rem .8rem; border: 1px solid var(--sound-line); color: var(--sound-paper); background: color-mix(in srgb, var(--sound-ink) 94%, transparent); box-shadow: 0 .75rem 1.5rem rgb(0 0 0 / 22%); font-size: .68rem; line-height: 1.45; }
 
 @media (max-width: 480px) {
   .soundscape { min-height: calc(100svh - 4rem); padding: 2.75rem .75rem 20rem; }
   .soundscape__surface { gap: 1.15rem; }
   .soundscape__sounds { gap: .5rem; }
   .soundscape__master-volume { right: max(.65rem, env(safe-area-inset-right)); bottom: max(.65rem, env(safe-area-inset-bottom)); }
+  .soundscape__info { left: max(.65rem, env(safe-area-inset-left)); bottom: max(.65rem, env(safe-area-inset-bottom)); }
 }
 
 @media (max-width: 767px) {
