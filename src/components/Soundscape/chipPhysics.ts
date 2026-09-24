@@ -11,6 +11,12 @@ interface DragState {
   item: HTMLLIElement;
   pointerId: number;
   constraint: MatterConstraint;
+  point: { x: number; y: number };
+}
+
+export interface ChipDragCallbacks {
+  onMove?: (item: HTMLLIElement, point: { x: number; y: number }) => void;
+  onEnd?: (item: HTMLLIElement, point: { x: number; y: number } | null) => void;
 }
 
 const STEP_MS = 1000 / 60;
@@ -35,6 +41,7 @@ export class ChipPhysics {
     private readonly root: HTMLElement,
     private readonly pile: HTMLUListElement,
     private readonly volume: HTMLElement | null,
+    private readonly callbacks: ChipDragCallbacks = {},
   ) {
     this.engine.gravity.y = 1.15;
     this.engine.gravity.scale = 0.001;
@@ -246,7 +253,12 @@ export class ChipPhysics {
         damping: 0.1,
       });
       Composite.add(this.engine.world, constraint);
-      this.drag = { item, pointerId: event.pointerId, constraint };
+      this.drag = {
+        item,
+        pointerId: event.pointerId,
+        constraint,
+        point: { x: event.clientX, y: event.clientY },
+      };
       item.classList.add('is-dragging');
       Sleeping.set(entry.body, false);
       this.wake();
@@ -255,23 +267,30 @@ export class ChipPhysics {
       if (this.drag?.item !== item || this.drag.pointerId !== event.pointerId) return;
       const rect = this.root.getBoundingClientRect();
       this.drag.constraint.pointA = { x: event.clientX - rect.left, y: event.clientY - rect.top };
+      this.drag.point = { x: event.clientX, y: event.clientY };
+      this.callbacks.onMove?.(item, this.drag.point);
       this.wake();
     });
-    const end = (event: PointerEvent): void => {
-      if (this.drag?.item === item && this.drag.pointerId === event.pointerId) this.endDrag();
+    item.addEventListener('pointerup', (event) => {
+      if (this.drag?.item === item && this.drag.pointerId === event.pointerId) {
+        this.endDrag({ x: event.clientX, y: event.clientY });
+      }
+    });
+    const cancel = (event: PointerEvent): void => {
+      if (this.drag?.item === item && this.drag.pointerId === event.pointerId) this.endDrag(null);
     };
-    item.addEventListener('pointerup', end);
-    item.addEventListener('pointercancel', end);
-    item.addEventListener('lostpointercapture', end);
+    item.addEventListener('pointercancel', cancel);
+    item.addEventListener('lostpointercapture', cancel);
   }
 
-  private endDrag(): void {
+  private endDrag(point: { x: number; y: number } | null = null): void {
     if (!this.drag) return;
     const { item, pointerId, constraint } = this.drag;
     this.drag = null;
     Composite.remove(this.engine.world, constraint);
     item.classList.remove('is-dragging');
     if (item.hasPointerCapture(pointerId)) item.releasePointerCapture(pointerId);
+    this.callbacks.onEnd?.(item, point);
     this.wake();
   }
 

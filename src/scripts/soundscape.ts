@@ -64,6 +64,9 @@ interface ActiveLayer {
   loopTimer?: number;
 }
 
+type Point = { x: number; y: number };
+type ApplySelection = (ids: readonly string[], levels: Record<string, number>) => string[];
+
 function createElement<K extends keyof HTMLElementTagNameMap>(tagName: K, className?: string): HTMLElementTagNameMap[K] {
   const element = document.createElement(tagName);
   if (className) element.className = className;
@@ -233,8 +236,11 @@ function updatePill(
   const baseAriaLabel = pill.dataset.baseAriaLabel ?? `${sound.title}, ${sound.category}`;
   pill.classList.toggle('is-selected', selected);
   pill.setAttribute('aria-pressed', String(selected));
+  pill.style.setProperty('--sound-level', `${percentage}%`);
   pill.textContent = selected ? `${baseText} · ${percentage}%` : baseText;
-  pill.setAttribute('aria-label', selected ? `${baseAriaLabel}. Remove from selection.` : baseAriaLabel);
+  pill.setAttribute('aria-label', selected
+    ? `${baseAriaLabel}. Volume ${percentage}%. Drag horizontally to adjust volume, or click to remove.`
+    : baseAriaLabel);
 }
 
 function renderInterface(root: HTMLElement, surface: HTMLElement, config: SoundscapeConfigResponse, debugActive: boolean): RenderedInterface {
@@ -362,7 +368,116 @@ async function startSoundscape(): Promise<void> {
       }
       physics?.destroy();
       const ui = renderInterface(root, surface, config, debug.active);
-      physics = new ChipPhysics(root, ui.pile, root.querySelector('.soundscape__master-volume'));
+      let dropPreview: HTMLLIElement | null = null;
+      let dropPreviewIndex = -1;
+      let applySelection: ApplySelection = () => [];
+
+      const getRowItems = (): HTMLLIElement[] => (
+        [...ui.row.children].filter((child) => child !== dropPreview) as HTMLLIElement[]
+      );
+
+      const clearDropPreview = (): void => {
+        if (!dropPreview) return;
+        const items = getRowItems();
+        const state = !physics!.reducedMotion && items.length ? Flip.getState(items) : null;
+        dropPreview.remove();
+        dropPreview = null;
+        dropPreviewIndex = -1;
+        ui.row.style.minHeight = '';
+        if (state) {
+          Flip.from(state, {
+            targets: items,
+            duration: 0.18,
+            ease: 'power3.out',
+            absolute: false,
+            overwrite: true,
+          });
+        }
+      };
+
+      const getDropIndex = (point: Point, items: HTMLLIElement[]): number | null => {
+        const rect = ui.row.getBoundingClientRect();
+        const padding = 24;
+        if (
+          point.x < rect.left - padding
+          || point.x > rect.right + padding
+          || point.y < rect.top - padding
+          || point.y > rect.bottom + padding
+        ) return null;
+
+        for (let index = 0; index < items.length; index++) {
+          const itemRect = items[index].getBoundingClientRect();
+          const sameRow = point.y >= itemRect.top - itemRect.height / 2
+            && point.y <= itemRect.bottom + itemRect.height / 2;
+          if (sameRow && point.x < itemRect.left + itemRect.width / 2) return index;
+          if (point.y < itemRect.top && point.x < itemRect.right) return index;
+        }
+        return items.length;
+      };
+
+      const createDropPreview = (sound: SoundDefinition): HTMLLIElement => {
+        const item = createElement('li', 'soundscape__sound-item soundscape__drop-preview');
+        const face = createElement('span', 'soundscape__sound soundscape__sound--preview');
+        face.dataset.category = sound.category;
+        face.textContent = `${sound.emoji} ${sound.title} · 70%`;
+        face.style.setProperty('--sound-category-border', visualConfig.categoryColors[sound.category] ?? DEFAULT_CATEGORY_COLORS.effect);
+        item.append(face);
+        return item;
+      };
+
+      const updateDropPreview = (item: HTMLLIElement, point: Point): void => {
+        const sound = config.sounds.find((candidate) => candidate.id === item.dataset.soundId);
+        if (!sound) return;
+        const items = getRowItems();
+        const index = getDropIndex(point, items);
+        if (index === null) {
+          clearDropPreview();
+          return;
+        }
+        if (!dropPreview) {
+          dropPreview = createDropPreview(sound);
+          ui.row.style.minHeight = `${ui.row.getBoundingClientRect().height}px`;
+        }
+        if (dropPreviewIndex === index) return;
+        const state = !physics!.reducedMotion && items.length ? Flip.getState(items) : null;
+        dropPreviewIndex = index;
+        ui.row.insertBefore(dropPreview, items[index] ?? null);
+        if (state) {
+          Flip.from(state, {
+            targets: items,
+            duration: 0.18,
+            ease: 'power3.out',
+            absolute: false,
+            overwrite: true,
+          });
+        }
+      };
+
+      const handleDrop = (item: HTMLLIElement, point: Point | null): void => {
+        const preview = dropPreview;
+        const index = dropPreviewIndex;
+        if (!point || !preview || index < 0) {
+          clearDropPreview();
+          return;
+        }
+        const sound = config.sounds.find((candidate) => candidate.id === item.dataset.soundId);
+        if (!sound) {
+          clearDropPreview();
+          return;
+        }
+        const nextIds = [...selectedIds];
+        nextIds.splice(index, 0, sound.id);
+        const nextLevels = { ...soundLevels, [sound.id]: 0.7 };
+        clearDropPreview();
+        const orderedIds = applySelection(nextIds, nextLevels);
+        void audio.applyMix(config.sounds, orderedIds, nextLevels)
+          .catch((error) => console.warn('Dropped sound could not be added.', error));
+      };
+
+      physics = new ChipPhysics(root, ui.pile, root.querySelector('.soundscape__master-volume'), {
+        onMove: updateDropPreview,
+        onEnd: handleDrop,
+      });
       physics.addInitial([...ui.items.values()]);
       if (!physics.reducedMotion) {
         gsap.fromTo(
@@ -378,7 +493,7 @@ async function startSoundscape(): Promise<void> {
         categoryControlsAdded = true;
       }
 
-      const applySelection = (ids: readonly string[], levels: Record<string, number>): string[] => {
+      applySelection = (ids: readonly string[], levels: Record<string, number>): string[] => {
         const orderedIds = [...new Set(ids)].filter((id) => ui.items.has(id));
         const nextIds = new Set(orderedIds);
         const rowItems = orderedIds.map((id) => ui.items.get(id)!);
@@ -438,7 +553,44 @@ async function startSoundscape(): Promise<void> {
       for (const sound of config.sounds) {
         const pill = ui.pills.get(sound.id);
         if (!pill) continue;
+        let dragStartX = 0;
+        let dragStartLevel = 0;
+        let didDrag = false;
+
+        pill.addEventListener('pointerdown', (event) => {
+          if (!selectedIds.has(sound.id) || event.button !== 0) return;
+          dragStartX = event.clientX;
+          dragStartLevel = clamp(soundLevels[sound.id] ?? 0);
+          didDrag = false;
+          pill.setPointerCapture(event.pointerId);
+        });
+
+        pill.addEventListener('pointermove', (event) => {
+          if (!pill.hasPointerCapture(event.pointerId) || !selectedIds.has(sound.id)) return;
+          const bounds = pill.getBoundingClientRect();
+          if (!bounds.width) return;
+          const delta = event.clientX - dragStartX;
+          if (!didDrag && Math.abs(delta) < 4) return;
+          didDrag = true;
+          const nextLevel = clamp(dragStartLevel + delta / bounds.width);
+          if (nextLevel === soundLevels[sound.id]) return;
+          soundLevels[sound.id] = nextLevel;
+          updatePill(pill, sound, selectedIds, soundLevels);
+          void audio.applyMix(config.sounds, [...selectedIds], soundLevels)
+            .catch((error) => console.warn('Sound volume could not be updated.', error));
+        });
+
+        const finishDrag = (event: PointerEvent) => {
+          if (pill.hasPointerCapture(event.pointerId)) pill.releasePointerCapture(event.pointerId);
+        };
+        pill.addEventListener('pointerup', finishDrag);
+        pill.addEventListener('pointercancel', finishDrag);
+
         pill.addEventListener('click', () => {
+          if (didDrag) {
+            didDrag = false;
+            return;
+          }
           if (!selectedIds.has(sound.id)) return;
           const nextIds = [...selectedIds].filter((id) => id !== sound.id);
           const orderedIds = applySelection(nextIds, soundLevels);

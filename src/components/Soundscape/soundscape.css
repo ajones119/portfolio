@@ -30,7 +30,7 @@
 .soundscape__sound-item { display: block; }
 .soundscape__pile .soundscape__sound-item { position: absolute; top: 0; left: 0; pointer-events: auto; touch-action: none; cursor: grab; will-change: transform; }
 .soundscape__pile .soundscape__sound-item.is-dragging { z-index: 2; cursor: grabbing; }
-.soundscape__sound { display: inline-block; border: 1px solid var(--sound-category-border); border-radius: 999px; padding: .55rem .8rem; color: var(--sound-paper); background: color-mix(in srgb, var(--sound-ink) 84%, transparent); font: inherit; font-size: .78rem; line-height: 1; white-space: nowrap; transition: opacity 180ms cubic-bezier(.23, 1, .32, 1), background-color 180ms cubic-bezier(.23, 1, .32, 1); }
+.soundscape__sound { display: inline-block; border: 1px solid var(--sound-category-border); border-radius: 999px; padding: .55rem .8rem; color: var(--sound-paper); background: color-mix(in srgb, var(--sound-ink) 84%, transparent); font: inherit; font-size: .78rem; line-height: 1; white-space: nowrap; transition: opacity 180ms cubic-bezier(.23, 1, .32, 1), background 120ms ease-out; }
 .soundscape__sound[hidden] { display: none; }
 .soundscape__sound--pile { opacity: .68; user-select: none; }
 button.soundscape__sound { cursor: pointer; }
@@ -38,7 +38,9 @@ button.soundscape__sound { cursor: pointer; }
 .soundscape--debug .soundscape__sound:hover::after,
 .soundscape--debug .soundscape__sound:focus-visible::after { content: attr(data-debug-tooltip); position: absolute; left: 50%; bottom: calc(100% + .65rem); z-index: 20; width: min(22rem, calc(100vw - 2rem)); padding: .7rem .8rem; border: 1px solid var(--sound-line); border-radius: .55rem; color: var(--sound-paper); background: color-mix(in srgb, var(--sound-ink) 94%, transparent); box-shadow: 0 .75rem 1.5rem rgb(0 0 0 / 28%); font-size: .68rem; font-weight: 400; line-height: 1.45; text-align: left; white-space: pre-line; overflow-wrap: anywhere; pointer-events: none; transform: translateX(-50%); }
 .soundscape__sound:focus-visible { outline: 2px solid var(--sound-paper); outline-offset: 3px; }
-.soundscape__sound.is-selected { border-color: var(--sound-category-border); opacity: 1; background: color-mix(in srgb, var(--sound-category-border) 16%, var(--sound-ink)); }
+.soundscape__sound.is-selected { border-color: var(--sound-category-border); opacity: 1; touch-action: none; user-select: none; cursor: ew-resize; background: linear-gradient(to right, color-mix(in srgb, var(--sound-category-border) 32%, var(--sound-ink)) 0 var(--sound-level), color-mix(in srgb, var(--sound-ink) 84%, transparent) var(--sound-level) 100%); }
+.soundscape__drop-preview { pointer-events: none; }
+.soundscape__sound--preview { border-style: dashed; opacity: .42; background: transparent; }
 .soundscape__master-volume { position: fixed; right: max(1rem, env(safe-area-inset-right)); bottom: max(1rem, env(safe-area-inset-bottom)); z-index: 10; width: min(15rem, calc(100vw - 2rem)); color: var(--sound-paper); }
 .soundscape__master-volume label { display: block; margin-bottom: .35rem; color: var(--sound-muted); font-size: .68rem; letter-spacing: .08em; text-transform: uppercase; }
 .soundscape__master-volume-row { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: .65rem; }
