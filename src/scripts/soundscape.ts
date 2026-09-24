@@ -52,6 +52,8 @@ interface RenderedInterface {
   status: HTMLElement;
   row: HTMLUListElement;
   pile: HTMLUListElement;
+  trayToggle: HTMLButtonElement;
+  trayCount: HTMLSpanElement;
   items: Map<string, HTMLLIElement>;
   pills: Map<string, HTMLButtonElement>;
   pileFaces: Map<string, HTMLSpanElement>;
@@ -140,6 +142,8 @@ class SoundscapeAudio {
 
   async resume(): Promise<void> {
     await Tone.start();
+    const context = Tone.getContext().rawContext;
+    if (context.state !== 'running') await context.resume();
   }
 
   private clearLoopTimer(layer: ActiveLayer): void {
@@ -245,6 +249,8 @@ function updatePill(
 
 function renderInterface(root: HTMLElement, surface: HTMLElement, config: SoundscapeConfigResponse, debugActive: boolean): RenderedInterface {
   surface.replaceChildren();
+  root.querySelector('.soundscape__pile')?.remove();
+  root.querySelector('.soundscape__tray-toggle')?.remove();
   const form = createElement('form', 'soundscape__form');
   const input = createElement('input', 'soundscape__input');
   input.type = 'text';
@@ -260,6 +266,15 @@ function renderInterface(root: HTMLElement, surface: HTMLElement, config: Sounds
   list.setAttribute('aria-label', 'Selected sounds');
   const pile = createElement('ul', 'soundscape__pile');
   pile.setAttribute('aria-label', 'Unselected sounds');
+  pile.id = 'soundscape-sound-tray';
+  const trayToggle = createElement('button', 'soundscape__tray-toggle');
+  trayToggle.type = 'button';
+  trayToggle.setAttribute('aria-expanded', 'false');
+  trayToggle.setAttribute('aria-controls', pile.id);
+  const trayLabel = createElement('span', 'soundscape__tray-label');
+  trayLabel.textContent = 'Add sounds';
+  const trayCount = createElement('span', 'soundscape__tray-count');
+  trayToggle.append(trayLabel, trayCount);
   const items = new Map<string, HTMLLIElement>();
   const pills = new Map<string, HTMLButtonElement>();
   const pileFaces = new Map<string, HTMLSpanElement>();
@@ -270,6 +285,9 @@ function renderInterface(root: HTMLElement, surface: HTMLElement, config: Sounds
     const pileFace = createElement('span', 'soundscape__sound soundscape__sound--pile');
     pileFace.dataset.category = sound.category;
     pileFace.textContent = `${sound.emoji} ${sound.title}`;
+    pileFace.setAttribute('role', 'button');
+    pileFace.setAttribute('tabindex', '0');
+    pileFace.setAttribute('aria-label', `Add ${sound.title}`);
     const pill = createElement('button', 'soundscape__sound');
     pill.type = 'button';
     pill.hidden = true;
@@ -295,9 +313,8 @@ function renderInterface(root: HTMLElement, surface: HTMLElement, config: Sounds
 
   form.append(input);
   surface.append(form, status, list);
-  root.querySelector('.soundscape__pile')?.remove();
-  root.append(pile);
-  return { input, status, row: list, pile, items, pills, pileFaces };
+  root.append(trayToggle, pile);
+  return { input, status, row: list, pile, trayToggle, trayCount, items, pills, pileFaces };
 }
 
 function showSelectedItem(item: HTMLLIElement, selected: boolean): void {
@@ -368,6 +385,21 @@ async function startSoundscape(): Promise<void> {
       }
       physics?.destroy();
       const ui = renderInterface(root, surface, config, debug.active);
+      const mobileQuery = window.matchMedia('(max-width: 767px)');
+      const unlockAudio = (): void => {
+        void audio.resume()
+          .then(() => document.removeEventListener('pointerdown', unlockAudio))
+          .catch(() => undefined);
+      };
+      document.addEventListener('pointerdown', unlockAudio, { passive: true });
+      const updateTrayCount = (): void => {
+        const available = [...ui.items.values()].filter((item) => item.classList.contains('is-in-pile')).length;
+        ui.trayCount.textContent = `${available} available`;
+      };
+      ui.trayToggle.addEventListener('click', () => {
+        const open = root.classList.toggle('soundscape--tray-open');
+        ui.trayToggle.setAttribute('aria-expanded', String(open));
+      });
       let dropPreview: HTMLLIElement | null = null;
       let dropPreviewIndex = -1;
       let applySelection: ApplySelection = () => [];
@@ -497,17 +529,36 @@ async function startSoundscape(): Promise<void> {
         const orderedIds = [...new Set(ids)].filter((id) => ui.items.has(id));
         const nextIds = new Set(orderedIds);
         const rowItems = orderedIds.map((id) => ui.items.get(id)!);
+        const enteringItems: HTMLLIElement[] = [];
         if (!physics!.reducedMotion) Flip.killFlipsOf([...ui.items.values()], false);
         const previous = !physics!.reducedMotion && rowItems.length ? Flip.getState(rowItems) : null;
 
+        let removalIndex = 0;
         for (const id of selectedIds) {
           if (nextIds.has(id)) continue;
           const item = ui.items.get(id);
           if (!item) continue;
           const rect = item.getBoundingClientRect();
+          const returnToPile = (): void => {
+            physics!.returnFromRow(item, { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 });
+            gsap.set(item, { clearProps: 'transform,opacity' });
+          };
           showSelectedItem(item, false);
-          physics!.returnFromRow(item, { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 });
-          if (!physics!.reducedMotion) {
+          if (mobileQuery.matches) {
+            gsap.to(item, {
+              y: 42,
+              opacity: 0,
+              duration: 0.26,
+              delay: removalIndex * 0.035,
+              ease: 'power2.out',
+              overwrite: true,
+              onComplete: returnToPile,
+            });
+            removalIndex++;
+          } else {
+            returnToPile();
+          }
+          if (!physics!.reducedMotion && !mobileQuery.matches) {
             const face = item.querySelector<HTMLElement>('.soundscape__sound--pile');
             if (face) {
               gsap.fromTo(face, { opacity: 0.12 }, {
@@ -522,7 +573,10 @@ async function startSoundscape(): Promise<void> {
 
         for (const id of orderedIds) {
           const item = ui.items.get(id)!;
-          if (!selectedIds.has(id)) physics!.take(item);
+          if (!selectedIds.has(id)) {
+            physics!.take(item);
+            enteringItems.push(item);
+          }
           showSelectedItem(item, true);
           ui.row.append(item);
         }
@@ -535,12 +589,29 @@ async function startSoundscape(): Promise<void> {
           if (pill) updatePill(pill, sound, selectedIds, soundLevels);
         }
 
+        updateTrayCount();
+        if (mobileQuery.matches) {
+          enteringItems.forEach((item, index) => {
+            gsap.fromTo(item,
+              { opacity: 0, y: 28 },
+              {
+                opacity: 1,
+                y: 0,
+                duration: 0.32,
+                delay: index * 0.035,
+                ease: 'power3.out',
+                clearProps: 'transform,opacity',
+                overwrite: true,
+              });
+          });
+        }
+
         if (previous) {
           Flip.from(previous, {
             targets: rowItems,
             scale: true,
-            duration: 0.34,
-            ease: 'back.out(1.18)',
+            duration: mobileQuery.matches ? 0.28 : 0.34,
+            ease: mobileQuery.matches ? 'power3.out' : 'back.out(1.18)',
             stagger: 0.025,
           });
         } else if (physics!.reducedMotion) {
@@ -600,30 +671,82 @@ async function startSoundscape(): Promise<void> {
             ui.status.textContent = '';
           }
         });
+        const chooseFromTray = (): void => {
+          if (!mobileQuery.matches || selectedIds.has(sound.id)) return;
+          const nextIds = [...selectedIds, sound.id];
+          const nextLevels = { ...soundLevels, [sound.id]: 0.7 };
+          const orderedIds = applySelection(nextIds, nextLevels);
+          void audio.applyMix(config.sounds, orderedIds, nextLevels)
+            .catch((error) => console.warn('Sound selection could not be updated.', error));
+        };
+        const pileFace = ui.pileFaces.get(sound.id);
+        pileFace?.addEventListener('click', chooseFromTray);
+        pileFace?.addEventListener('keydown', (event) => {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            chooseFromTray();
+          }
+        });
         updatePill(pill, sound, selectedIds, soundLevels);
       }
 
-      ui.input.focus();
-      ui.input.form?.addEventListener('submit', async (event) => {
-        event.preventDefault();
-        const sceneDescription = ui.input.value.trim();
-        if (!sceneDescription || ui.input.disabled) return;
-        ui.input.disabled = true;
-        ui.input.setAttribute('aria-busy', 'true');
-        // Unlock audio while the submit event still has a user gesture.
-        void audio.resume().catch((error) => console.warn('Audio playback could not start.', error));
+      updateTrayCount();
 
+      let debounceTimer: number | undefined;
+      let sceneRequestId = 0;
+
+      const resolveAndApplyScene = async (sceneDescription: string, requestId: number, lockInput: boolean): Promise<void> => {
+        if (lockInput) {
+          ui.input.disabled = true;
+        }
+        ui.input.setAttribute('aria-busy', 'true');
         try {
+          // Safari requires the AudioContext unlock to complete from the submit gesture.
+          await audio.resume();
           const result = await resolveScene(sceneDescription, limits);
+          if (requestId !== sceneRequestId) return;
           const orderedIds = applySelection(result.selectedSoundIds, result.soundLevels);
+          await audio.resume();
+          if (requestId !== sceneRequestId) return;
           await audio.applyMix(config.sounds, orderedIds, result.soundLevels);
         } catch (error) {
-          ui.status.textContent = error instanceof Error ? error.message : 'Scene resolution failed.';
+          if (requestId !== sceneRequestId) return;
+          ui.status.textContent = error instanceof Error && /audio|context|decode|not allowed/i.test(error.message)
+            ? 'Audio could not start. Tap the page once, then try again.'
+            : error instanceof Error ? error.message : 'Scene resolution failed.';
         } finally {
-          ui.input.disabled = false;
+          if (requestId !== sceneRequestId) return;
+          if (lockInput) {
+            ui.input.disabled = false;
+            ui.input.focus();
+          }
           ui.input.removeAttribute('aria-busy');
-          ui.input.focus();
         }
+      };
+
+      ui.input.addEventListener('input', () => {
+        if (debounceTimer !== undefined) window.clearTimeout(debounceTimer);
+        const sceneDescription = ui.input.value.trim();
+        sceneRequestId += 1;
+        ui.status.textContent = '';
+        ui.input.removeAttribute('aria-busy');
+        if (!sceneDescription || ui.input.disabled) return;
+        const requestId = sceneRequestId;
+        debounceTimer = window.setTimeout(() => {
+          debounceTimer = undefined;
+          void resolveAndApplyScene(sceneDescription, requestId, false);
+        }, 500);
+      });
+
+      ui.input.focus();
+      ui.input.form?.addEventListener('submit', (event) => {
+        event.preventDefault();
+        if (debounceTimer !== undefined) window.clearTimeout(debounceTimer);
+        debounceTimer = undefined;
+        const sceneDescription = ui.input.value.trim();
+        if (!sceneDescription || ui.input.disabled) return;
+        sceneRequestId += 1;
+        void resolveAndApplyScene(sceneDescription, sceneRequestId, true);
       });
     } catch (error) {
       showMessage(surface, error instanceof Error ? error.message : 'Could not load sounds.', () => void load());

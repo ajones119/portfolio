@@ -26,15 +26,16 @@ const {
     cursor: pointer;
     position: relative;
     overflow: hidden;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: transform 160ms ease-out, box-shadow 160ms ease-out, color 160ms ease,
+        background-color 160ms ease, border-color 160ms ease, text-decoration-color 160ms ease;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     font-family: var(--font-lato);
 }
 
-.basic-button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+.basic-button:focus-visible {
+    outline: 2px solid var(--color-secondary);
+    outline-offset: 3px;
 }
 
 .basic-button:active {
@@ -42,17 +43,13 @@ const {
 }
 
 .basic-button-primary {
-    background: linear-gradient(135deg, var(--color-secondary), var(--color-tertiary));
+    background: var(--color-primary);
     color: var(--color-background);
-}
-
-.basic-button-primary:hover {
-    background: linear-gradient(135deg, var(--color-tertiary), var(--color-secondary));
 }
 
 .basic-button-secondary {
     background: var(--color-quaternary);
-    color: var(--color-primary);
+    color: #000000;
     border: 2px solid var(--color-tertiary);
 }
 
@@ -67,9 +64,33 @@ const {
     border: 2px solid transparent;
 }
 
-.basic-button-ghost:hover {
-    background: var(--color-quaternary);
-    border-color: var(--color-tertiary);
+@media (hover: hover) and (pointer: fine) {
+    .basic-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .basic-button-primary:hover {
+        background: var(--color-secondary);
+    }
+
+    .basic-button-secondary:hover {
+        background: var(--color-background);
+        color: var(--color-secondary);
+        border-color: var(--color-secondary);
+    }
+
+    .basic-button-ghost:hover {
+        color: var(--color-secondary);
+        text-decoration: underline;
+        text-underline-offset: 0.2em;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .basic-button {
+        transition: none;
+    }
 }
 </style>
 

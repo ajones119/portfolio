@@ -1,4 +1,6 @@
 .soundscape {
+  --sound-ease-out: cubic-bezier(.23, 1, .32, 1);
+  --sound-ease-drawer: cubic-bezier(.32, .72, 0, 1);
   --sound-ink: var(--color-background);
   --sound-paper: var(--color-primary);
   --sound-muted: var(--color-muted);
@@ -25,8 +27,11 @@
 .soundscape__input:focus { border-bottom-color: var(--sound-accent); box-shadow: 0 1px 0 var(--sound-accent); }
 .soundscape__input:disabled { cursor: wait; opacity: .55; }
 .soundscape__status { min-height: 0; color: var(--sound-muted); font-size: .8rem; text-align: center; }
+.soundscape__credit { margin: -.6rem 0 0; color: var(--sound-muted); font-size: .68rem; text-align: center; }
+.soundscape__credit a { color: var(--sound-paper); text-decoration: underline; text-decoration-color: var(--sound-accent); text-underline-offset: .18em; }
 .soundscape__sounds { display: flex; flex-wrap: wrap; justify-content: center; align-content: flex-start; gap: .65rem; width: 100%; min-height: 2.5rem; max-width: 52rem; margin: 0; padding: 0; list-style: none; }
 .soundscape__pile { position: absolute; inset: 0; z-index: 1; margin: 0; padding: 0; list-style: none; pointer-events: none; }
+.soundscape__tray-toggle { display: none; }
 .soundscape__sound-item { display: block; }
 .soundscape__pile .soundscape__sound-item { position: absolute; top: 0; left: 0; pointer-events: auto; touch-action: none; cursor: grab; will-change: transform; }
 .soundscape__pile .soundscape__sound-item.is-dragging { z-index: 2; cursor: grabbing; }
@@ -58,6 +63,73 @@ button.soundscape__sound { cursor: pointer; }
   .soundscape__master-volume { right: max(.65rem, env(safe-area-inset-right)); bottom: max(.65rem, env(safe-area-inset-bottom)); }
 }
 
+@media (max-width: 767px) {
+  .soundscape {
+    padding-bottom: 10rem;
+    overflow: visible;
+  }
+
+  .soundscape__sounds {
+    min-height: 2.9rem;
+    align-items: flex-start;
+  }
+
+  .soundscape__sound.is-selected { min-height: 2.35rem; }
+
+  .soundscape__tray-toggle {
+    display: none;
+  }
+
+  .soundscape__tray-count { display: none; }
+
+  .soundscape__pile {
+    position: fixed;
+    inset: auto 0 max(4.15rem, calc(env(safe-area-inset-bottom) + 3.4rem));
+    z-index: 13;
+    display: flex;
+    flex-wrap: wrap;
+    align-content: flex-end;
+    gap: .5rem;
+    width: 100%;
+    max-height: min(42svh, 19rem);
+    padding: 1rem .85rem 1.1rem;
+    border-top: 1px solid var(--sound-line);
+    background: color-mix(in srgb, var(--sound-ink) 94%, transparent);
+    box-shadow: 0 -1rem 2.5rem rgb(0 0 0 / 22%);
+    opacity: 0;
+    visibility: hidden;
+    clip-path: inset(100% 0 0 0);
+    transform: translateY(1rem);
+    transition: opacity 220ms ease-out, clip-path 340ms var(--sound-ease-drawer), transform 340ms var(--sound-ease-drawer), visibility 0s linear 340ms;
+    pointer-events: none;
+  }
+
+  .soundscape--tray-open .soundscape__pile {
+    opacity: 1;
+    visibility: visible;
+    clip-path: inset(0 0 0 0);
+    transform: translateY(0);
+    transition-delay: 0s;
+    pointer-events: auto;
+  }
+
+  .soundscape__pile .soundscape__sound-item {
+    position: static;
+    transform: none !important;
+    cursor: pointer;
+  }
+
+  .soundscape__pile .soundscape__sound--pile {
+    opacity: .82;
+    transition: transform 160ms var(--sound-ease-out), opacity 160ms ease-out;
+  }
+
+  .soundscape__pile .soundscape__sound--pile:active { transform: scale(.97) translateY(-1px); }
+  .soundscape__pile .soundscape__sound-item:nth-child(3n) .soundscape__sound--pile { transform: rotate(-1.2deg); }
+  .soundscape__pile .soundscape__sound-item:nth-child(3n + 1) .soundscape__sound--pile { transform: rotate(.8deg); }
+  .soundscape__pile .soundscape__sound-item:nth-child(3n + 2) .soundscape__sound--pile { transform: rotate(-.35deg); }
+}
+
 @media (prefers-contrast: more) {
   .soundscape { --sound-line: #dcebe8; --sound-muted: #d9e6e3; }
   .soundscape__sound, .soundscape__retry { border-width: 2px; }
@@ -65,4 +137,6 @@ button.soundscape__sound { cursor: pointer; }
 
 @media (prefers-reduced-motion: reduce) {
   .soundscape__sound { transition: opacity 150ms ease, background-color 150ms ease; }
+  .soundscape__tray-toggle,
+  .soundscape__pile { transition-duration: 1ms; }
 }

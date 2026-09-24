@@ -27,6 +27,7 @@ export class ChipPhysics {
   private readonly bodies = new Map<HTMLLIElement, ChipBody>();
   private readonly boundItems = new WeakSet<HTMLLIElement>();
   private readonly motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+  private readonly mobileQuery = window.matchMedia('(max-width: 767px)');
   private readonly observer: ResizeObserver;
   private walls: Body[] = [];
   private drag: DragState | null = null;
@@ -61,7 +62,7 @@ export class ChipPhysics {
   addInitial(items: readonly HTMLLIElement[]): void {
     items.forEach((item, index) => {
       this.bindDrag(item);
-      if (this.reduced) {
+      if (this.reduced || this.mobileQuery.matches) {
         this.prepare(item);
         return;
       }
@@ -99,9 +100,8 @@ export class ChipPhysics {
   }
 
   returnFromRow(item: HTMLLIElement, viewportCenter: { x: number; y: number }): void {
-    if (this.reduced) {
+    if (this.reduced || this.mobileQuery.matches) {
       this.prepare(item);
-      this.layoutReduced();
       return;
     }
     const rootRect = this.root.getBoundingClientRect();
@@ -240,7 +240,7 @@ export class ChipPhysics {
     this.boundItems.add(item);
     item.addEventListener('pointerdown', (event) => {
       const entry = this.bodies.get(item);
-      if (this.reduced || !entry || this.drag || (event.pointerType === 'mouse' && event.button !== 0)) return;
+      if (this.reduced || this.mobileQuery.matches || !entry || this.drag || (event.pointerType === 'mouse' && event.button !== 0)) return;
       event.preventDefault();
       item.setPointerCapture(event.pointerId);
       const rect = this.root.getBoundingClientRect();

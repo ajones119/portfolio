@@ -1069,6 +1069,22 @@ const post = {
 		cursor: pointer;
 	}
 
+	.radio-label:focus-within {
+		outline: 2px solid var(--color-secondary);
+		outline-offset: 3px;
+	}
+
+	.radio-label span {
+		text-underline-offset: 0.18em;
+	}
+
+	@media (hover: hover) and (pointer: fine) {
+		.radio-label:hover span {
+			text-decoration: underline;
+			text-decoration-color: var(--color-secondary);
+		}
+	}
+
 	.radio-label input[type="radio"] {
 		accent-color: var(--color-primary);
 		cursor: pointer;

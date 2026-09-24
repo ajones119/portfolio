@@ -86,12 +86,27 @@ const { title, description, sections } = Astro.props;
 	
 	:global(.blog-content .prose a) {
 		color: var(--color-secondary);
-		text-decoration-color: var(--color-quaternary);
-		transition: color 0.2s;
+		text-decoration-color: var(--color-secondary);
+		text-underline-offset: 0.2em;
+		transition: color 160ms ease, text-decoration-color 160ms ease;
 	}
 	
-	:global(.blog-content .prose a:hover) {
-		color: var(--color-tertiary);
+	:global(.blog-content .prose a:focus-visible) {
+		outline: 2px solid var(--color-secondary);
+		outline-offset: 3px;
+	}
+
+	@media (hover: hover) and (pointer: fine) {
+		:global(.blog-content .prose a:hover) {
+			color: var(--color-secondary);
+			text-decoration-thickness: 0.12em;
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		:global(.blog-content .prose a) {
+			transition: none;
+		}
 	}
 	
 	:global(.blog-content .prose strong) {

@@ -22,7 +22,7 @@ const { sections } = Astro.props;
 					<a 
 						href={`#${section.id}`}
 						data-section-id={section.id}
-						class="toc-link text-sm text-muted hover:text-primary transition-colors block py-1"
+						class="toc-link text-sm text-muted block py-1"
 					>
 						{section.title}
 					</a>
@@ -33,7 +33,7 @@ const { sections } = Astro.props;
 									<a 
 										href={`#${subsection.id}`}
 										data-section-id={subsection.id}
-										class="toc-link text-xs text-muted hover:text-primary transition-colors block py-0.5"
+										class="toc-link text-xs text-muted block py-0.5"
 									>
 										{subsection.title}
 									</a>
@@ -95,6 +95,31 @@ const { sections } = Astro.props;
 	.toc-link.active {
 		color: var(--color-primary);
 		font-weight: 600;
+	}
+
+	.toc-link {
+		text-decoration: none;
+		text-decoration-color: var(--color-secondary);
+		text-underline-offset: 0.2em;
+		transition: color 160ms ease, text-decoration-color 160ms ease;
+	}
+
+	.toc-link:focus-visible {
+		outline: 2px solid var(--color-secondary);
+		outline-offset: 3px;
+	}
+
+	@media (hover: hover) and (pointer: fine) {
+		.toc-link:hover {
+			color: var(--color-secondary);
+			text-decoration: underline;
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.toc-link {
+			transition: none;
+		}
 	}
 </style>
 
