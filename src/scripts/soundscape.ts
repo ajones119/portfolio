@@ -1,5 +1,10 @@
 import * as Tone from 'tone';
+import gsap from 'gsap';
+import { Flip } from 'gsap/all';
+import { ChipPhysics } from '../components/Soundscape/chipPhysics';
 import Debug from '../components/ThreeJS/shared/runtime/Debug';
+
+gsap.registerPlugin(Flip);
 
 interface SoundDefinition {
   id: string;
@@ -29,7 +34,7 @@ interface SoundscapeResolveResponse {
 }
 
 const API_BASE_URL = (import.meta.env.PUBLIC_ARAMIS_API_URL ?? 'http://localhost:4322').replace(/\/$/, '');
-const DEFAULT_LIMITS: Record<string, number> = { ambiance: 4, music: 1, effect: 3 };
+const DEFAULT_LIMITS: Record<string, number> = { ambiance: 4, music: 1, effect: 4 };
 const DEFAULT_CATEGORY_COLORS: Record<string, string> = {
   ambiance: '#9be3d2',
   music: '#e9b872',
@@ -45,7 +50,11 @@ interface SoundscapeVisualConfig {
 interface RenderedInterface {
   input: HTMLInputElement;
   status: HTMLElement;
+  row: HTMLUListElement;
+  pile: HTMLUListElement;
+  items: Map<string, HTMLLIElement>;
   pills: Map<string, HTMLButtonElement>;
+  pileFaces: Map<string, HTMLSpanElement>;
 }
 
 interface ActiveLayer {
@@ -66,20 +75,22 @@ function clamp(value: number, min = 0, max = 1): number {
 }
 
 function readMasterVolume(): number {
-  const stored = Number(localStorage.getItem(MASTER_VOLUME_KEY));
+  const value = localStorage.getItem(MASTER_VOLUME_KEY);
+  if (value === null) return 0.7;
+  const stored = Number(value);
   return Number.isFinite(stored) ? clamp(stored) : 0.7;
 }
 
-function applyCategoryColors(root: HTMLElement, pills: Map<string, HTMLButtonElement>, categoryColors: Record<string, string>): void {
-  for (const pill of pills.values()) {
-    const category = pill.dataset.category ?? '';
+function applyCategoryColors(root: HTMLElement, chips: Iterable<HTMLElement>, categoryColors: Record<string, string>): void {
+  for (const chip of chips) {
+    const category = chip.dataset.category ?? '';
     const color = categoryColors[category] ?? 'var(--sound-accent)';
-    pill.style.setProperty('--sound-category-border', color);
+    chip.style.setProperty('--sound-category-border', color);
   }
   root.style.setProperty('--sound-category-border', 'var(--sound-accent)');
 }
 
-function addCategoryColorControls(debugFolder: Debug['ui'], categoryColors: Record<string, string>, apply: () => void): void {
+function addCategoryColorControls(debugFolder: Debug['ui'] | undefined, categoryColors: Record<string, string>, apply: () => void): void {
   if (!debugFolder) return;
   for (const category of Object.keys(categoryColors)) {
     debugFolder.addColor(categoryColors, category).name(category).onChange(apply);
@@ -154,21 +165,13 @@ class SoundscapeAudio {
     }, (layer.player.buffer.duration + layer.loopDelay) * 1000);
   }
 
-  mute(id: string): void {
-    const layer = this.layers.get(id);
-    if (!layer) return;
-    this.disposeLayer(id, layer);
-  }
-
   async applyMix(
     sounds: readonly SoundDefinition[],
     selectedIds: readonly string[],
     levels: Record<string, number>,
-    mutedIds: ReadonlySet<string>,
   ): Promise<void> {
     const activeSounds = sounds.filter((sound) => (
       selectedIds.includes(sound.id)
-      && !mutedIds.has(sound.id)
       && Boolean(sound.file)
       && sound.playback?.mode === 'loop'
     ));
@@ -196,11 +199,6 @@ class SoundscapeAudio {
         const gain = new Tone.Gain(0).connect(this.master);
         const player = new Tone.Player({ loop: loopDelay <= 0, autostart: false });
         await player.load(sound.file);
-        if (mutedIds.has(sound.id)) {
-          player.dispose();
-          gain.dispose();
-          return;
-        }
         player.connect(gain);
         layer = { player, gain, loopDelay };
         this.layers.set(sound.id, layer);
@@ -227,23 +225,19 @@ function updatePill(
   pill: HTMLButtonElement,
   sound: SoundDefinition,
   selectedIds: ReadonlySet<string>,
-  mutedIds: ReadonlySet<string>,
   levels: Record<string, number>,
 ): void {
-  const muted = mutedIds.has(sound.id);
-  const selected = selectedIds.has(sound.id) && !muted;
+  const selected = selectedIds.has(sound.id);
   const percentage = Math.round(clamp(levels[sound.id] ?? 0) * 100);
   const baseText = pill.dataset.baseText ?? `${sound.emoji} ${sound.title}`;
   const baseAriaLabel = pill.dataset.baseAriaLabel ?? `${sound.title}, ${sound.category}`;
   pill.classList.toggle('is-selected', selected);
-  pill.classList.toggle('is-muted', muted);
-  pill.setAttribute('aria-pressed', String(muted));
-  pill.dataset.muted = String(muted);
-  pill.textContent = muted ? `${baseText} · muted` : selected ? `${baseText} · ${percentage}%` : baseText;
-  pill.setAttribute('aria-label', muted ? `${baseAriaLabel}, muted. Activate to unmute.` : `${baseAriaLabel}. Activate to mute.`);
+  pill.setAttribute('aria-pressed', String(selected));
+  pill.textContent = selected ? `${baseText} · ${percentage}%` : baseText;
+  pill.setAttribute('aria-label', selected ? `${baseAriaLabel}. Remove from selection.` : baseAriaLabel);
 }
 
-function renderInterface(surface: HTMLElement, config: SoundscapeConfigResponse, debugActive: boolean): RenderedInterface {
+function renderInterface(root: HTMLElement, surface: HTMLElement, config: SoundscapeConfigResponse, debugActive: boolean): RenderedInterface {
   surface.replaceChildren();
   const form = createElement('form', 'soundscape__form');
   const input = createElement('input', 'soundscape__input');
@@ -257,13 +251,22 @@ function renderInterface(surface: HTMLElement, config: SoundscapeConfigResponse,
   status.setAttribute('role', 'status');
   status.setAttribute('aria-live', 'polite');
   const list = createElement('ul', 'soundscape__sounds');
-  list.setAttribute('aria-label', 'Available sounds');
+  list.setAttribute('aria-label', 'Selected sounds');
+  const pile = createElement('ul', 'soundscape__pile');
+  pile.setAttribute('aria-label', 'Unselected sounds');
+  const items = new Map<string, HTMLLIElement>();
   const pills = new Map<string, HTMLButtonElement>();
+  const pileFaces = new Map<string, HTMLSpanElement>();
 
   for (const sound of config.sounds) {
-    const item = createElement('li', 'soundscape__sound-item');
+    const item = createElement('li', 'soundscape__sound-item is-in-pile');
+    item.dataset.soundId = sound.id;
+    const pileFace = createElement('span', 'soundscape__sound soundscape__sound--pile');
+    pileFace.dataset.category = sound.category;
+    pileFace.textContent = `${sound.emoji} ${sound.title}`;
     const pill = createElement('button', 'soundscape__sound');
     pill.type = 'button';
+    pill.hidden = true;
     pill.dataset.soundId = sound.id;
     pill.dataset.category = sound.category;
     pill.dataset.baseText = `${sound.emoji} ${sound.title}`;
@@ -272,17 +275,33 @@ function renderInterface(surface: HTMLElement, config: SoundscapeConfigResponse,
       const debugTooltip = getSoundDebugTooltip(sound);
       pill.dataset.debugTooltip = debugTooltip;
       pill.title = debugTooltip;
+      pileFace.dataset.debugTooltip = debugTooltip;
+      pileFace.title = debugTooltip;
     }
     pill.setAttribute('aria-pressed', 'false');
     pill.textContent = pill.dataset.baseText;
-    item.append(pill);
+    item.append(pileFace, pill);
+    items.set(sound.id, item);
     pills.set(sound.id, pill);
-    list.append(item);
+    pileFaces.set(sound.id, pileFace);
+    pile.append(item);
   }
 
   form.append(input);
   surface.append(form, status, list);
-  return { input, status, pills };
+  root.querySelector('.soundscape__pile')?.remove();
+  root.append(pile);
+  return { input, status, row: list, pile, items, pills, pileFaces };
+}
+
+function showSelectedItem(item: HTMLLIElement, selected: boolean): void {
+  const face = item.querySelector<HTMLSpanElement>('.soundscape__sound--pile');
+  const button = item.querySelector<HTMLButtonElement>('button.soundscape__sound');
+  if (!face || !button) return;
+  face.hidden = selected;
+  button.hidden = !selected;
+  item.classList.toggle('is-in-pile', !selected);
+  if (selected) item.style.transform = '';
 }
 
 async function getConfig(): Promise<SoundscapeConfigResponse> {
@@ -323,7 +342,6 @@ async function startSoundscape(): Promise<void> {
 
   const audio = new SoundscapeAudio();
   wireMasterVolume(audio);
-  const mutedSoundIds = new Set<string>();
   const limits = { ...DEFAULT_LIMITS };
   const visualConfig: SoundscapeVisualConfig = { categoryColors: { ...DEFAULT_CATEGORY_COLORS } };
   const debug = new Debug();
@@ -332,6 +350,7 @@ async function startSoundscape(): Promise<void> {
   for (const category of Object.keys(limits)) limitsFolder?.add(limits, category, 0, 20, 1);
   const colorsFolder = debug.ui?.addFolder('Soundscape chip colors');
   let categoryControlsAdded = false;
+  let physics: ChipPhysics | null = null;
 
   const load = async (): Promise<void> => {
     try {
@@ -341,31 +360,95 @@ async function startSoundscape(): Promise<void> {
       for (const sound of config.sounds) {
         if (!(sound.category in visualConfig.categoryColors)) visualConfig.categoryColors[sound.category] = DEFAULT_CATEGORY_COLORS.effect;
       }
-      const ui = renderInterface(surface, config, debug.active);
-      const applyColors = () => applyCategoryColors(root, ui.pills, visualConfig.categoryColors);
+      physics?.destroy();
+      const ui = renderInterface(root, surface, config, debug.active);
+      physics = new ChipPhysics(root, ui.pile, root.querySelector('.soundscape__master-volume'));
+      physics.addInitial([...ui.items.values()]);
+      if (!physics.reducedMotion) {
+        gsap.fromTo(
+          [...ui.pileFaces.values()],
+          { opacity: 0 },
+          { opacity: 0.68, duration: 0.26, ease: 'power3.out', stagger: 0.045, overwrite: true },
+        );
+      }
+      const applyColors = () => applyCategoryColors(root, [...ui.pills.values(), ...ui.pileFaces.values()], visualConfig.categoryColors);
       applyColors();
       if (!categoryControlsAdded) {
         addCategoryColorControls(colorsFolder, visualConfig.categoryColors, applyColors);
         categoryControlsAdded = true;
       }
 
+      const applySelection = (ids: readonly string[], levels: Record<string, number>): string[] => {
+        const orderedIds = [...new Set(ids)].filter((id) => ui.items.has(id));
+        const nextIds = new Set(orderedIds);
+        const rowItems = orderedIds.map((id) => ui.items.get(id)!);
+        if (!physics!.reducedMotion) Flip.killFlipsOf([...ui.items.values()], false);
+        const previous = !physics!.reducedMotion && rowItems.length ? Flip.getState(rowItems) : null;
+
+        for (const id of selectedIds) {
+          if (nextIds.has(id)) continue;
+          const item = ui.items.get(id);
+          if (!item) continue;
+          const rect = item.getBoundingClientRect();
+          showSelectedItem(item, false);
+          physics!.returnFromRow(item, { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 });
+          if (!physics!.reducedMotion) {
+            const face = item.querySelector<HTMLElement>('.soundscape__sound--pile');
+            if (face) {
+              gsap.fromTo(face, { opacity: 0.12 }, {
+                opacity: 0.68,
+                duration: 0.28,
+                ease: 'power3.out',
+                overwrite: 'auto',
+              });
+            }
+          }
+        }
+
+        for (const id of orderedIds) {
+          const item = ui.items.get(id)!;
+          if (!selectedIds.has(id)) physics!.take(item);
+          showSelectedItem(item, true);
+          ui.row.append(item);
+        }
+
+        selectedIds.clear();
+        orderedIds.forEach((id) => selectedIds.add(id));
+        soundLevels = levels;
+        for (const sound of config.sounds) {
+          const pill = ui.pills.get(sound.id);
+          if (pill) updatePill(pill, sound, selectedIds, soundLevels);
+        }
+
+        if (previous) {
+          Flip.from(previous, {
+            targets: rowItems,
+            scale: true,
+            duration: 0.34,
+            ease: 'back.out(1.18)',
+            stagger: 0.025,
+          });
+        } else if (physics!.reducedMotion) {
+          gsap.fromTo(rowItems, { opacity: 0.65 }, { opacity: 1, duration: 0.15, overwrite: true });
+        }
+        physics!.layoutReduced();
+        return orderedIds;
+      };
+
       for (const sound of config.sounds) {
         const pill = ui.pills.get(sound.id);
         if (!pill) continue;
         pill.addEventListener('click', () => {
-          if (mutedSoundIds.has(sound.id)) {
-            mutedSoundIds.delete(sound.id);
-            if (selectedIds.has(sound.id)) {
-              void audio.applyMix(config.sounds, [...selectedIds], soundLevels, mutedSoundIds)
-                .catch((error) => console.warn('Muted sound could not resume.', error));
-            }
-          } else {
-            mutedSoundIds.add(sound.id);
-            audio.mute(sound.id);
+          if (!selectedIds.has(sound.id)) return;
+          const nextIds = [...selectedIds].filter((id) => id !== sound.id);
+          const orderedIds = applySelection(nextIds, soundLevels);
+          void audio.applyMix(config.sounds, orderedIds, soundLevels)
+            .catch((error) => console.warn('Sound selection could not be updated.', error));
+          if (!ui.input.disabled) {
+            ui.status.textContent = '';
           }
-          updatePill(pill, sound, selectedIds, mutedSoundIds, soundLevels);
         });
-        updatePill(pill, sound, selectedIds, mutedSoundIds, soundLevels);
+        updatePill(pill, sound, selectedIds, soundLevels);
       }
 
       ui.input.focus();
@@ -375,24 +458,13 @@ async function startSoundscape(): Promise<void> {
         if (!sceneDescription || ui.input.disabled) return;
         ui.input.disabled = true;
         ui.input.setAttribute('aria-busy', 'true');
-        ui.status.textContent = 'Resolving scene…';
-
         // Unlock audio while the submit event still has a user gesture.
         void audio.resume().catch((error) => console.warn('Audio playback could not start.', error));
 
         try {
           const result = await resolveScene(sceneDescription, limits);
-          selectedIds.clear();
-          result.selectedSoundIds.forEach((id) => selectedIds.add(id));
-          soundLevels = result.soundLevels;
-          for (const sound of config.sounds) {
-            const pill = ui.pills.get(sound.id);
-            if (pill) updatePill(pill, sound, selectedIds, mutedSoundIds, soundLevels);
-          }
-          await audio.applyMix(config.sounds, result.selectedSoundIds, result.soundLevels, mutedSoundIds);
-          ui.status.textContent = result.selectedSoundIds.length
-            ? `${result.selectedSoundIds.filter((id) => !mutedSoundIds.has(id)).length} sound${result.selectedSoundIds.length === 1 ? '' : 's'} playing.`
-            : 'No sounds matched this scene.';
+          const orderedIds = applySelection(result.selectedSoundIds, result.soundLevels);
+          await audio.applyMix(config.sounds, orderedIds, result.soundLevels);
         } catch (error) {
           ui.status.textContent = error instanceof Error ? error.message : 'Scene resolution failed.';
         } finally {
@@ -407,6 +479,8 @@ async function startSoundscape(): Promise<void> {
   };
 
   await load();
+  window.addEventListener('pagehide', () => physics?.destroy(), { once: true });
+  document.addEventListener('astro:before-swap', () => physics?.destroy(), { once: true });
 }
 
 void startSoundscape();
