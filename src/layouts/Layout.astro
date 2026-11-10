@@ -34,7 +34,7 @@ const fullImageURL = image
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<meta name="generator" content={Astro.generator} />
-		
+
 		<!-- Primary Meta Tags -->
 		<title>{title}</title>
 		<meta name="title" content={title} />
@@ -44,7 +44,7 @@ const fullImageURL = image
 		<meta name="robots" content="index, follow" />
 		<meta name="language" content="English" />
 		<link rel="canonical" href={canonicalURL.href} />
-		
+
 		<!-- Open Graph / Facebook -->
 		<meta property="og:type" content={type} />
 		<meta property="og:url" content={canonicalURL.href} />
@@ -52,31 +52,34 @@ const fullImageURL = image
 		<meta property="og:description" content={description} />
 		<meta property="og:image" content={fullImageURL} />
 		<meta property="og:site_name" content="Aramis Jones Portfolio" />
-		
+
 		<!-- Twitter -->
 		<meta name="twitter:card" content="summary_large_image" />
 		<meta name="twitter:url" content={canonicalURL.href} />
 		<meta name="twitter:title" content={title} />
 		<meta name="twitter:description" content={description} />
 		<meta name="twitter:image" content={fullImageURL} />
-		
+
 		<!-- Favicon -->
 		<link rel="icon" type="image/png" href="/favicon.png" />
 		<link rel="apple-touch-icon" href="/favicon.png" />
-		
+
 		<!-- Theme Color -->
-		<meta name="theme-color" content="#336666" media="(prefers-color-scheme: light)" />
-		<meta name="theme-color" content="#0a0a0a" media="(prefers-color-scheme: dark)" />
+		<meta name="theme-color" content="#336666" />
 
 		<!-- Prevent flash of unstyled content by setting theme immediately -->
 		<script is:inline>
 			(function() {
 				const getTheme = () => {
-					const stored = localStorage.getItem('theme');
+					let stored = null;
+					try { stored = localStorage.getItem('theme'); } catch {}
 					if (stored === 'light' || stored === 'dark') return stored;
 					return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
 				};
-				document.documentElement.setAttribute('data-theme', getTheme());
+				const theme = getTheme();
+				document.documentElement.setAttribute('data-theme', theme);
+				document.documentElement.style.colorScheme = theme;
+				document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme === 'dark' ? '#0a0a0a' : '#336666');
 			})();
 		</script>
 
@@ -84,7 +87,7 @@ const fullImageURL = image
 		<link rel="preconnect" href="https://fonts.googleapis.com">
 		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 		<link href="https://fonts.googleapis.com/css2?family=Abril+Fatface&family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap" rel="stylesheet">
-		
+
 		<!-- JSON-LD Structured Data -->
 		<script type="application/ld+json" set:html={JSON.stringify({
 			"@context": "https://schema.org",
@@ -112,7 +115,7 @@ const fullImageURL = image
 				"name": "Software Engineering"
 			}
 		})} />
-		
+
 		<script type="application/ld+json" set:html={JSON.stringify({
 			"@context": "https://schema.org",
 			"@type": "WebSite",

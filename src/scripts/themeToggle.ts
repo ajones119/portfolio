@@ -1,203 +1,85 @@
-// Theme toggle with circular expansion animation
-// Similar to juliacodes.com dark mode transition
-
-interface ThemeToggleOptions {
-	button: HTMLButtonElement;
-	circleOverlay: HTMLElement;
+import { createEffectBag, effectTuning, resolveTheme, revealFrames, saveTheme, type Effect } from './themeMotion';
+type Transition = { ready: Promise<void>; finished: Promise<void>; skipTransition(): void };
+export interface ThemeController {
+ toggle(animate: boolean, effect?: Effect): Promise<void>;
+ bindTrigger(trigger: HTMLButtonElement): void;
 }
+export function initThemeToggle({ button }: { button: HTMLButtonElement }): ThemeController {
+ const root = document.documentElement;
+ const system = matchMedia('(prefers-color-scheme: dark)'), reduced = matchMedia('(prefers-reduced-motion: reduce)');
+ const initial = resolveTheme(() => localStorage.getItem('theme'), system.matches);
+ let chosen = initial.explicit, theme = initial.theme;
+ let active: { transition?: Transition; animation?: Animation } | undefined;
+ const triggers = new Set<HTMLButtonElement>();
+ const nextEffect = createEffectBag();
+ const report = (effect: Effect | undefined, reason = '') => window.dispatchEvent(new CustomEvent('theme-motion-status', { detail: { effect, reason } }));
+ const apply = () => {
+  root.dataset.theme = theme;
+  root.style.colorScheme = theme;
+  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme === 'dark' ? '#0a0a0a' : '#336666');
+  button.setAttribute('aria-label', `Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`);
+  button.innerHTML = theme === 'dark'
+   ? '<svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>'
+   : '<svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
+ };
+ const finish = () => {
+  active?.animation?.finish();
+  active?.transition?.skipTransition();
+  active?.animation?.cancel();
+  active = undefined;
+  delete root.dataset.themeTransition;
+ };
+ const controller: ThemeController = {
+  bindTrigger(trigger) {
+   triggers.add(trigger);
+   trigger.addEventListener('click', event => void controller.toggle(event.detail > 0));
+  },
+  async toggle(animate, forcedEffect) {
+   const interrupted = !!active;
+   finish(); theme = theme === 'dark' ? 'light' : 'dark'; chosen = true;
+   saveTheme(() => localStorage.setItem('theme', theme));
+   const start = (document as Document & { startViewTransition?: (update: () => void) => Transition }).startViewTransition;
+   const reason = interrupted ? 'Repeated activation' : reduced.matches ? 'Reduced motion' : !animate ? 'Keyboard activation' : !start ? 'View Transitions unavailable' : '';
+   if (reason) { apply(); report(undefined, reason); return; }
 
-export function initThemeToggle({ button, circleOverlay }: ThemeToggleOptions) {
-	// Get initial theme from localStorage or system preference
-	const getTheme = (): 'light' | 'dark' => {
-		const stored = localStorage.getItem('theme') as 'light' | 'dark' | null;
-		if (stored) return stored;
-		
-		return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-	};
-
-	// Apply theme to document
-	const applyTheme = (theme: 'light' | 'dark') => {
-		document.documentElement.setAttribute('data-theme', theme);
-		localStorage.setItem('theme', theme);
-	};
-
-	// Initialize theme
-	const currentTheme = getTheme();
-	applyTheme(currentTheme);
-
-	// Update button icon based on theme
-	const updateButtonIcon = (theme: 'light' | 'dark') => {
-		const isDark = theme === 'dark';
-		button.setAttribute('aria-label', `Switch to ${isDark ? 'light' : 'dark'} mode`);
-		button.innerHTML = isDark 
-			? '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>'
-			: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
-	};
-
-	updateButtonIcon(currentTheme);
-
-	// Get upper right corner coordinates
-	const getStartPosition = (): { x: number; y: number } => {
-		const { innerWidth, innerHeight } = window;
-		return {
-			x: innerWidth,
-			y: 0
-		};
-	};
-
-	// Calculate the radius needed to cover the entire viewport
-	const getDistanceToFarthestCorner = (x: number, y: number): number => {
-		const { innerWidth, innerHeight } = window;
-		const corners = [
-			{ x: 0, y: 0 },
-			{ x: innerWidth, y: 0 },
-			{ x: 0, y: innerHeight },
-			{ x: innerWidth, y: innerHeight }
-		];
-
-		return Math.max(
-			...corners.map(corner => {
-				const dx = corner.x - x;
-				const dy = corner.y - y;
-				return Math.sqrt(dx * dx + dy * dy);
-			})
-		);
-	};
-
-	// Calculate scrollbar width
-	const getScrollbarWidth = (): number => {
-		// Create a temporary div to measure scrollbar width
-		const outer = document.createElement('div');
-		outer.style.visibility = 'hidden';
-		outer.style.overflow = 'scroll';
-		outer.style.msOverflowStyle = 'scrollbar';
-		document.body.appendChild(outer);
-		
-		const inner = document.createElement('div');
-		outer.appendChild(inner);
-		
-		const scrollbarWidth = outer.offsetWidth - inner.offsetWidth;
-		
-		outer.parentNode?.removeChild(outer);
-		
-		return scrollbarWidth;
-	};
-
-	// Toggle theme with circular expansion animation
-	const toggleTheme = () => {
-		//disable the button
-		button.disabled = true;
-		const currentTheme = document.documentElement.getAttribute('data-theme') as 'light' | 'dark';
-		const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-		const buttonPos = getStartPosition();
-		const radius = getDistanceToFarthestCorner(buttonPos.x, buttonPos.y);
-
-		// Scroll to top and lock scrolling
-		// Stop Lenis smooth scrolling first
-		if (typeof window !== 'undefined' && (window as any).lenis) {
-			(window as any).lenis.stop();
-		}
-		
-		// Scroll to top instantly
-		window.scrollTo({ top: 0, behavior: 'instant' });
-		
-		// Calculate scrollbar width before hiding it
-		const scrollbarWidth = getScrollbarWidth();
-		
-		// Lock scrolling and compensate for scrollbar removal
-		document.body.style.overflow = 'hidden';
-		document.documentElement.style.overflow = 'hidden';
-		document.body.style.paddingRight = `${scrollbarWidth}px`;
-
-		// Use white overlay for mix-blend-mode: difference effect
-		// This creates the "letters switching mid-letter" visual effect
-		circleOverlay.style.backgroundColor = newTheme === 'dark' ? 'white' : 'white';
-		
-		// Position the circle overlay at the button location
-		circleOverlay.style.left = `${buttonPos.x}px`;
-		circleOverlay.style.top = `${buttonPos.y}px`;
-		circleOverlay.style.width = '0px';
-		circleOverlay.style.height = '0px';
-		circleOverlay.style.transform = 'translate(-50%, -50%)';
-		circleOverlay.style.transition = 'none';
-		circleOverlay.style.display = 'block';
-
-		// Check if View Transitions API is supported
-		if ('startViewTransition' in document) {
-			const transition = (document as any).startViewTransition(() => {
-				//applyTheme(newTheme);
-				updateButtonIcon(newTheme);
-			});
-
-			// Animate the circle expansion after a tiny delay to ensure overlay is positioned
-			requestAnimationFrame(() => {
-				requestAnimationFrame(() => {
-					circleOverlay.style.width = `${radius * 2}px`;
-					circleOverlay.style.height = `${radius * 2}px`;
-					circleOverlay.style.transition = 'width 1s cubic-bezier(0.4, 0, 0.2, 1), height 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
-				});
-			});
-
-			// Hide overlay after animation
-			setTimeout(() => {
-				applyTheme(newTheme);
-				circleOverlay.style.display = 'none';
-				circleOverlay.style.transition = 'none';
-				
-				// Unlock scrolling and remove padding compensation
-				document.body.style.overflow = '';
-				document.documentElement.style.overflow = '';
-				document.body.style.paddingRight = '';
-				
-				// Resume Lenis if it exists
-				if (typeof window !== 'undefined' && (window as any).lenis) {
-					(window as any).lenis.start();
-				}
-				
-				button.disabled = false;
-			}, 1000);
-		} else {
-			// Fallback for browsers without View Transitions API
-			updateButtonIcon(newTheme);
-
-			// Animate the circle expansion
-			requestAnimationFrame(() => {
-				requestAnimationFrame(() => {
-					circleOverlay.style.width = `${radius * 2}px`;
-					circleOverlay.style.height = `${radius * 2}px`;
-					circleOverlay.style.transition = 'width 0.6s cubic-bezier(0.4, 0, 0.2, 1), height 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
-				});
-			});
-
-			setTimeout(() => {
-				applyTheme(newTheme);
-				circleOverlay.style.display = 'none';
-				circleOverlay.style.transition = 'none';
-				
-				// Unlock scrolling and remove padding compensation
-				document.body.style.overflow = '';
-				document.documentElement.style.overflow = '';
-				document.body.style.paddingRight = '';
-				
-				// Resume Lenis if it exists
-				if (typeof window !== 'undefined' && (window as any).lenis) {
-					(window as any).lenis.start();
-				}
-				
-				button.disabled = false;
-			}, 600);
-		}
-
-	};
-
-	button.addEventListener('click', toggleTheme);
-
-	// Listen for system theme changes
-	window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
-		if (!localStorage.getItem('theme')) {
-			applyTheme(e.matches ? 'dark' : 'light');
-			updateButtonIcon(e.matches ? 'dark' : 'light');
-		}
-	});
+   const effect = forcedEffect ?? nextEffect();
+   const tuning = effectTuning[effect];
+   const rect = button.getBoundingClientRect();
+   const x = Math.max(0, Math.min(innerWidth, rect.left + rect.width / 2)), y = Math.max(0, Math.min(innerHeight, rect.top + rect.height / 2));
+   const frames = revealFrames(effect, x, y, innerWidth, innerHeight);
+   const run: NonNullable<typeof active> = {}; active = run;
+   root.dataset.themeTransition = 'reveal';
+   try {
+    run.transition = start!.call(document, apply);
+    const finished = run.transition.finished.catch(() => {});
+    await run.transition.ready;
+    if (active !== run) return;
+    run.animation = root.animate({ clipPath: frames }, { duration: tuning.duration, easing: `cubic-bezier(${tuning.curve.join(',')})`, fill: 'forwards', pseudoElement: '::view-transition-new(root)' });
+    report(effect);
+    await run.animation.finished; await finished;
+   } catch {
+    if (active === run) { apply(); report(effect, 'Transition unavailable or interrupted'); }
+   } finally { if (active === run) finish(); }
+  },
+ };
+ apply();
+ controller.bindTrigger(button);
+ // A captured root can become the pointer hit target while its snapshot is visible.
+ // Forward only theme-control hits; never hijack ordinary page clicks.
+ document.addEventListener('click', event => {
+  if (!active || event.target !== root || event.detail === 0) return;
+  for (const trigger of triggers) {
+   const rect = trigger.getBoundingClientRect();
+   if (rect.width > 0 && rect.height > 0 && event.clientX >= rect.left && event.clientX <= rect.right && event.clientY >= rect.top && event.clientY <= rect.bottom) {
+    trigger.focus({ preventScroll: true });
+    void controller.toggle(true);
+    break;
+   }
+  }
+ }, true);
+ system.addEventListener('change', () => { if (!chosen) { finish(); theme = system.matches ? 'dark' : 'light'; apply(); } });
+ reduced.addEventListener('change', () => { if (reduced.matches && active) { finish(); apply(); report(undefined, 'Reduced motion enabled'); } });
+ window.addEventListener('resize', () => { if (active) { finish(); apply(); report(undefined, 'Viewport resized'); } });
+ return controller;
 }
 

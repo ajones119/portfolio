@@ -1,31 +1,25 @@
 ---
 ---
-<button 
-	id="theme-toggle" 
-	class="border-1 border-solid border-primary size-8 rounded-full bg-background flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity"
-	aria-label="Toggle theme"
+<button
+ id="theme-toggle" type="button"
+ class="border-1 border-solid border-primary size-8 rounded-full bg-background flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity"
+ aria-label="Toggle theme"
 >
-	<!-- Icon will be injected by JavaScript -->
+ <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
 </button>
-
-
 <script>
-	import { initThemeToggle } from '../../scripts/themeToggle';
-	
-	const button = document.getElementById('theme-toggle') as HTMLButtonElement;
-	const circleOverlay = document.getElementById('theme-circle-overlay');
-	
-	if (button && circleOverlay) {
-		initThemeToggle({ button, circleOverlay });
-	}
+ import { initThemeToggle } from '../../scripts/themeToggle';
+ const button = document.getElementById('theme-toggle') as HTMLButtonElement | null;
+ if (button) {
+  initThemeToggle({ button });
+ }
 </script>
-
 <style>
-
-	
-	.theme-toggle-button svg {
-		width: 20px;
-		height: 20px;
-	}
+ #theme-toggle:focus-visible { outline: 2px solid var(--color-secondary); outline-offset: 4px; }
+ @media (hover: hover) and (pointer: fine) {
+  #theme-toggle { transition: opacity 120ms, transform 120ms cubic-bezier(0.23, 1, 0.32, 1); }
+  #theme-toggle:active { transform: scale(.97); }
+ }
+ @media (prefers-reduced-motion: reduce) { #theme-toggle { transition: none; } }
 </style>
 

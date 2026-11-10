@@ -118,37 +118,20 @@ html[data-theme="dark"] ::-webkit-scrollbar-corner {
 
 
 
-/* Circular overlay for theme transition */
-.theme-circle-overlay-container {
-    position: absolute;
-    z-index: 0;
-    top: 0;
-    left: 0;
-    height: 100%;
-    width: 100%;
-    overflow: hidden;
-    pointer-events: none;
-    background: transparent;
-}
-.theme-circle-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 0;
-    height: 0;
-    /* background-color: #ffffff; */
-    border-radius: 50%;
-    pointer-events: none;
-    z-index: 2;
-    will-change: width, height;
-    mix-blend-mode: difference;
-    /* This creates the "letters switching mid-letter" effect */
-}
 
-.eject-overlay {
-    /* this content should be the same color independent of the theme */
-    position: relative;
-    z-index: 4;
-    isolation: isolate;
-    
+/* Root snapshots own the reveal; ordinary page layers stay unchanged. */
+html[data-theme-transition]::view-transition-group(root) { animation: none; }
+html[data-theme-transition]::view-transition-old(root),
+html[data-theme-transition]::view-transition-new(root) {
+ animation: none;
+ mix-blend-mode: normal;
+ opacity: 1;
 }
+html[data-theme-transition]::view-transition-image-pair(root) { isolation: isolate; }
+html[data-theme-transition="reveal"]::view-transition-old(root) { z-index: 1; }
+html[data-theme-transition="reveal"]::view-transition-new(root) { z-index: 2; }
+::view-transition { pointer-events: none; }
+html[data-theme-transition]::view-transition-group(root),
+html[data-theme-transition]::view-transition-image-pair(root),
+html[data-theme-transition]::view-transition-old(root),
+html[data-theme-transition]::view-transition-new(root) { pointer-events: none; }
