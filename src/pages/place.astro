@@ -5,13 +5,28 @@ import '../components/Place/place.css';
 
 <Layout
   title="Place — Aramis Jones"
-  description="A shared pixel Canvas. Everyone gets one Pixel every few minutes."
+  description="Choose a color and place a Pixel on a Canvas shared by everyone here."
 >
   <section class="place" data-place aria-label="Shared pixel Canvas">
     <div class="place__viewport" data-place-viewport>
-      <canvas class="place__canvas" data-place-canvas width="128" height="128" aria-label="The shared Canvas"></canvas>
+      <div class="place__surface" data-place-surface>
+        <canvas class="place__canvas" data-place-canvas width="128" height="128"
+          role="button" tabindex="0" aria-disabled="true" aria-label="Select a Pixel on the shared Canvas"
+          aria-description="Press Enter to select the center Pixel. Use the arrow keys to move your selection. Drag to pan; scroll or pinch to zoom."></canvas>
+        <span class="place__selection" data-place-selection hidden aria-hidden="true"></span>
+      </div>
+      <div class="place__dock">
+        <p class="place__status" data-place-status role="status" data-state="connecting">Connecting…</p>
+        <p class="place__cooldown" data-place-cooldown role="status" hidden></p>
+        <div class="place__panel" data-place-panel hidden>
+          <fieldset class="place__palette" data-place-palette aria-label="Palette"></fieldset>
+          <div class="place__actions">
+            <button type="button" class="place__cancel" data-place-cancel>Cancel</button>
+            <button type="button" class="place__confirm" data-place-confirm disabled>Place</button>
+          </div>
+        </div>
+      </div>
     </div>
-    <p class="place__status" data-place-status aria-live="polite" data-state="connecting">Connecting…</p>
   </section>
 </Layout>
 <script src="../scripts/place.ts"></script>

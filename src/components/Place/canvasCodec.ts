@@ -16,7 +16,7 @@ export function decodeCanvas(packed: Uint8Array, width: number, height: number):
 }
 
 /** Converts Pixels (Palette indices) into RGBA bytes ready for `ImageData`. */
-export function paletteToRgba(pixels: Uint8Array, palette: readonly string[]): Uint8ClampedArray {
+export function paletteToRgba(pixels: Uint8Array, palette: readonly string[]): Uint8ClampedArray<ArrayBuffer> {
   const colors = palette.map(hexToRgb);
   const rgba = new Uint8ClampedArray(pixels.length * 4);
   pixels.forEach((paletteIndex, pixel) => {
