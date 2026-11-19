@@ -1,0 +1,102 @@
+---
+import { Image } from 'astro:assets';
+import previewSrc from '../../../../assets/images/projects/soundscape/soundscapes-demo.png';
+import iconSrc from '../../../../assets/images/projects/soundscape/soundscapes-icon.svg';
+---
+
+<div
+    id="soundscapes-card"
+    class="group w-full h-full p-6 flex flex-col relative overflow-hidden cursor-pointer"
+>
+    <a
+        href="/soundscape"
+        data-astro-prefetch
+        class="absolute inset-0 z-10"
+        aria-label="Open Soundscapes"
+    ></a>
+
+    <div class="relative z-20 pointer-events-none mb-4 flex items-start justify-between gap-4">
+        <div>
+            <h3 class="text-2xl font-bold font-abril-fatface">Soundscapes</h3>
+            <p class="text-xs text-primary mt-1">2026</p>
+        </div>
+        <Image
+            src={iconSrc}
+            alt=""
+            class="soundscapes-icon w-14 h-14 shrink-0 rounded-xl"
+            width={56}
+            height={56}
+        />
+    </div>
+
+    <div class="flex-1 flex flex-col justify-center relative z-20 pointer-events-none">
+        <p class="text-sm text-primary mb-4">
+            Describe a scene and shape an ambient mix from music, weather, and environmental sounds.
+        </p>
+        <p class="soundscapes-link text-xs font-bold text-primary">Open the mixer →</p>
+    </div>
+
+    <div class="soundscapes-preview absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
+        <Image
+            src={previewSrc}
+            alt=""
+            class="soundscapes-preview-image w-full h-full object-cover"
+            widths={[480, 720]}
+            sizes="(min-width: 1024px) 33vw, 100vw"
+            loading="lazy"
+        />
+    </div>
+</div>
+
+<style>
+    .soundscapes-preview {
+        opacity: 0.16;
+        transition: opacity 350ms ease-out;
+    }
+
+    .soundscapes-preview::after {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(100deg, rgb(255 255 255 / 92%) 0%, rgb(255 255 255 / 58%) 62%, transparent 100%);
+        content: '';
+    }
+
+    .soundscapes-preview-image,
+    .soundscapes-icon {
+        transition: transform 450ms cubic-bezier(.22, 1, .36, 1);
+    }
+
+    .soundscapes-preview-image {
+        transform: scale(1.02);
+    }
+
+    html[data-theme="dark"] .soundscapes-preview::after {
+        background: linear-gradient(100deg, rgb(10 10 10 / 88%) 0%, rgb(10 10 10 / 52%) 62%, transparent 100%);
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+        .soundscapes-preview {
+            opacity: 0.04;
+        }
+
+        .group:hover .soundscapes-preview {
+            opacity: 0.42;
+        }
+
+        .group:hover .soundscapes-preview-image {
+            transform: scale(1.06);
+        }
+
+        .group:hover .soundscapes-icon {
+            transform: translateY(-2px) rotate(-3deg);
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .soundscapes-preview,
+        .soundscapes-preview-image,
+        .soundscapes-icon {
+            transition: none;
+        }
+    }
+</style>

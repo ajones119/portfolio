@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-labelledby="title desc">
+  <title id="title">Soundscapes</title>
+  <desc id="desc">Layered sound waves crossing a night landscape</desc>
+  <rect x="4" y="4" width="120" height="120" rx="28" fill="#0a0a0a" stroke="#343434" stroke-width="8"/>
+  <path d="M25 67h11l7-20 10 39 10-55 11 61 10-44 8 19h11" fill="none" stroke="#f4f2ec" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="43" cy="47" r="6" fill="#9be3d2"/>
+  <circle cx="63" cy="31" r="6" fill="#e9b872"/>
+  <circle cx="84" cy="48" r="6" fill="#e58c8c"/>
+  <path d="M24 98c13-12 26-12 39 0 13-12 27-12 41 0" fill="none" stroke="#77716c" stroke-width="5" stroke-linecap="round"/>
+</svg>
