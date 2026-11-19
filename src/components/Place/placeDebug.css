@@ -1,0 +1,29 @@
+/* Dev builds only: what the server sees, and Cooldown controls. */
+.place__debug {
+  position: absolute;
+  top: .6rem;
+  right: .6rem;
+  z-index: 2;
+  max-width: min(18rem, calc(100% - 1.2rem));
+  padding: .4rem .6rem;
+  border: 1px dashed currentColor;
+  border-radius: .3rem;
+  background: var(--place-paper);
+  font-family: ui-monospace, monospace;
+  font-size: .75rem;
+}
+
+.place__debug summary { cursor: pointer; font-weight: 700; }
+.place__debug dl {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: .15rem .6rem;
+  margin: .4rem 0;
+}
+.place__debug dd { margin: 0; font-variant-numeric: tabular-nums; }
+.place__debug form,
+.place__debug-actions { display: flex; flex-wrap: wrap; gap: .3rem; align-items: center; margin-top: .3rem; }
+.place__debug input { width: 5rem; font: inherit; }
+.place__debug button { font: inherit; padding: .1rem .45rem; border: 1px solid currentColor; border-radius: .2rem; cursor: pointer; }
+.place__debug-message { margin: .3rem 0 0; color: #E50000; }
+.place__debug-message:empty { display: none; }

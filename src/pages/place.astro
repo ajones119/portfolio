@@ -15,8 +15,30 @@ import '../components/Place/place.css';
           aria-description="Press Enter to select the center Pixel. Use the arrow keys to move your selection. Drag to pan; scroll or pinch to zoom."></canvas>
         <span class="place__selection" data-place-selection hidden aria-hidden="true"></span>
       </div>
+      <p class="place__connection" data-place-connection role="status" data-state="connecting">Connecting…</p>
+      {import.meta.env.DEV && (
+        <details class="place__debug" data-place-debug>
+          <summary>Debug</summary>
+          <dl>
+            <dt>Visitor</dt><dd data-debug-visitor>–</dd>
+            <dt>Network</dt><dd data-debug-network>–</dd>
+            <dt>Cooldown length</dt><dd data-debug-cooldown>–</dd>
+            <dt>Cooldown left</dt><dd data-debug-remaining>–</dd>
+            <dt>Network Placements</dt><dd data-debug-network-count>–</dd>
+          </dl>
+          <form>
+            <label>Cooldown (s) <input type="number" min="0" max="86400" step="1" required data-debug-seconds-input /></label>
+            <button type="submit">Set</button>
+          </form>
+          <div class="place__debug-actions">
+            <button type="button" data-debug-reset>Reset my Cooldown</button>
+            <button type="button" data-debug-refresh>Refresh</button>
+          </div>
+          <p class="place__debug-message" data-debug-message role="alert"></p>
+        </details>
+      )}
       <div class="place__dock">
-        <p class="place__status" data-place-status role="status" data-state="connecting">Connecting…</p>
+        <p class="place__status" data-place-status role="status">Drag to pan; scroll or pinch to zoom.</p>
         <p class="place__cooldown" data-place-cooldown role="status" hidden></p>
         <div class="place__panel" data-place-panel hidden>
           <fieldset class="place__palette" data-place-palette aria-label="Palette"></fieldset>

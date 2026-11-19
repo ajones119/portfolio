@@ -2,6 +2,7 @@ import { Client, MatchMakeError, type Room } from '@colyseus/sdk';
 import { decodeCanvas, paletteToRgba } from '../components/Place/canvasCodec';
 import { cooldownRemaining, formatCooldown, type CooldownSync } from '../components/Place/cooldown';
 import { createGesture } from '../components/Place/gesture';
+import { reconnectDelay } from '../components/Place/reconnect';
 import {
   clampView, fitView, pixelAt, pixelRect, wheelZoomFactor, zoomAbout, zoomLimits,
   type Pixel, type Point, type View,
@@ -144,11 +145,12 @@ function mountViewport(
   };
 }
 
-async function mountPlace(root: HTMLElement): Promise<void> {
+function mountPlace(root: HTMLElement): void {
   const surface = root.querySelector<HTMLElement>('[data-place-surface]')!;
   const canvas = root.querySelector<HTMLCanvasElement>('[data-place-canvas]')!;
   const marker = root.querySelector<HTMLElement>('[data-place-selection]')!;
   const status = root.querySelector<HTMLElement>('[data-place-status]')!;
+  const connection = root.querySelector<HTMLElement>('[data-place-connection]')!;
   const cooldownStatus = root.querySelector<HTMLElement>('[data-place-cooldown]')!;
   const panel = root.querySelector<HTMLElement>('[data-place-panel]')!;
   const paletteBar = root.querySelector<HTMLFieldSetElement>('[data-place-palette]')!;
@@ -156,8 +158,8 @@ async function mountPlace(root: HTMLElement): Promise<void> {
   const cancel = root.querySelector<HTMLButtonElement>('[data-place-cancel]')!;
   const context = canvas.getContext('2d');
   if (!context) {
-    status.dataset.state = 'offline';
-    status.textContent = 'This browser cannot display the Canvas.';
+    connection.dataset.state = 'offline';
+    connection.textContent = 'This browser cannot display the Canvas.';
     return;
   }
 
@@ -181,16 +183,6 @@ async function mountPlace(root: HTMLElement): Promise<void> {
 
   // Panning and zooming work while connecting; taps wait for the Canvas.
   const viewport = mountViewport(surface, canvas, { onTap: (pixel) => select(pixel), onChange: placeMarker });
-
-  let room: Room;
-  try {
-    room = await joinPlace();
-  } catch (error) {
-    console.error('Could not join Place', error);
-    status.dataset.state = 'offline';
-    status.textContent = 'Place is unreachable right now. Reload to try again.';
-    return;
-  }
 
   function remainingCooldown(): number {
     return cooldownSync ? cooldownRemaining(cooldownSync, performance.now()) : 0;
@@ -272,78 +264,144 @@ async function mountPlace(root: HTMLElement): Promise<void> {
     clearSelection();
     canvas.setAttribute('aria-disabled', 'true');
     status.textContent = `Placing Pixel (${pending.x}, ${pending.y})…`;
-    room.send('place', pending);
+    room?.send('place', pending);
   });
 
-  room.onMessage('canvas', (snapshot: CanvasSnapshot) => {
-    const { width, height } = snapshot;
-    pixels = decodeCanvas(snapshot.pixels, width, height);
-    palette = snapshot.palette;
-    const resized = canvas.width !== width || canvas.height !== height;
-    canvas.width = width;
-    canvas.height = height;
-    context.putImageData(new ImageData(paletteToRgba(pixels, palette), width, height), 0, 0);
-    if (resized) viewport.refit();
-    synchronizeCooldown(snapshot);
-    clearSelection();
-    pending = null;
-    paletteBar.replaceChildren(...palette.map((hex, index) => {
-      const input = document.createElement('input');
-      input.type = 'radio';
-      input.name = 'place-color';
-      input.value = String(index);
-      input.style.backgroundColor = hex;
-      input.title = `Palette color ${index}: ${hex}`;
-      input.setAttribute('aria-label', input.title);
-      return input;
-    }));
-    canvas.setAttribute('aria-disabled', 'false');
-    status.dataset.state = 'live';
-    status.textContent = SELECT_HINT;
-  });
+  // The room for the current connection, or null while connecting or offline.
+  let room: Room | null = null;
 
-  room.onMessage('placed', ({ x, y, color }: Placement) => {
-    if (!pixels) return;
-    pixels[y * canvas.width + x] = color;
-    paint(x, y, color);
-  });
-  room.onMessage('place:accepted', (message: CooldownMessage) => {
-    if (!pending) return;
-    status.textContent = `Placed Pixel (${pending.x}, ${pending.y}). Select another Pixel.`;
-    pending = null;
-    synchronizeCooldown(message);
-    canvas.setAttribute('aria-disabled', 'false');
-  });
   function discardPending(): void {
     if (pending && pixels) paint(pending.x, pending.y, pixels[pending.y * canvas.width + pending.x]);
     pending = null;
   }
-  room.onMessage('place:rejected', (message: RejectedPlacement) => {
-    if (!pending) return;
-    discardPending();
-    if (message.nextAllowedAt !== undefined) {
-      synchronizeCooldown({ nextAllowedAt: message.nextAllowedAt, serverNow: message.serverNow });
-    }
-    const problem = message.reason === 'out_of_bounds' ? 'That Pixel is outside the Canvas.'
-      : message.reason === 'bad_color' ? 'That color is not in the Palette.'
-      : message.reason === 'cooldown' ? 'Your Cooldown is still active.'
-      : message.reason === 'network_cap' ? 'This network has reached its Placement cap.'
-      : 'Placement rejected.';
-    status.textContent = `${problem} Select a Pixel to try again.`;
-    canvas.setAttribute('aria-disabled', 'false');
-  });
-  function disconnect(): void {
-    window.clearInterval(cooldownInterval);
+
+  function setConnection(state: 'connecting' | 'live' | 'offline', text: string): void {
+    connection.dataset.state = state;
+    connection.textContent = text;
+  }
+
+  /** Every message handler for one joined room. A rejoin gets a fresh room and a full snapshot. */
+  function attach(joined: Room): void {
+    joined.onMessage('canvas', (snapshot: CanvasSnapshot) => {
+      const { width, height } = snapshot;
+      pixels = decodeCanvas(snapshot.pixels, width, height);
+      palette = snapshot.palette;
+      const resized = canvas.width !== width || canvas.height !== height;
+      canvas.width = width;
+      canvas.height = height;
+      context.putImageData(new ImageData(paletteToRgba(pixels, palette), width, height), 0, 0);
+      if (resized) viewport.refit();
+      synchronizeCooldown(snapshot);
+      clearSelection();
+      pending = null;
+      paletteBar.replaceChildren(...palette.map((hex, index) => {
+        const input = document.createElement('input');
+        input.type = 'radio';
+        input.name = 'place-color';
+        input.value = String(index);
+        input.style.backgroundColor = hex;
+        input.title = `Palette color ${index}: ${hex}`;
+        input.setAttribute('aria-label', input.title);
+        return input;
+      }));
+      canvas.setAttribute('aria-disabled', 'false');
+      setConnection('live', 'Live');
+      status.textContent = SELECT_HINT;
+    });
+
+    joined.onMessage('placed', ({ x, y, color }: Placement) => {
+      if (!pixels) return;
+      pixels[y * canvas.width + x] = color;
+      paint(x, y, color);
+    });
+    joined.onMessage('place:accepted', (message: CooldownMessage) => {
+      if (!pending) return;
+      status.textContent = `Placed Pixel (${pending.x}, ${pending.y}). Select another Pixel.`;
+      pending = null;
+      synchronizeCooldown(message);
+      canvas.setAttribute('aria-disabled', 'false');
+      debugPanel?.refresh();
+    });
+    joined.onMessage('place:rejected', (message: RejectedPlacement) => {
+      if (!pending) return;
+      discardPending();
+      if (message.nextAllowedAt !== undefined) {
+        synchronizeCooldown({ nextAllowedAt: message.nextAllowedAt, serverNow: message.serverNow });
+      }
+      const problem = message.reason === 'out_of_bounds' ? 'That Pixel is outside the Canvas.'
+        : message.reason === 'bad_color' ? 'That color is not in the Palette.'
+        : message.reason === 'cooldown' ? 'Your Cooldown is still active.'
+        : message.reason === 'network_cap' ? 'This network has reached its Placement cap.'
+        : 'Placement rejected.';
+      status.textContent = `${problem} Select a Pixel to try again.`;
+      canvas.setAttribute('aria-disabled', 'false');
+    });
+    joined.onLeave(() => {
+      if (room !== joined) return;
+      room = null;
+      pauseWhileOffline();
+      scheduleReconnect();
+    });
+  }
+
+  // Placing is off until the next snapshot replaces the Canvas, including any unacknowledged Pixel.
+  function pauseWhileOffline(): void {
     discardPending();
     clearSelection();
     pixels = null;
     canvas.setAttribute('aria-disabled', 'true');
-    status.dataset.state = 'offline';
-    status.textContent = 'Disconnected from Place. Reload to rejoin.';
+    status.textContent = 'Placing is paused until Place reconnects.';
   }
-  room.onDrop(disconnect);
-  room.onLeave(disconnect);
+
+  let attempt = 0;
+  let joinedOnce = false;
+  let connecting = false;
+  let retryTimer: number | undefined;
+
+  async function connect(): Promise<void> {
+    if (connecting || room) return;
+    connecting = true;
+    window.clearTimeout(retryTimer);
+    setConnection('connecting', joinedOnce ? 'Reconnecting…' : 'Connecting…');
+    try {
+      const joined = await joinPlace();
+      // This page rejoins with a fresh snapshot instead of resuming the old session.
+      joined.reconnection.enabled = false;
+      room = joined;
+      attempt = 0;
+      joinedOnce = true;
+      attach(joined);
+    } catch (error) {
+      console.error('Could not join Place', error);
+      scheduleReconnect();
+    } finally {
+      connecting = false;
+    }
+  }
+
+  function scheduleReconnect(): void {
+    const delay = reconnectDelay(attempt++);
+    const seconds = Math.max(1, Math.round(delay / 1_000));
+    setConnection('offline', joinedOnce
+      ? `Offline. Reconnecting in ${seconds}s…`
+      : `Place is unreachable right now. Retrying in ${seconds}s…`);
+    window.clearTimeout(retryTimer);
+    retryTimer = window.setTimeout(() => void connect(), delay);
+  }
+
+  // Try straight away when the browser says the network is back.
+  window.addEventListener('online', () => void connect());
+
+  let debugPanel: { refresh(): void } | null = null;
+  if (import.meta.env.DEV) {
+    void import('./placeDebugPanel').then(({ mountDebugPanel }) => {
+      const element = root.querySelector<HTMLElement>('[data-place-debug]');
+      if (element) debugPanel = mountDebugPanel(element, { apiBaseUrl: API_BASE_URL, onCooldown: synchronizeCooldown });
+    });
+  }
+
+  void connect();
 }
 
 const root = document.querySelector<HTMLElement>('[data-place]');
-if (root) void mountPlace(root);
+if (root) mountPlace(root);
