@@ -16,6 +16,17 @@ import '../components/Place/place.css';
         <span class="place__selection" data-place-selection hidden aria-hidden="true"></span>
       </div>
       <p class="place__connection" data-place-connection role="status" data-state="connecting">Connecting…</p>
+      <div class="place__loader" data-place-loader aria-hidden="true" hidden>
+        <div class="place__loader-track">
+          <span class="place__loader-stamp" data-loader-stamp></span>
+          <span class="place__loader-stamp" data-loader-stamp></span>
+          <span class="place__loader-stamp" data-loader-stamp></span>
+          <span class="place__loader-stamp" data-loader-stamp></span>
+          <span class="place__loader-stamp" data-loader-stamp></span>
+          <span class="place__loader-pixel" data-loader-pixel></span>
+        </div>
+        <p class="place__loader-caption" data-loader-caption>Mixing the paint…</p>
+      </div>
       {import.meta.env.DEV && (
         <details class="place__debug" data-place-debug>
           <summary>Debug</summary>

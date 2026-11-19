@@ -283,3 +283,49 @@ body:has(.place) main ~ * {
 
 .place__connection[data-state="live"]::before { background: #02BE01; }
 .place__connection[data-state="offline"]::before { background: #E50000; }
+
+/* The connecting animation: one Pixel rolling along a track. See placeLoader.ts. */
+.place__loader {
+  --loader-cell: 2rem;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 1;
+  display: grid;
+  justify-items: center;
+  gap: 1rem;
+  translate: -50% -50%;
+  pointer-events: none;
+}
+
+.place__loader[hidden] { display: none; }
+
+.place__loader-track {
+  position: relative;
+  display: flex;
+  border-bottom: 2px solid color-mix(in srgb, var(--place-ink) 14%, transparent);
+}
+
+.place__loader-stamp {
+  width: var(--loader-cell);
+  height: var(--loader-cell);
+  border-radius: .3rem;
+  opacity: 0;
+}
+
+.place__loader-pixel {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: var(--loader-cell);
+  height: var(--loader-cell);
+  border-radius: .3rem;
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / .08), 0 .2rem .5rem rgb(0 0 0 / .14);
+}
+
+.place__loader-caption {
+  margin: 0;
+  color: color-mix(in srgb, var(--place-ink) 60%, transparent);
+  font-size: .8rem;
+  white-space: nowrap;
+}

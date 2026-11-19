@@ -4,6 +4,7 @@ import { cooldownRemaining, formatCooldown, type CooldownSync } from '../compone
 import { createGesture } from '../components/Place/gesture';
 import { reconnectDelay } from '../components/Place/reconnect';
 import { mountDockMotion } from './placeDock';
+import { mountLoader } from './placeLoader';
 import {
   clampView, fitView, pixelAt, pixelRect, wheelZoomFactor, zoomAbout, zoomLimits,
   type Pixel, type Point, type View,
@@ -327,9 +328,11 @@ function mountPlace(root: HTMLElement): void {
     pending = null;
   }
 
+  const loader = mountLoader(root.querySelector<HTMLElement>('[data-place-loader]')!);
   function setConnection(state: 'connecting' | 'live' | 'offline', text: string): void {
     connection.dataset.state = state;
     connection.textContent = text;
+    loader.setActive(state !== 'live');
   }
 
   /** Every message handler for one joined room. A rejoin gets a fresh room and a full snapshot. */
