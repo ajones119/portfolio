@@ -10,7 +10,7 @@ Friends visiting the portfolio have nothing they can make together. There is no 
 
 ## Solution
 
-A `/place` page in the spirit of Reddit's r/place: one shared 128×128 Canvas of Pixels drawn from a fixed 16-color Palette. Any visitor, without signing in, may make one Placement per Cooldown (10 minutes by default), coloring any Pixel, including one someone else just placed. Everyone watching sees Placements appear live. The Canvas lives forever (until wiped by hand), survives API restarts via a file on the server's disk, and keeps a Placement History of the last 5,000 Placements so the owner can undo vandalism. A local-only debug UI lets the developer shorten or reset the Cooldown while testing.
+A `/place` page in the spirit of Reddit's r/place: one shared 128×128 Canvas of Pixels colored from a 16-color Palette or any custom color. Any visitor, without signing in, may make one Placement per Cooldown (10 minutes by default), coloring any Pixel, including one someone else just placed. Everyone watching sees Placements appear live. The Canvas lives forever (until wiped by hand), survives API restarts via a file on the server's disk, and keeps a Placement History of the last 5,000 Placements so the owner can undo vandalism. A local-only debug UI lets the developer shorten or reset the Cooldown while testing.
 
 ## User Stories
 
@@ -24,7 +24,7 @@ A `/place` page in the spirit of Reddit's r/place: one shared 128×128 Canvas of
 8. As a visitor, I want a tap or click to select a Pixel rather than color it, so that a mis-tap doesn't waste my Cooldown.
 9. As a visitor, I want ending a drag never to count as a tap, so that panning never selects a Pixel by accident.
 10. As a visitor, I want the selected Pixel highlighted, so that I know exactly which Pixel I'm about to color.
-11. As a visitor, I want a Palette bar to appear when I select a Pixel, so that I can choose one of the 16 colors.
+11. As a visitor, I want a Palette bar to appear when I select a Pixel, so that I can choose one of the 16 colors, or any color from the custom color picker at its end.
 12. As a visitor, I want to see the chosen color previewed on the selected Pixel, so that I can judge it before committing.
 13. As a visitor, I want a Place button that confirms the Placement, so that coloring is a deliberate act.
 14. As a visitor, I want my Pixel to appear the moment I press Place, so that the page feels responsive.
@@ -71,7 +71,7 @@ A `/place` page in the spirit of Reddit's r/place: one shared 128×128 Canvas of
 - Colyseus schema state sync is **not** used for Pixels; the room communicates with explicit messages.
 
 **Domain module (server, deep module behind the room)**
-- A Place model owns the Canvas (128×128, 16-color Palette indices), the Placement History ring (capacity 5,000, oldest evicted first), Cooldown bookkeeping, and revert. The Colyseus room and HTTP routes are thin adapters over it. It takes an injected clock.
+- A Place model owns the Canvas (128×128, 24-bit RGB colors), the Placement History ring (capacity 5,000, oldest evicted first), Cooldown bookkeeping, and revert. The Colyseus room and HTTP routes are thin adapters over it. It takes an injected clock.
 - Its interface, roughly: attempt a Placement (visitor id, network id, x, y, color) → accepted with `nextAllowedAt`, or rejected with a reason (`cooldown`, `network_cap`, `out_of_bounds`, `bad_color`) and `nextAllowedAt` where relevant; encode the Canvas; list recent Placements; revert (visitor id, from, to) → list of restored Pixels; serialize/restore for persistence.
 - Each Placement History entry records Pixel coordinates, new color, the color it replaced, visitor hash, network hash, and time.
 - Revert walks history newest-to-oldest and restores a Pixel only if the visitor's Placement is still the latest Placement on that Pixel, restoring the replaced color. Restorations are themselves recorded as Placements by an admin pseudo-visitor. Placements older than the 5,000-entry window cannot be reverted.
@@ -84,11 +84,11 @@ A `/place` page in the spirit of Reddit's r/place: one shared 128×128 Canvas of
 - Cooldown state is in memory and is not persisted; a restart clears all Cooldowns (accepted).
 
 **Wire contract (room messages)**
-- On join, server → client: one `canvas` message `{ palette, width, height, pixels }` — Palette (16 hex colors, ordered), Canvas size, and `pixels` as binary 4-bit Palette indices packed two Pixels per byte, high nibble first, row-major (8,192 bytes) — plus the visitor's Cooldown status (`nextAllowedAt`, `serverNow`).
-- Client → server `place`: `{ x, y, color }` where color is a Palette index.
+- On join, server → client: one `canvas` message `{ palette, width, height, pixels }` — Palette (16 preset hex colors, ordered), Canvas size, and `pixels` as binary RGB, three bytes per Pixel, row-major (49,152 bytes) — plus the visitor's Cooldown status (`nextAllowedAt`, `serverNow`).
+- Client → server `place`: `{ x, y, color }` where color is a 24-bit RGB number (0xRRGGBB), a Palette preset or any custom color.
 - Server → placer: `place:accepted { nextAllowedAt, serverNow }` or `place:rejected { reason, nextAllowedAt?, serverNow }`.
 - Server → all clients: `placed { x, y, color }` for every accepted Placement and every Pixel restored by a revert.
-- The Palette is the r/place 2017 16-color palette; index 0 is white and is the empty-Canvas color.
+- The Palette is the r/place 2017 16-color palette; white is the empty-Canvas color. The last swatch opens a custom color picker. (Changed after ticket 07: Pixels were 4-bit Palette indices; save files from then, version 1, are upgraded on load.)
 
 **HTTP routes (registered like existing route modules)**
 - Session: issues or refreshes the visitor cookie; returns nothing sensitive.
@@ -124,7 +124,7 @@ A `/place` page in the spirit of Reddit's r/place: one shared 128×128 Canvas of
 - Accounts, OAuth sign-in, Cloudflare Turnstile, or fingerprinting.
 - Showing who placed a Pixel, or any placer info on hover. Place is anonymous by design.
 - Durable persistence (Supabase) for the Canvas or Placement History.
-- Growing or infinite Canvas; Palettes beyond 16 colors.
+- Growing or infinite Canvas.
 - An admin UI, timelapse/replay UI, seasons or resets.
 - Rebuilding the existing planes / catch-of-the-day rooms.
 - Persisting Cooldowns across restarts.

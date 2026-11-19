@@ -31,13 +31,13 @@ body:has(.place) main ~ * {
 .place__viewport {
   position: absolute;
   inset: 0;
-  display: grid;
-  grid-template-rows: minmax(0, 1fr) auto;
 }
 
-/* The pannable, zoomable area. Script positions the Canvas and selection in it. */
+/* The pannable, zoomable area fills the page. Its size never depends on the
+   dock, so opening the palette never refits or shifts the Canvas. */
 .place__surface {
-  position: relative;
+  position: absolute;
+  inset: 0;
   overflow: hidden;
   touch-action: none;
   user-select: none;
@@ -74,8 +74,34 @@ body:has(.place) main ~ * {
 }
 
 .place__dock {
-  padding: 0 .75rem max(.65rem, env(safe-area-inset-bottom));
+  position: absolute;
+  left: 50%;
+  bottom: max(.75rem, env(safe-area-inset-bottom));
+  z-index: 1;
+  width: max-content;
+  max-width: calc(100% - 1.5rem);
+  padding: .5rem .9rem;
+  border: 1px solid color-mix(in srgb, var(--place-ink) 18%, transparent);
+  border-radius: .75rem;
+  transform: translateX(-50%);
+  background: color-mix(in srgb, var(--place-paper) 88%, transparent);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 6px 24px rgb(0 0 0 / .18);
   text-align: center;
+}
+
+/* The palette eases in instead of popping. */
+.place__panel:not([hidden]) {
+  animation: place-panel-in .16s ease-out;
+}
+
+@keyframes place-panel-in {
+  from { opacity: 0; transform: translateY(.35rem); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .place__panel:not([hidden]) { animation: none; }
 }
 
 .place__status,
@@ -102,8 +128,9 @@ body:has(.place) main ~ * {
 
 .place__palette {
   display: grid;
-  grid-template-columns: repeat(16, 1fr);
-  width: min(100%, 36rem);
+  grid-template-columns: repeat(17, 1fr);
+  width: 38rem;
+  max-width: 100%;
   min-width: 0;
   gap: .125rem;
   border: 0;
@@ -121,8 +148,51 @@ body:has(.place) main ~ * {
   cursor: pointer;
 }
 
-.place__palette input:checked {
+.place__palette input:checked,
+.place__custom.is-chosen {
   box-shadow: inset 0 0 0 2px white, inset 0 0 0 4px black;
+}
+
+/* The custom color swatch: a rainbow until used, then the picked color with a rainbow corner. */
+.place__custom {
+  position: relative;
+  height: 2rem;
+  border: 1px solid color-mix(in srgb, var(--place-ink) 30%, transparent);
+  border-radius: .2rem;
+  background: conic-gradient(from 90deg, #f00, #ff0, #0f0, #0ff, #00f, #f0f, #f00);
+  cursor: pointer;
+}
+
+.place__custom[style*="--custom-color"] {
+  background: var(--custom-color);
+}
+
+.place__custom[style*="--custom-color"]::after {
+  content: "";
+  position: absolute;
+  right: 2px;
+  bottom: 2px;
+  width: .55rem;
+  height: .55rem;
+  border-radius: 50%;
+  background: conic-gradient(#f00, #ff0, #0f0, #0ff, #00f, #f0f, #f00);
+  box-shadow: 0 0 0 1px white;
+}
+
+/* The real color input fills the swatch invisibly, so it stays clickable and focusable. */
+.place__palette .place__custom input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.place__custom:has(:focus-visible) {
+  outline: 2px solid var(--color-secondary);
+  outline-offset: 2px;
 }
 
 .place__actions { display: flex; gap: .45rem; }
@@ -148,8 +218,8 @@ body:has(.place) main ~ * {
 
 @media (max-width: 38rem) {
   .place__palette {
-    width: min(100%, 21rem);
-    grid-template-columns: repeat(8, 1fr);
+    width: 21rem;
+    grid-template-columns: repeat(9, 1fr);
   }
 }
 

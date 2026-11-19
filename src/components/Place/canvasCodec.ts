@@ -1,32 +1,35 @@
 /**
- * Unpacks the Canvas the Place room sends: 4-bit Palette indices, two Pixels per
- * byte (high nibble first), row-major. Returns one Palette index per Pixel.
+ * Reads the Canvas the Place room sends: three bytes (R, G, B) per Pixel,
+ * row-major. Returns one 24-bit color (0xRRGGBB) per Pixel.
  */
-export function decodeCanvas(packed: Uint8Array, width: number, height: number): Uint8Array {
+export function decodeCanvas(rgb: Uint8Array, width: number, height: number): Uint32Array {
   const pixelCount = width * height;
-  if (packed.byteLength !== Math.ceil(pixelCount / 2)) {
-    throw new Error(`Canvas payload is ${packed.byteLength} bytes; expected ${Math.ceil(pixelCount / 2)} for ${width}×${height}.`);
+  if (rgb.byteLength !== pixelCount * 3) {
+    throw new Error(`Canvas payload is ${rgb.byteLength} bytes; expected ${pixelCount * 3} for ${width}×${height}.`);
   }
-  const pixels = new Uint8Array(pixelCount);
-  for (let index = 0; index < pixelCount; index += 1) {
-    const byte = packed[index >> 1];
-    pixels[index] = index % 2 === 0 ? byte >> 4 : byte & 0x0f;
+  const pixels = new Uint32Array(pixelCount);
+  for (let pixel = 0; pixel < pixelCount; pixel += 1) {
+    const i = pixel * 3;
+    pixels[pixel] = (rgb[i] << 16) | (rgb[i + 1] << 8) | rgb[i + 2];
   }
   return pixels;
 }
 
-/** Converts Pixels (Palette indices) into RGBA bytes ready for `ImageData`. */
-export function paletteToRgba(pixels: Uint8Array, palette: readonly string[]): Uint8ClampedArray<ArrayBuffer> {
-  const colors = palette.map(hexToRgb);
+/** Converts Pixel colors into RGBA bytes ready for `ImageData`. */
+export function colorsToRgba(pixels: Uint32Array): Uint8ClampedArray<ArrayBuffer> {
   const rgba = new Uint8ClampedArray(pixels.length * 4);
-  pixels.forEach((paletteIndex, pixel) => {
-    const [r, g, b] = colors[paletteIndex] ?? colors[0];
-    rgba.set([r, g, b, 255], pixel * 4);
+  pixels.forEach((color, pixel) => {
+    rgba.set([color >> 16, (color >> 8) & 0xff, color & 0xff, 255], pixel * 4);
   });
   return rgba;
 }
 
-function hexToRgb(hex: string): [number, number, number] {
-  const value = Number.parseInt(hex.replace('#', ''), 16);
-  return [(value >> 16) & 0xff, (value >> 8) & 0xff, value & 0xff];
+/** `#rrggbb` (any case) to a 24-bit color. */
+export function hexToColor(hex: string): number {
+  return Number.parseInt(hex.replace('#', ''), 16);
+}
+
+/** A 24-bit color to `#rrggbb`, the form `<input type="color">` and canvas styles use. */
+export function colorToHex(color: number): string {
+  return `#${color.toString(16).padStart(6, '0')}`;
 }

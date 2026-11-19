@@ -1,5 +1,5 @@
 import { Client, MatchMakeError, type Room } from '@colyseus/sdk';
-import { decodeCanvas, paletteToRgba } from '../components/Place/canvasCodec';
+import { colorsToRgba, colorToHex, decodeCanvas, hexToColor } from '../components/Place/canvasCodec';
 import { cooldownRemaining, formatCooldown, type CooldownSync } from '../components/Place/cooldown';
 import { createGesture } from '../components/Place/gesture';
 import { reconnectDelay } from '../components/Place/reconnect';
@@ -19,6 +19,7 @@ interface CanvasSnapshot {
 }
 
 interface Placement extends Pixel {
+  /** A 24-bit color, 0xRRGGBB. */
   color: number;
 }
 
@@ -145,6 +146,19 @@ function mountViewport(
   };
 }
 
+/** The last Palette swatch: a rainbow tile over a color input that opens the browser's picker. */
+function customSwatch(): HTMLLabelElement {
+  const label = document.createElement('label');
+  label.className = 'place__custom';
+  label.title = 'Custom color';
+  const input = document.createElement('input');
+  input.type = 'color';
+  input.value = '#ff6600';
+  input.setAttribute('aria-label', 'Custom color');
+  label.append(input);
+  return label;
+}
+
 function mountPlace(root: HTMLElement): void {
   const surface = root.querySelector<HTMLElement>('[data-place-surface]')!;
   const canvas = root.querySelector<HTMLCanvasElement>('[data-place-canvas]')!;
@@ -163,13 +177,13 @@ function mountPlace(root: HTMLElement): void {
     return;
   }
 
-  // Only snapshots and broadcasts change these indices. A draft lives in the
+  // Only snapshots and broadcasts change these colors. A draft lives in the
   // selection marker; an in-flight Placement paints just the canvas element.
-  let pixels: Uint8Array | null = null;
-  let palette: string[] = [];
+  let pixels: Uint32Array | null = null;
   let selected: Pixel | null = null;
   let pending: Placement | null = null;
-  let choice: HTMLInputElement | null = null;
+  /** The color chosen for the selected Pixel: a Palette preset or the custom color. */
+  let choice: number | null = null;
   let cooldownSync: CooldownSync | null = null;
 
   // The selection marker sits over the Canvas and follows it through pan and zoom.
@@ -192,7 +206,7 @@ function mountPlace(root: HTMLElement): void {
     const remaining = remainingCooldown();
     cooldownStatus.hidden = remaining === 0;
     cooldownStatus.textContent = remaining === 0 ? '' : `Place again in ${formatCooldown(remaining)}.`;
-    confirm.disabled = !choice || pending !== null || remaining > 0;
+    confirm.disabled = choice === null || pending !== null || remaining > 0;
   }
 
   function synchronizeCooldown({ nextAllowedAt, serverNow }: CooldownMessage): void {
@@ -204,7 +218,8 @@ function mountPlace(root: HTMLElement): void {
 
   function clearSelection(): void {
     if (panel.contains(document.activeElement)) canvas.focus({ preventScroll: true });
-    if (choice) choice.checked = false;
+    for (const swatch of paletteBar.querySelectorAll<HTMLInputElement>('input[type=radio]')) swatch.checked = false;
+    custom?.classList.remove('is-chosen');
     choice = null;
     selected = null;
     marker.hidden = true;
@@ -238,11 +253,36 @@ function mountPlace(root: HTMLElement): void {
     select({ x, y });
   });
 
-  paletteBar.addEventListener('change', (event) => {
-    if (!selected || !(event.target instanceof HTMLInputElement)) return;
-    choice = event.target;
-    marker.style.backgroundColor = palette[Number(choice.value)];
+  function choose(color: number): void {
+    choice = color;
+    marker.style.backgroundColor = colorToHex(color);
     refreshCooldown();
+  }
+
+  // The last swatch opens the browser's color picker for any color. Picking
+  // updates the preview live; clicking it again reuses the last custom color.
+  let custom: HTMLLabelElement | null = null;
+  let customUsed = false;
+  function chooseCustom(input: HTMLInputElement): void {
+    if (!selected) return;
+    for (const swatch of paletteBar.querySelectorAll<HTMLInputElement>('input[type=radio]')) swatch.checked = false;
+    customUsed = true;
+    custom!.classList.add('is-chosen');
+    custom!.style.setProperty('--custom-color', input.value);
+    choose(hexToColor(input.value));
+  }
+
+  paletteBar.addEventListener('input', (event) => {
+    if (!selected || !(event.target instanceof HTMLInputElement)) return;
+    if (event.target.type === 'color') {
+      chooseCustom(event.target);
+      return;
+    }
+    custom?.classList.remove('is-chosen');
+    choose(hexToColor(event.target.value));
+  });
+  paletteBar.addEventListener('click', (event) => {
+    if (event.target instanceof HTMLInputElement && event.target.type === 'color' && customUsed) chooseCustom(event.target);
   });
   function cancelSelection(): void {
     clearSelection();
@@ -254,12 +294,12 @@ function mountPlace(root: HTMLElement): void {
   });
 
   const paint = (x: number, y: number, color: number) => {
-    context.fillStyle = palette[color];
+    context.fillStyle = colorToHex(color);
     context.fillRect(x, y, 1, 1);
   };
   confirm.addEventListener('click', () => {
-    if (!pixels || !selected || !choice || pending || remainingCooldown() > 0) return;
-    pending = { ...selected, color: Number(choice.value) };
+    if (!pixels || !selected || choice === null || pending || remainingCooldown() > 0) return;
+    pending = { ...selected, color: choice };
     paint(pending.x, pending.y, pending.color);
     clearSelection();
     canvas.setAttribute('aria-disabled', 'true');
@@ -285,25 +325,24 @@ function mountPlace(root: HTMLElement): void {
     joined.onMessage('canvas', (snapshot: CanvasSnapshot) => {
       const { width, height } = snapshot;
       pixels = decodeCanvas(snapshot.pixels, width, height);
-      palette = snapshot.palette;
       const resized = canvas.width !== width || canvas.height !== height;
       canvas.width = width;
       canvas.height = height;
-      context.putImageData(new ImageData(paletteToRgba(pixels, palette), width, height), 0, 0);
+      context.putImageData(new ImageData(colorsToRgba(pixels), width, height), 0, 0);
       if (resized) viewport.refit();
       synchronizeCooldown(snapshot);
       clearSelection();
       pending = null;
-      paletteBar.replaceChildren(...palette.map((hex, index) => {
+      if (!custom) paletteBar.replaceChildren(...snapshot.palette.map((hex) => {
         const input = document.createElement('input');
         input.type = 'radio';
         input.name = 'place-color';
-        input.value = String(index);
+        input.value = hex;
         input.style.backgroundColor = hex;
-        input.title = `Palette color ${index}: ${hex}`;
-        input.setAttribute('aria-label', input.title);
+        input.title = hex;
+        input.setAttribute('aria-label', `Color ${hex}`);
         return input;
-      }));
+      }), custom = customSwatch());
       canvas.setAttribute('aria-disabled', 'false');
       setConnection('live', 'Live');
       status.textContent = SELECT_HINT;
@@ -329,7 +368,7 @@ function mountPlace(root: HTMLElement): void {
         synchronizeCooldown({ nextAllowedAt: message.nextAllowedAt, serverNow: message.serverNow });
       }
       const problem = message.reason === 'out_of_bounds' ? 'That Pixel is outside the Canvas.'
-        : message.reason === 'bad_color' ? 'That color is not in the Palette.'
+        : message.reason === 'bad_color' ? 'That color is not allowed.'
         : message.reason === 'cooldown' ? 'Your Cooldown is still active.'
         : message.reason === 'network_cap' ? 'This network has reached its Placement cap.'
         : 'Placement rejected.';
