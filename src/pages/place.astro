@@ -1,0 +1,17 @@
+---
+import Layout from '../layouts/Layout.astro';
+import '../components/Place/place.css';
+---
+
+<Layout
+  title="Place — Aramis Jones"
+  description="A shared pixel Canvas. Everyone gets one Pixel every few minutes."
+>
+  <section class="place" data-place aria-label="Shared pixel Canvas">
+    <div class="place__viewport" data-place-viewport>
+      <canvas class="place__canvas" data-place-canvas width="128" height="128" aria-label="The shared Canvas"></canvas>
+    </div>
+    <p class="place__status" data-place-status aria-live="polite" data-state="connecting">Connecting…</p>
+  </section>
+</Layout>
+<script src="../scripts/place.ts"></script>

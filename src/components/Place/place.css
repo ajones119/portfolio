@@ -1,0 +1,65 @@
+/* Place fills the screen under the site header; the page itself never scrolls. */
+body:has(.place) {
+  display: flex;
+  flex-direction: column;
+  height: 100svh;
+  overflow: hidden;
+}
+
+body:has(.place) main {
+  flex: 1;
+  min-height: 0;
+}
+
+body:has(.place) main ~ * {
+  display: none;
+}
+
+.place {
+  --place-ink: var(--color-primary);
+  --place-paper: var(--color-background);
+  --place-muted: var(--color-muted);
+  position: relative;
+  height: 100%;
+  overflow: hidden;
+  color: var(--place-ink);
+  font-family: var(--font-body);
+}
+
+.place * { box-sizing: border-box; }
+
+.place__viewport {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  container-type: size;
+  touch-action: none;
+}
+
+.place__canvas {
+  display: block;
+  width: min(100cqw - 2rem, 100cqh - 2rem);
+  aspect-ratio: 1;
+  image-rendering: crisp-edges;
+  image-rendering: pixelated;
+  border: 1px solid color-mix(in srgb, var(--place-ink) 24%, transparent);
+  background: #fff;
+}
+
+.place__status {
+  position: absolute;
+  top: .75rem;
+  left: 50%;
+  margin: 0;
+  padding: .35rem .7rem;
+  border-radius: 999px;
+  transform: translateX(-50%);
+  background: color-mix(in srgb, var(--place-paper) 88%, transparent);
+  color: var(--place-muted);
+  font-size: .75rem;
+  pointer-events: none;
+}
+
+.place__status[data-state="live"] { display: none; }
+.place__status[data-state="offline"] { color: var(--place-ink); }
