@@ -168,7 +168,13 @@ function mountPlace(root: HTMLElement): void {
   const connection = root.querySelector<HTMLElement>('[data-place-connection]')!;
   const cooldownStatus = root.querySelector<HTMLElement>('[data-place-cooldown]')!;
   const panel = root.querySelector<HTMLElement>('[data-place-panel]')!;
-  const dockMotion = mountDockMotion(root.querySelector<HTMLElement>('[data-place-dock]')!, panel);
+  const dockMotion = mountDockMotion({
+    dock: root.querySelector<HTMLElement>('[data-place-dock]')!,
+    content: root.querySelector<HTMLElement>('[data-place-dock-content]')!,
+    panel,
+    status: root.querySelector<HTMLElement>('[data-place-status]')!,
+  });
+  const setStatus = (text: string) => dockMotion.setStatus(text);
   const paletteBar = root.querySelector<HTMLFieldSetElement>('[data-place-palette]')!;
   const confirm = root.querySelector<HTMLButtonElement>('[data-place-confirm]')!;
   const cancel = root.querySelector<HTMLButtonElement>('[data-place-cancel]')!;
@@ -236,7 +242,7 @@ function mountPlace(root: HTMLElement): void {
     placeMarker(viewport.view);
     marker.hidden = false;
     dockMotion.show();
-    status.textContent = `Pixel (${pixel.x}, ${pixel.y}) · Choose a color, then press Place.`;
+    setStatus(`Pixel (${pixel.x}, ${pixel.y}) · Choose a color, then press Place.`);
   }
 
   canvas.addEventListener('keydown', (event) => {
@@ -288,7 +294,7 @@ function mountPlace(root: HTMLElement): void {
   });
   function cancelSelection(): void {
     clearSelection();
-    status.textContent = SELECT_HINT;
+    setStatus(SELECT_HINT);
   }
   cancel.addEventListener('click', cancelSelection);
   root.addEventListener('keydown', (event) => {
@@ -305,7 +311,7 @@ function mountPlace(root: HTMLElement): void {
     paint(pending.x, pending.y, pending.color);
     clearSelection();
     canvas.setAttribute('aria-disabled', 'true');
-    status.textContent = `Placing Pixel (${pending.x}, ${pending.y})…`;
+    setStatus(`Placing Pixel (${pending.x}, ${pending.y})…`);
     room?.send('place', pending);
   });
 
@@ -347,7 +353,7 @@ function mountPlace(root: HTMLElement): void {
       }), custom = customSwatch());
       canvas.setAttribute('aria-disabled', 'false');
       setConnection('live', 'Live');
-      status.textContent = SELECT_HINT;
+      setStatus(SELECT_HINT);
     });
 
     joined.onMessage('placed', ({ x, y, color }: Placement) => {
@@ -357,7 +363,7 @@ function mountPlace(root: HTMLElement): void {
     });
     joined.onMessage('place:accepted', (message: CooldownMessage) => {
       if (!pending) return;
-      status.textContent = `Placed Pixel (${pending.x}, ${pending.y}). Select another Pixel.`;
+      setStatus(`Placed Pixel (${pending.x}, ${pending.y}). Select another Pixel.`);
       pending = null;
       synchronizeCooldown(message);
       canvas.setAttribute('aria-disabled', 'false');
@@ -374,7 +380,7 @@ function mountPlace(root: HTMLElement): void {
         : message.reason === 'cooldown' ? 'Your Cooldown is still active.'
         : message.reason === 'network_cap' ? 'This network has reached its Placement cap.'
         : 'Placement rejected.';
-      status.textContent = `${problem} Select a Pixel to try again.`;
+      setStatus(`${problem} Select a Pixel to try again.`);
       canvas.setAttribute('aria-disabled', 'false');
     });
     joined.onLeave(() => {
@@ -391,7 +397,7 @@ function mountPlace(root: HTMLElement): void {
     clearSelection();
     pixels = null;
     canvas.setAttribute('aria-disabled', 'true');
-    status.textContent = 'Placing is paused until Place reconnects.';
+    setStatus('Placing is paused until Place reconnects.');
   }
 
   let attempt = 0;

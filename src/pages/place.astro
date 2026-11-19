@@ -38,7 +38,8 @@ import '../components/Place/place.css';
         </details>
       )}
       <div class="place__dock" data-place-dock>
-        <p class="place__status" data-place-status role="status">Drag to pan; scroll or pinch to zoom.</p>
+        <div class="place__dock-content" data-place-dock-content>
+        <p class="place__status" data-place-status role="status"><span>Drag to pan; scroll or pinch to zoom.</span></p>
         <p class="place__cooldown" data-place-cooldown role="status" hidden></p>
         <div class="place__panel" data-place-panel hidden>
           <fieldset class="place__palette" data-place-palette aria-label="Palette"></fieldset>
@@ -46,6 +47,7 @@ import '../components/Place/place.css';
             <button type="button" class="place__cancel" data-place-cancel>Cancel</button>
             <button type="button" class="place__confirm" data-place-confirm disabled>Place</button>
           </div>
+        </div>
         </div>
       </div>
     </div>

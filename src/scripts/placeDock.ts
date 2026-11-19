@@ -1,141 +1,137 @@
 import gsap from 'gsap';
+import { CustomEase } from 'gsap/CustomEase';
+
+gsap.registerPlugin(CustomEase);
+
+// The same curves the soundscape page uses, so the site moves as one.
+const EASE_DRAWER = CustomEase.create('place-drawer', '0.32, 0.72, 0, 1');
+const EASE_OUT = CustomEase.create('place-out', '0.23, 1, 0.32, 1');
+
+const RESIZE_SECONDS = 0.28;
+const ENTER_SECONDS = 0.24;
+const EXIT_SECONDS = 0.15;
+const BLUR = 'blur(6px)';
+
+interface DockParts {
+  /** The floating card. Script sizes it; it clips whatever is mid-transition. */
+  dock: HTMLElement;
+  /** Everything inside the card, always laid out at its natural size. */
+  content: HTMLElement;
+  /** The palette and its buttons. */
+  panel: HTMLElement;
+  /** The status line, whose text crossfades. */
+  status: HTMLElement;
+}
 
 /**
- * Opens and closes the Place palette with motion. The dock card resizes from
- * its current on-screen size (so a reversal mid-animation never jumps), and the
- * palette rises in and sinks out along the same path. No overshoot: this is UI
- * appearing, not something the visitor threw.
+ * Motion for the Place dock.
+ *
+ * The card never decides its own size mid-animation. Its contents lay out at
+ * their natural size, and a ResizeObserver eases the card to match, so every
+ * change (palette opening or closing, new status text, the Cooldown line, a
+ * late web font) takes the same smooth path and can be interrupted at any point.
+ * Content that leaves is lifted out of the layout and fades out through blur
+ * while the card shrinks beneath it; content that arrives fades in through blur
+ * as the card grows to reveal it.
  */
-export function mountDockMotion(dock: HTMLElement, panel: HTMLElement) {
+export function mountDockMotion({ dock, content, panel, status }: DockParts) {
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
   let open = !panel.hidden;
-  let generation = 0;
 
-  /**
-   * Runs `animate` after the caller's synchronous DOM updates (such as new
-   * status text) but before the next paint, so sizes are measured from the
-   * finished layout. A newer show/hide cancels an older pending one.
-   */
-  function afterUpdates(animate: () => void): void {
-    const mine = ++generation;
-    queueMicrotask(() => {
-      if (mine === generation) animate();
-    });
+  // Load the panel's fonts (the bold buttons) now, not on first open, so the
+  // card's target size doesn't change halfway through that first animation.
+  for (const button of panel.querySelectorAll('button')) {
+    void document.fonts?.load(getComputedStyle(button).font).catch(() => undefined);
   }
 
-  /** The dock's size with the panel shown or hidden, measured without a visible flash. */
-  function measure(withPanel: boolean): { width: number; height: number; panelWidth: number } {
-    const wasHidden = panel.hidden;
-    const inlineWidth = dock.style.width;
-    const inlineHeight = dock.style.height;
-    panel.hidden = !withPanel;
-    dock.style.width = '';
-    dock.style.height = '';
-    const inlinePanelWidth = panel.style.width;
-    panel.style.width = '';
-    const { width, height } = dock.getBoundingClientRect();
-    const panelWidth = panel.offsetWidth; // ignores the panel's own mid-animation scale
-    panel.style.width = inlinePanelWidth;
-    panel.hidden = wasHidden;
-    dock.style.width = inlineWidth;
-    dock.style.height = inlineHeight;
-    return { width, height, panelWidth };
-  }
-
-  // The panel keeps one width while the card resizes around it (the card clips
-  // it), so the swatches never squeeze and reflow mid-animation.
-  const pinPanel = (width: number) => gsap.set(panel, { width });
-  const unpinPanel = () => gsap.set(panel, { clearProps: 'width' });
-
-  /** Tweens the dock from `from` (its on-screen size, read before any DOM change) to `to`. */
-  function resize(from: DOMRect, to: { width: number; height: number }, duration: number, ease: string, onComplete?: () => void): void {
-    gsap.killTweensOf(dock);
-    gsap.fromTo(dock, { width: from.width, height: from.height }, {
-      width: to.width,
-      height: to.height,
-      duration,
-      ease,
-      overwrite: true,
-      onComplete: () => {
-        onComplete?.();
-        settle();
-      },
-    });
-  }
-
-  /**
-   * Hands the dock back to CSS sizing. If its natural size changed while it
-   * animated (a web font arriving, new status text), ease the difference
-   * instead of snapping to it.
-   */
-  function settle(): void {
-    const natural = measure(!panel.hidden);
-    const { width, height } = dock.getBoundingClientRect();
-    if (Math.abs(natural.width - width) < 0.5 && Math.abs(natural.height - height) < 0.5) {
-      gsap.set(dock, { clearProps: 'width,height' });
+  // The card follows its contents.
+  let sized = false;
+  new ResizeObserver(() => {
+    const border = dock.offsetWidth - dock.clientWidth;
+    const width = content.offsetWidth + border;
+    const height = content.offsetHeight + border;
+    if (!sized || reduceMotion.matches) {
+      gsap.set(dock, { width, height });
+      sized = true;
       return;
     }
-    gsap.to(dock, {
-      width: natural.width, height: natural.height, duration: 0.25, ease: 'expo.out', overwrite: true,
-      onComplete: () => gsap.set(dock, { clearProps: 'width,height' }),
+    gsap.to(dock, { width, height, duration: RESIZE_SECONDS, ease: EASE_DRAWER, overwrite: true });
+  }).observe(content);
+
+  /**
+   * Takes `element` out of the layout where it stands (so the card can start
+   * resizing at once) and fades it out through blur, then calls `done`.
+   */
+  function leave(element: HTMLElement, done: () => void): void {
+    const { offsetTop: top, offsetWidth: width } = element;
+    gsap.killTweensOf(element);
+    // Pinned by its center: the dock's contents are centered, so it stays put as they re-center around it.
+    gsap.set(element, { position: 'absolute', left: '50%', xPercent: -50, top, width, margin: 0 });
+    gsap.to(element, {
+      opacity: 0,
+      filter: reduceMotion.matches ? 'none' : BLUR,
+      scale: reduceMotion.matches ? 1 : 0.97,
+      duration: EXIT_SECONDS,
+      ease: EASE_OUT,
+      onComplete: done,
+    });
+  }
+
+  /** Fades `element` in through blur, from wherever it is now if it was leaving. */
+  function enter(element: HTMLElement, delay = 0): void {
+    const wasLeaving = gsap.isTweening(element);
+    gsap.killTweensOf(element);
+    gsap.set(element, { clearProps: 'position,left,top,width,margin', xPercent: 0 });
+    if (!wasLeaving) {
+      gsap.set(element, { opacity: 0, filter: reduceMotion.matches ? 'none' : BLUR, scale: reduceMotion.matches ? 1 : 0.97 });
+    }
+    gsap.to(element, {
+      opacity: 1,
+      filter: 'blur(0px)',
+      scale: 1,
+      duration: ENTER_SECONDS,
+      delay: wasLeaving ? 0 : delay,
+      ease: EASE_OUT,
+      clearProps: 'opacity,filter,transform',
     });
   }
 
   return {
-    get isOpen(): boolean {
-      return open;
-    },
-
     show(): void {
       if (open) return;
       open = true;
       panel.inert = false;
-      afterUpdates(animateOpen);
+      panel.hidden = false;
+      // A beat after the card starts growing, so the colors arrive into space rather than being sliced by its edge.
+      enter(panel, 0.05);
     },
 
     hide(): void {
       if (!open) return;
       open = false;
-      // Unclickable straight away, though it is still visibly leaving.
+      // Unclickable at once, though it is still visibly leaving.
       panel.inert = true;
-      afterUpdates(animateClose);
+      leave(panel, () => {
+        panel.hidden = true;
+        panel.inert = false;
+        gsap.set(panel, { clearProps: 'all' });
+      });
+    },
+
+    /** Changes the status line, crossfading the old text out and the new text in. */
+    setStatus(text: string): void {
+      const current = status.querySelector<HTMLElement>(':scope > span:not([data-leaving])');
+      if (current?.textContent === text) return;
+      const next = document.createElement('span');
+      next.textContent = text;
+      // First, so the status line's text reads as the new message straight away.
+      status.prepend(next);
+      if (current) {
+        current.dataset.leaving = '';
+        current.setAttribute('aria-hidden', 'true');
+        leave(current, () => current.remove());
+        enter(next);
+      }
     },
   };
-
-  function animateOpen(): void {
-    gsap.killTweensOf(panel);
-    const from = dock.getBoundingClientRect();
-    const target = measure(true);
-    const reversing = !panel.hidden; // caught mid-close: carry on from where it is
-    panel.hidden = false;
-    if (reduceMotion.matches) {
-      gsap.fromTo(panel, { opacity: 0 }, { opacity: 1, duration: 0.15, ease: 'none', clearProps: 'opacity' });
-      return;
-    }
-    pinPanel(target.panelWidth);
-    resize(from, target, 0.42, 'expo.out', unpinPanel);
-    if (!reversing) gsap.set(panel, { opacity: 0, y: 10, scale: 0.98, filter: 'blur(4px)' });
-    gsap.to(panel, {
-      opacity: 1, y: 0, scale: 1, filter: 'blur(0px)',
-      duration: 0.36, ease: 'expo.out', delay: reversing ? 0 : 0.04, clearProps: 'opacity,transform,filter',
-    });
-  }
-
-  function animateClose(): void {
-    gsap.killTweensOf(panel);
-    const finish = () => {
-      unpinPanel();
-      panel.hidden = true;
-      panel.inert = false;
-      gsap.set(panel, { clearProps: 'opacity,transform,filter' });
-    };
-    if (reduceMotion.matches) {
-      gsap.to(panel, { opacity: 0, duration: 0.12, ease: 'none', onComplete: finish });
-      return;
-    }
-    const from = dock.getBoundingClientRect();
-    pinPanel(panel.offsetWidth);
-    gsap.to(panel, { opacity: 0, y: 10, scale: 0.98, filter: 'blur(4px)', duration: 0.2, ease: 'power2.in' });
-    resize(from, measure(false), 0.34, 'expo.out', finish);
-  }
 }

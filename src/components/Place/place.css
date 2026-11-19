@@ -78,9 +78,7 @@ body:has(.place) main ~ * {
   left: 50%;
   bottom: max(.75rem, env(safe-area-inset-bottom));
   z-index: 1;
-  width: max-content;
-  max-width: calc(100% - 1.5rem);
-  padding: .5rem .9rem;
+  /* Script sets width and height to match the content; see placeDock.ts. */
   border: 1px solid color-mix(in srgb, var(--place-ink) 18%, transparent);
   border-radius: .75rem;
   transform: translateX(-50%);
@@ -89,17 +87,29 @@ body:has(.place) main ~ * {
   backdrop-filter: blur(8px);
   box-shadow: 0 6px 24px rgb(0 0 0 / .18);
   text-align: center;
-  /* A column that centers its children, so a panel pinned wider than the card
-     mid-animation overflows evenly and is clipped on both sides. */
+  /* Centered and top-aligned: content wider or taller than the card mid-resize
+     overflows evenly at the sides and below, and is clipped there. */
   display: flex;
-  flex-direction: column;
-  align-items: center;
+  justify-content: center;
+  align-items: flex-start;
   overflow: clip;
-  overflow-clip-margin: .5rem;
 }
 
+/* Always its natural size, never squeezed by the card around it. */
+.place__dock-content {
+  position: relative;
+  flex: none;
+  width: max-content;
+  max-width: calc(100vw - 1.5rem - 2px);
+  padding: .5rem .9rem;
+}
+
+/* New and old status text overlap while they crossfade. */
+.place__status { position: relative; }
+.place__status > span { display: block; }
+
 /* Script (GSAP) animates the palette open and closed; see placeDock.ts. */
-.place__panel { transform-origin: 50% 100%; }
+.place__panel { transform-origin: 50% 0; }
 
 .place__status,
 .place__cooldown {
