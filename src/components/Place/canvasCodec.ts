@@ -1,25 +1,29 @@
+/** A Pixel nobody has painted. It is drawn transparent, so the page shows through. */
+export const EMPTY = -1;
+
 /**
- * Reads the Canvas the Place room sends: three bytes (R, G, B) per Pixel,
- * row-major. Returns one 24-bit color (0xRRGGBB) per Pixel.
+ * Reads the Canvas the Place room sends: four bytes (R, G, B, A) per Pixel,
+ * row-major, alpha 0 for an empty Pixel. Returns one color per Pixel: a 24-bit
+ * 0xRRGGBB, or EMPTY.
  */
-export function decodeCanvas(rgb: Uint8Array, width: number, height: number): Uint32Array {
+export function decodeCanvas(rgba: Uint8Array, width: number, height: number): Int32Array {
   const pixelCount = width * height;
-  if (rgb.byteLength !== pixelCount * 3) {
-    throw new Error(`Canvas payload is ${rgb.byteLength} bytes; expected ${pixelCount * 3} for ${width}×${height}.`);
+  if (rgba.byteLength !== pixelCount * 4) {
+    throw new Error(`Canvas payload is ${rgba.byteLength} bytes; expected ${pixelCount * 4} for ${width}×${height}.`);
   }
-  const pixels = new Uint32Array(pixelCount);
+  const pixels = new Int32Array(pixelCount);
   for (let pixel = 0; pixel < pixelCount; pixel += 1) {
-    const i = pixel * 3;
-    pixels[pixel] = (rgb[i] << 16) | (rgb[i + 1] << 8) | rgb[i + 2];
+    const i = pixel * 4;
+    pixels[pixel] = rgba[i + 3] === 0 ? EMPTY : (rgba[i] << 16) | (rgba[i + 1] << 8) | rgba[i + 2];
   }
   return pixels;
 }
 
-/** Converts Pixel colors into RGBA bytes ready for `ImageData`. */
-export function colorsToRgba(pixels: Uint32Array): Uint8ClampedArray<ArrayBuffer> {
+/** Converts Pixel colors into RGBA bytes ready for `ImageData`; empty Pixels are transparent. */
+export function colorsToRgba(pixels: Int32Array): Uint8ClampedArray<ArrayBuffer> {
   const rgba = new Uint8ClampedArray(pixels.length * 4);
   pixels.forEach((color, pixel) => {
-    rgba.set([color >> 16, (color >> 8) & 0xff, color & 0xff, 255], pixel * 4);
+    if (color !== EMPTY) rgba.set([color >> 16, (color >> 8) & 0xff, color & 0xff, 255], pixel * 4);
   });
   return rgba;
 }

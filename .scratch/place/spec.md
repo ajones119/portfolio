@@ -10,7 +10,7 @@ Friends visiting the portfolio have nothing they can make together. There is no 
 
 ## Solution
 
-A `/place` page in the spirit of Reddit's r/place: one shared 128×128 Canvas of Pixels colored from a 16-color Palette or any custom color. Any visitor, without signing in, may make one Placement per Cooldown (10 minutes by default), coloring any Pixel, including one someone else just placed. Everyone watching sees Placements appear live. The Canvas lives forever (until wiped by hand), survives API restarts via a file on the server's disk, and keeps a Placement History of the last 5,000 Placements so the owner can undo vandalism. A local-only debug UI lets the developer shorten or reset the Cooldown while testing.
+A `/place` page in the spirit of Reddit's r/place: one shared 256×256 Canvas of Pixels colored from a 16-color Palette or any custom color. Any visitor, without signing in, may make one Placement per Cooldown (10 minutes by default), coloring any Pixel, including one someone else just placed. Everyone watching sees Placements appear live. The Canvas lives forever (until wiped by hand), survives API restarts via a file on the server's disk, and keeps a Placement History of the last 5,000 Placements so the owner can undo vandalism. A local-only debug UI lets the developer shorten or reset the Cooldown while testing.
 
 ## User Stories
 
@@ -71,7 +71,7 @@ A `/place` page in the spirit of Reddit's r/place: one shared 128×128 Canvas of
 - Colyseus schema state sync is **not** used for Pixels; the room communicates with explicit messages.
 
 **Domain module (server, deep module behind the room)**
-- A Place model owns the Canvas (128×128, 24-bit RGB colors), the Placement History ring (capacity 5,000, oldest evicted first), Cooldown bookkeeping, and revert. The Colyseus room and HTTP routes are thin adapters over it. It takes an injected clock.
+- A Place model owns the Canvas (256×256, 24-bit RGB colors or empty), the Placement History ring (capacity 5,000, oldest evicted first), Cooldown bookkeeping, and revert. The Colyseus room and HTTP routes are thin adapters over it. It takes an injected clock.
 - Its interface, roughly: attempt a Placement (visitor id, network id, x, y, color) → accepted with `nextAllowedAt`, or rejected with a reason (`cooldown`, `network_cap`, `out_of_bounds`, `bad_color`) and `nextAllowedAt` where relevant; encode the Canvas; list recent Placements; revert (visitor id, from, to) → list of restored Pixels; serialize/restore for persistence.
 - Each Placement History entry records Pixel coordinates, new color, the color it replaced, visitor hash, network hash, and time.
 - Revert walks history newest-to-oldest and restores a Pixel only if the visitor's Placement is still the latest Placement on that Pixel, restoring the replaced color. Restorations are themselves recorded as Placements by an admin pseudo-visitor. Placements older than the 5,000-entry window cannot be reverted.
@@ -84,11 +84,11 @@ A `/place` page in the spirit of Reddit's r/place: one shared 128×128 Canvas of
 - Cooldown state is in memory and is not persisted; a restart clears all Cooldowns (accepted).
 
 **Wire contract (room messages)**
-- On join, server → client: one `canvas` message `{ palette, width, height, pixels }` — Palette (16 preset hex colors, ordered), Canvas size, and `pixels` as binary RGB, three bytes per Pixel, row-major (49,152 bytes) — plus the visitor's Cooldown status (`nextAllowedAt`, `serverNow`).
+- On join, server → client: one `canvas` message `{ palette, width, height, pixels }` — Palette (16 preset hex colors, ordered), Canvas size, and `pixels` as binary RGBA, four bytes per Pixel, row-major (262,144 bytes before websocket compression), alpha 0 for an empty Pixel — plus the visitor's Cooldown status (`nextAllowedAt`, `serverNow`).
 - Client → server `place`: `{ x, y, color }` where color is a 24-bit RGB number (0xRRGGBB), a Palette preset or any custom color.
 - Server → placer: `place:accepted { nextAllowedAt, serverNow }` or `place:rejected { reason, nextAllowedAt?, serverNow }`.
 - Server → all clients: `placed { x, y, color }` for every accepted Placement and every Pixel restored by a revert.
-- The Palette is 16 colors drawn from the soundscape page (mint, amber, coral) and the site theme (teals, peach, sage, plum), with neutrals; white is the empty-Canvas color. The last swatch opens a custom color picker. (Changed after ticket 07: Pixels were 4-bit Palette indices; save files from then, version 1, index the r/place 2017 colors and are upgraded on load.)
+- The Palette is 16 colors drawn from the soundscape page (mint, amber, coral) and the site theme (teals, peach, sage, plum), with neutrals; an unpainted Pixel is empty (drawn transparent, so it matches light or dark mode), and white is an ordinary color. A revert can restore a Pixel to empty. The last swatch opens a custom color picker. (Changed after ticket 07: the Canvas grew from 128×128, and old saves load centered; Pixels were 4-bit Palette indices; save files from then, version 1, index the r/place 2017 colors and are upgraded on load.)
 
 **HTTP routes (registered like existing route modules)**
 - Session: issues or refreshes the visitor cookie; returns nothing sensitive.

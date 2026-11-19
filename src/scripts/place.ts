@@ -1,5 +1,5 @@
 import { Client, MatchMakeError, type Room } from '@colyseus/sdk';
-import { colorsToRgba, colorToHex, decodeCanvas, hexToColor } from '../components/Place/canvasCodec';
+import { colorsToRgba, colorToHex, decodeCanvas, EMPTY, hexToColor } from '../components/Place/canvasCodec';
 import { cooldownRemaining, formatCooldown, type CooldownSync } from '../components/Place/cooldown';
 import { createGesture } from '../components/Place/gesture';
 import { reconnectDelay } from '../components/Place/reconnect';
@@ -20,7 +20,7 @@ interface CanvasSnapshot {
 }
 
 interface Placement extends Pixel {
-  /** A 24-bit color, 0xRRGGBB. */
+  /** A 24-bit color, 0xRRGGBB, or EMPTY when a revert restores an unpainted Pixel. */
   color: number;
 }
 
@@ -187,7 +187,7 @@ function mountPlace(root: HTMLElement): void {
 
   // Only snapshots and broadcasts change these colors. A draft lives in the
   // selection marker; an in-flight Placement paints just the canvas element.
-  let pixels: Uint32Array | null = null;
+  let pixels: Int32Array | null = null;
   let selected: Pixel | null = null;
   let pending: Placement | null = null;
   /** The color chosen for the selected Pixel: a Palette preset or the custom color. */
@@ -302,6 +302,10 @@ function mountPlace(root: HTMLElement): void {
   });
 
   const paint = (x: number, y: number, color: number) => {
+    if (color === EMPTY) {
+      context.clearRect(x, y, 1, 1);
+      return;
+    }
     context.fillStyle = colorToHex(color);
     context.fillRect(x, y, 1, 1);
   };

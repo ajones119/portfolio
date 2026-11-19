@@ -1,27 +1,27 @@
 import { describe, expect, it } from 'vitest';
-import { colorsToRgba, colorToHex, decodeCanvas, hexToColor } from './canvasCodec';
+import { colorsToRgba, colorToHex, decodeCanvas, EMPTY, hexToColor } from './canvasCodec';
 
 describe('decodeCanvas', () => {
-  it('reads three bytes (R, G, B) per Pixel, row-major, into 0xRRGGBB colors', () => {
-    // A 2×1 Canvas: white then a custom blue, as the server sends it.
-    const rgb = new Uint8Array([0xff, 0xff, 0xff, 0x12, 0x34, 0x56]);
-    expect(Array.from(decodeCanvas(rgb, 2, 1))).toEqual([0xffffff, 0x123456]);
+  it('reads four bytes (R, G, B, A) per Pixel, row-major; alpha 0 is an empty Pixel', () => {
+    // A 3×1 Canvas: empty, a custom blue, then white, as the server sends it.
+    const rgba = new Uint8Array([0, 0, 0, 0, 0x12, 0x34, 0x56, 0xff, 0xff, 0xff, 0xff, 0xff]);
+    expect(Array.from(decodeCanvas(rgba, 3, 1))).toEqual([EMPTY, 0x123456, 0xffffff]);
   });
 
-  it('decodes a full 128×128 all-white Canvas', () => {
-    const pixels = decodeCanvas(new Uint8Array(128 * 128 * 3).fill(0xff), 128, 128);
-    expect(pixels.length).toBe(16384);
-    expect(pixels.every((color) => color === 0xffffff)).toBe(true);
+  it('decodes a full 256×256 empty Canvas', () => {
+    const pixels = decodeCanvas(new Uint8Array(256 * 256 * 4), 256, 256);
+    expect(pixels.length).toBe(65536);
+    expect(pixels.every((color) => color === EMPTY)).toBe(true);
   });
 
   it('rejects a payload that does not match the Canvas size', () => {
-    expect(() => decodeCanvas(new Uint8Array(10), 128, 128)).toThrow();
+    expect(() => decodeCanvas(new Uint8Array(10), 256, 256)).toThrow();
   });
 });
 
 describe('colorsToRgba', () => {
-  it('turns Pixel colors into opaque RGBA bytes', () => {
-    expect(Array.from(colorsToRgba(new Uint32Array([0xffffff, 0xe50000])))).toEqual([255, 255, 255, 255, 229, 0, 0, 255]);
+  it('turns painted Pixels opaque and empty ones transparent', () => {
+    expect(Array.from(colorsToRgba(new Int32Array([0xe50000, EMPTY])))).toEqual([229, 0, 0, 255, 0, 0, 0, 0]);
   });
 });
 

@@ -55,7 +55,8 @@ body:has(.place) main ~ * {
   display: block;
   image-rendering: crisp-edges;
   image-rendering: pixelated;
-  background: #fff;
+  /* Empty Pixels are transparent, so the Canvas takes on the light or dark page behind it. */
+  background: transparent;
   outline: 1px solid color-mix(in srgb, var(--place-ink) 24%, transparent);
 }
 

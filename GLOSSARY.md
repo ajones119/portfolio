@@ -9,7 +9,7 @@ The single shared, persistent grid of Pixels that every visitor to Place colors 
 _Avoid_: Board, grid, wall. Say "canvas element" when you mean the HTML `<canvas>`.
 
 **Pixel**:
-One cell of the Canvas, holding exactly one color at a time.
+One cell of the Canvas, holding exactly one color at a time, or empty if nobody has painted it.
 _Avoid_: Square, tile, cell
 
 **Palette**:
