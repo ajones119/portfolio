@@ -3,6 +3,7 @@ import { colorsToRgba, colorToHex, decodeCanvas, hexToColor } from '../component
 import { cooldownRemaining, formatCooldown, type CooldownSync } from '../components/Place/cooldown';
 import { createGesture } from '../components/Place/gesture';
 import { reconnectDelay } from '../components/Place/reconnect';
+import { mountDockMotion } from './placeDock';
 import {
   clampView, fitView, pixelAt, pixelRect, wheelZoomFactor, zoomAbout, zoomLimits,
   type Pixel, type Point, type View,
@@ -167,6 +168,7 @@ function mountPlace(root: HTMLElement): void {
   const connection = root.querySelector<HTMLElement>('[data-place-connection]')!;
   const cooldownStatus = root.querySelector<HTMLElement>('[data-place-cooldown]')!;
   const panel = root.querySelector<HTMLElement>('[data-place-panel]')!;
+  const dockMotion = mountDockMotion(root.querySelector<HTMLElement>('[data-place-dock]')!, panel);
   const paletteBar = root.querySelector<HTMLFieldSetElement>('[data-place-palette]')!;
   const confirm = root.querySelector<HTMLButtonElement>('[data-place-confirm]')!;
   const cancel = root.querySelector<HTMLButtonElement>('[data-place-cancel]')!;
@@ -224,7 +226,7 @@ function mountPlace(root: HTMLElement): void {
     selected = null;
     marker.hidden = true;
     marker.style.backgroundColor = '';
-    panel.hidden = true;
+    dockMotion.hide();
     confirm.disabled = true;
   }
 
@@ -233,7 +235,7 @@ function mountPlace(root: HTMLElement): void {
     selected = pixel;
     placeMarker(viewport.view);
     marker.hidden = false;
-    panel.hidden = false;
+    dockMotion.show();
     status.textContent = `Pixel (${pixel.x}, ${pixel.y}) · Choose a color, then press Place.`;
   }
 

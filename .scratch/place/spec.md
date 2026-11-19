@@ -88,7 +88,7 @@ A `/place` page in the spirit of Reddit's r/place: one shared 128×128 Canvas of
 - Client → server `place`: `{ x, y, color }` where color is a 24-bit RGB number (0xRRGGBB), a Palette preset or any custom color.
 - Server → placer: `place:accepted { nextAllowedAt, serverNow }` or `place:rejected { reason, nextAllowedAt?, serverNow }`.
 - Server → all clients: `placed { x, y, color }` for every accepted Placement and every Pixel restored by a revert.
-- The Palette is the r/place 2017 16-color palette; white is the empty-Canvas color. The last swatch opens a custom color picker. (Changed after ticket 07: Pixels were 4-bit Palette indices; save files from then, version 1, are upgraded on load.)
+- The Palette is 16 colors drawn from the soundscape page (mint, amber, coral) and the site theme (teals, peach, sage, plum), with neutrals; white is the empty-Canvas color. The last swatch opens a custom color picker. (Changed after ticket 07: Pixels were 4-bit Palette indices; save files from then, version 1, index the r/place 2017 colors and are upgraded on load.)
 
 **HTTP routes (registered like existing route modules)**
 - Session: issues or refreshes the visitor cookie; returns nothing sensitive.

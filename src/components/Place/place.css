@@ -89,20 +89,17 @@ body:has(.place) main ~ * {
   backdrop-filter: blur(8px);
   box-shadow: 0 6px 24px rgb(0 0 0 / .18);
   text-align: center;
+  /* A column that centers its children, so a panel pinned wider than the card
+     mid-animation overflows evenly and is clipped on both sides. */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow: clip;
+  overflow-clip-margin: .5rem;
 }
 
-/* The palette eases in instead of popping. */
-.place__panel:not([hidden]) {
-  animation: place-panel-in .16s ease-out;
-}
-
-@keyframes place-panel-in {
-  from { opacity: 0; transform: translateY(.35rem); }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .place__panel:not([hidden]) { animation: none; }
-}
+/* Script (GSAP) animates the palette open and closed; see placeDock.ts. */
+.place__panel { transform-origin: 50% 100%; }
 
 .place__status,
 .place__cooldown {
@@ -146,6 +143,18 @@ body:has(.place) main ~ * {
   border: 1px solid color-mix(in srgb, var(--place-ink) 30%, transparent);
   border-radius: .2rem;
   cursor: pointer;
+}
+
+.place__palette input,
+.place__custom,
+.place__actions button {
+  transition: transform 120ms cubic-bezier(.23, 1, .32, 1);
+}
+
+.place__palette input:active,
+.place__custom:active,
+.place__actions button:active:not(:disabled) {
+  transform: scale(.92);
 }
 
 .place__palette input:checked,
@@ -249,6 +258,16 @@ body:has(.place) main ~ * {
   height: .5rem;
   border-radius: 50%;
   background: #E59500;
+}
+
+.place__connection {
+  transition: opacity 200ms ease-out, transform 200ms cubic-bezier(.23, 1, .32, 1);
+}
+
+/* Only shown once there is something to say: Live, or offline. */
+.place__connection[data-state="connecting"] {
+  opacity: 0;
+  transform: translateX(-50%) translateY(-.35rem);
 }
 
 .place__connection[data-state="live"]::before { background: #02BE01; }
