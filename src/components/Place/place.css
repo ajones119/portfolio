@@ -274,8 +274,8 @@ body:has(.place) main ~ * {
   transition: opacity 200ms ease-out, transform 200ms cubic-bezier(.23, 1, .32, 1);
 }
 
-/* Only shown once there is something to say: Live, or offline. */
-.place__connection[data-state="connecting"] {
+/* Only shown when not connected to the server: connecting, reconnecting, or offline. */
+.place__connection[data-state="live"] {
   opacity: 0;
   transform: translateX(-50%) translateY(-.35rem);
 }
