@@ -136,7 +136,7 @@ body:has(.place) main ~ * {
 
 .place__palette {
   display: grid;
-  grid-template-columns: repeat(17, 1fr);
+  grid-template-columns: repeat(18, 1fr);
   width: 38rem;
   max-width: 100%;
   min-width: 0;
@@ -197,6 +197,40 @@ body:has(.place) main ~ * {
   border-radius: 50%;
   background: conic-gradient(#f00, #ff0, #0f0, #0ff, #00f, #f0f, #f00);
   box-shadow: 0 0 0 1px white;
+}
+
+/* The star swatch walks into the 3D garden: gold, with a slow twinkle, so it reads as special. */
+.place__walk {
+  display: grid;
+  place-items: center;
+  height: 2rem;
+  padding: 0;
+  border: 1px solid color-mix(in srgb, #b8860b 70%, transparent);
+  border-radius: .2rem;
+  background: radial-gradient(circle at 30% 25%, #fff6c8, #f5c542 55%, #d9930d);
+  box-shadow: 0 0 .6rem rgb(245 197 66 / .45);
+  cursor: pointer;
+  transition: transform 120ms cubic-bezier(.23, 1, .32, 1), box-shadow 200ms ease-out;
+}
+
+.place__walk svg {
+  width: 1.2rem;
+  height: 1.2rem;
+  fill: #fff;
+  stroke: #9a6a00;
+  stroke-width: 1.2;
+  stroke-linejoin: round;
+  animation: place-walk-twinkle 2.4s ease-in-out infinite;
+}
+
+.place__walk:hover:not(:disabled) { box-shadow: 0 0 .9rem rgb(245 197 66 / .75); }
+.place__walk:hover:not(:disabled) svg { animation: none; transform: rotate(18deg) scale(1.15); }
+.place__walk:active:not(:disabled) { transform: scale(.92); }
+.place__walk:disabled { opacity: .45; cursor: default; box-shadow: none; }
+
+@keyframes place-walk-twinkle {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.12); }
 }
 
 /* The real color input fills the swatch invisibly, so it stays clickable and focusable. */
@@ -328,4 +362,133 @@ body:has(.place) main ~ * {
   color: color-mix(in srgb, var(--place-ink) 60%, transparent);
   font-size: .8rem;
   white-space: nowrap;
+}
+
+/* ── 3D garden (world3d/) ─────────────────────────────────────────── */
+
+/* While walking, the garden covers the 2D Canvas; the palette and loader step aside. */
+.place[data-world] .place__dock,
+.place[data-world] .place__loader,
+.place[data-world] .place__selection { display: none; }
+.place[data-world] .place__connection { z-index: 3; }
+
+.place-world {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  overflow: hidden;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.place-world[hidden] { display: none; }
+
+.place-world__canvas {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  outline: none;
+}
+
+.place-world__hud {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  color: #fff;
+  font-size: .8rem;
+  text-shadow: 0 1px 2px rgb(0 0 0 / .45);
+  opacity: 0;
+  transition: opacity 300ms ease-out;
+}
+
+.place-world__hud[data-visible="true"] { opacity: 1; }
+.place-world__hud[data-visible="true"] > * { pointer-events: auto; }
+
+.place-world__exit {
+  position: absolute;
+  top: .6rem;
+  right: .6rem;
+  padding: .3rem .8rem;
+  border: 1px solid rgb(255 255 255 / .35);
+  border-radius: 999px;
+  background: rgb(20 24 28 / .45);
+  backdrop-filter: blur(6px);
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.place-world__exit:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+
+.place-world__compass {
+  position: absolute;
+  top: .6rem;
+  left: .6rem;
+  width: 2.6rem;
+  height: 2.6rem;
+  border: 1px solid rgb(255 255 255 / .35);
+  border-radius: 50%;
+  background: rgb(20 24 28 / .4);
+  backdrop-filter: blur(6px);
+  pointer-events: none;
+}
+
+.place-world__compass-dial {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  justify-content: center;
+  padding-top: .15rem;
+}
+
+.place-world__compass-dial b { color: #ffb4a2; font-size: .75rem; }
+
+.place-world__coords,
+.place-world__hint {
+  position: absolute;
+  left: 50%;
+  margin: 0;
+  translate: -50% 0;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.place-world__coords { bottom: 2.4rem; font-variant-numeric: tabular-nums; font-size: .9rem; }
+.place-world__hint { bottom: .9rem; opacity: .8; }
+
+/* The crosshair while the mouse is locked. */
+.place-world:has(.place-world__hud[data-visible="true"])::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: rgb(255 255 255 / .8);
+  box-shadow: 0 0 0 1px rgb(0 0 0 / .25);
+  translate: -50% -50%;
+  pointer-events: none;
+}
+
+.place-world__joystick {
+  border: 2px solid rgb(255 255 255 / .45);
+  border-radius: 50%;
+  background: rgb(20 24 28 / .25);
+  backdrop-filter: blur(4px);
+}
+
+.place-world__joystick-knob {
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 50%;
+  background: rgb(255 255 255 / .75);
+  box-shadow: 0 2px 6px rgb(0 0 0 / .3);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .place-world__hud { transition: none; }
+  .place__walk svg { animation: none; }
 }

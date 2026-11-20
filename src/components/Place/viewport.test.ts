@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { clampView, fitView, pixelAt, pixelRect, wheelZoomFactor, zoomAbout, zoomLimits } from './viewport';
+import { centerOn, clampView, fitView, pixelAt, pixelRect, viewCenter, wheelZoomFactor, zoomAbout, zoomLimits } from './viewport';
 
 const canvas = { width: 128, height: 128 };
 
@@ -115,5 +115,27 @@ describe('wheelZoomFactor', () => {
 
   it('makes trackpad pinches, which arrive as small ctrl-wheel deltas, zoom faster per delta', () => {
     expect(wheelZoomFactor(-10, 0, true)).toBeGreaterThan(wheelZoomFactor(-10, 0, false));
+  });
+});
+
+describe('viewCenter', () => {
+  const viewport = { width: 400, height: 600 };
+
+  it('finds the Pixel under the middle of the viewport', () => {
+    expect(viewCenter({ scale: 4, x: 0, y: 0 }, viewport, canvas)).toEqual({ x: 50, y: 75 });
+  });
+
+  it('clamps onto the Canvas when its middle is off the Canvas', () => {
+    expect(viewCenter({ scale: 1, x: 300, y: -1000 }, viewport, canvas)).toEqual({ x: 0, y: 127 });
+  });
+});
+
+describe('centerOn', () => {
+  const viewport = { width: 400, height: 600 };
+
+  it('puts the middle of the Pixel at the middle of the viewport', () => {
+    const view = centerOn({ x: 10, y: 20 }, 8, viewport);
+    expect(pixelAt(view, { x: 200, y: 300 }, canvas)).toEqual({ x: 10, y: 20 });
+    expect(viewCenter(view, viewport, canvas)).toEqual({ x: 10, y: 20 });
   });
 });

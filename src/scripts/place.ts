@@ -5,8 +5,9 @@ import { createGesture } from '../components/Place/gesture';
 import { reconnectDelay } from '../components/Place/reconnect';
 import { mountDockMotion } from './placeDock';
 import { mountLoader } from './placeLoader';
+import type { World } from '../components/Place/world3d/index';
 import {
-  clampView, fitView, pixelAt, pixelRect, wheelZoomFactor, zoomAbout, zoomLimits,
+  centerOn, clampView, fitView, pixelAt, pixelRect, viewCenter, wheelZoomFactor, zoomAbout, zoomLimits,
   type Pixel, type Point, type View,
 } from '../components/Place/viewport';
 
@@ -36,7 +37,20 @@ interface RejectedPlacement {
   serverNow: number;
 }
 
-const API_BASE_URL = (import.meta.env.PUBLIC_ARAMIS_API_URL ?? 'http://localhost:4322').replace(/\/$/, '');
+/**
+ * In development the page may be opened as localhost or by LAN address (to test
+ * on a phone). The visitor cookie is SameSite=Lax, so it only reaches the API
+ * when both share a host: use the page's host with the configured port.
+ */
+function apiBaseUrl(): string {
+  const configured = import.meta.env.PUBLIC_ARAMIS_API_URL ?? 'http://localhost:4322';
+  if (!import.meta.env.DEV) return configured.replace(/\/$/, '');
+  const url = new URL(configured);
+  url.hostname = location.hostname;
+  return url.origin;
+}
+
+const API_BASE_URL = apiBaseUrl();
 
 const SELECT_HINT = 'Select a Pixel on the Canvas to choose its color.';
 
@@ -140,6 +154,18 @@ function mountViewport(
     get view(): View {
       return view;
     },
+    /** The Pixel under the middle of the viewport. */
+    center(): Pixel {
+      return viewCenter(view, surfaceSize(), canvasSize());
+    },
+    /** The view, clamped like any other, that centers `pixel` at `scale`. */
+    viewCentering(pixel: Pixel, scale: number): View {
+      return clampView(centerOn(pixel, scale, surfaceSize()), surfaceSize(), canvasSize());
+    },
+    show(next: View): void {
+      moved = true;
+      apply(next);
+    },
     /** Re-fit after the Canvas size changes (for example on a new snapshot). */
     refit(): void {
       moved = false;
@@ -159,6 +185,17 @@ function customSwatch(): HTMLLabelElement {
   input.setAttribute('aria-label', 'Custom color');
   label.append(input);
   return label;
+}
+
+/** The Palette's special last swatch: a star that walks into the 3D garden at the selected Pixel. */
+function walkSwatch(): HTMLButtonElement {
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = 'place__walk';
+  button.title = 'Walk here in 3D';
+  button.setAttribute('aria-label', 'Walk through the Canvas in 3D, starting at this Pixel');
+  button.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.6l2.76 5.6 6.18.9-4.47 4.36 1.05 6.15L12 16.7l-5.52 2.9 1.05-6.15L3.06 9.1l6.18-.9z"/></svg>';
+  return button;
 }
 
 function mountPlace(root: HTMLElement): void {
@@ -194,6 +231,14 @@ function mountPlace(root: HTMLElement): void {
   /** The color chosen for the selected Pixel: a Palette preset or the custom color. */
   let choice: number | null = null;
   let cooldownSync: CooldownSync | null = null;
+  /** The star at the end of the Palette; wired up with the 3D garden, below. */
+  const walk = walkSwatch();
+  /** Set once the Walk button is wired up, below. */
+  let gardenHooks: {
+    placed(x: number, y: number, color: number): void;
+    snapshot(pixels: Int32Array): void;
+    refresh(): void;
+  } | null = null;
 
   // The selection marker sits over the Canvas and follows it through pan and zoom.
   function placeMarker(view: View): void {
@@ -357,16 +402,19 @@ function mountPlace(root: HTMLElement): void {
         input.title = hex;
         input.setAttribute('aria-label', `Color ${hex}`);
         return input;
-      }), custom = customSwatch());
+      }), custom = customSwatch(), walk);
       canvas.setAttribute('aria-disabled', 'false');
       setConnection('live', 'Live');
       setStatus(SELECT_HINT);
+      gardenHooks?.snapshot(pixels);
+      gardenHooks?.refresh();
     });
 
     joined.onMessage('placed', ({ x, y, color }: Placement) => {
       if (!pixels) return;
       pixels[y * canvas.width + x] = color;
       paint(x, y, color);
+      gardenHooks?.placed(x, y, color);
     });
     joined.onMessage('place:accepted', (message: CooldownMessage) => {
       if (!pending) return;
@@ -403,6 +451,7 @@ function mountPlace(root: HTMLElement): void {
     discardPending();
     clearSelection();
     pixels = null;
+    gardenHooks?.refresh();
     canvas.setAttribute('aria-disabled', 'true');
     setStatus('Placing is paused until Place reconnects.');
   }
@@ -453,6 +502,68 @@ function mountPlace(root: HTMLElement): void {
       if (element) debugPanel = mountDebugPanel(element, { apiBaseUrl: API_BASE_URL, onCooldown: synchronizeCooldown });
     });
   }
+
+  // The 3D garden. Its code (and three.js) only loads on the first Walk.
+  const worldHost = root.querySelector<HTMLElement>('[data-place-world]')!;
+  let world: World | null = null;
+  let walking = false;
+  /** The 2D zoom when the walk began; the walk ends back at this zoom. */
+  let walkScale = 1;
+  const refreshWalk = () => { walk.disabled = !pixels || walking; };
+
+  async function enterGarden(): Promise<void> {
+    if (!pixels || walking) return;
+    walking = true;
+    refreshWalk();
+    const focus = selected ?? viewport.center();
+    walkScale = viewport.view.scale;
+    clearSelection();
+    surface.inert = true;
+    try {
+      const { enterWorld } = await import('../components/Place/world3d/index');
+      root.dataset.world = '';
+      worldHost.hidden = false;
+      world = enterWorld({
+        container: worldHost,
+        pixels,
+        width: canvas.width,
+        height: canvas.height,
+        focus,
+        view: viewport.view,
+        viewFor: (pixel) => viewport.viewCentering(pixel, walkScale),
+        onExitRequest: () => void leaveGarden(),
+      });
+    } catch (error) {
+      console.error('Could not open the 3D garden', error);
+      delete root.dataset.world;
+      worldHost.hidden = true;
+      surface.inert = false;
+      walking = false;
+      refreshWalk();
+    }
+  }
+
+  async function leaveGarden(): Promise<void> {
+    if (!world) return;
+    const leaving = world;
+    const pixel = await leaving.exit();
+    if (world !== leaving) return;
+    world = null;
+    viewport.show(viewport.viewCentering(pixel, walkScale));
+    worldHost.hidden = true;
+    surface.inert = false;
+    delete root.dataset.world;
+    walking = false;
+    refreshWalk();
+    canvas.focus({ preventScroll: true });
+  }
+
+  walk.addEventListener('click', () => void enterGarden());
+  gardenHooks = {
+    placed: (x, y, color) => world?.applyPlaced(x, y, color),
+    snapshot: (next) => world?.applySnapshot(next),
+    refresh: refreshWalk,
+  };
 
   void connect();
 }

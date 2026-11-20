@@ -96,3 +96,20 @@ export function wheelZoomFactor(deltaY: number, deltaMode: number, ctrlKey: bool
   const pixels = deltaMode === 1 ? deltaY * LINE_HEIGHT : deltaMode === 2 ? deltaY * PAGE_HEIGHT : deltaY;
   return Math.exp(-pixels * (ctrlKey ? 0.01 : 0.002));
 }
+
+/** The Pixel at the middle of the viewport, clamped onto the Canvas. */
+export function viewCenter(view: View, viewport: Size, canvas: Size): Pixel {
+  return {
+    x: clamp(Math.floor((viewport.width / 2 - view.x) / view.scale), 0, canvas.width - 1),
+    y: clamp(Math.floor((viewport.height / 2 - view.y) / view.scale), 0, canvas.height - 1),
+  };
+}
+
+/** The view, at `scale`, that puts the middle of `pixel` at the middle of the viewport. */
+export function centerOn(pixel: Pixel, scale: number, viewport: Size): View {
+  return {
+    scale,
+    x: viewport.width / 2 - (pixel.x + 0.5) * scale,
+    y: viewport.height / 2 - (pixel.y + 0.5) * scale,
+  };
+}
